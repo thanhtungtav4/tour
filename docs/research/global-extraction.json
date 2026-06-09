@@ -1,0 +1,751 @@
+{
+  "timestamp": "2026-06-07T16:12:41.055Z",
+  "url": "https://newtrip.com.vn",
+  "fonts": {
+    "fontLinks": [
+      "https://newtrip.com.vn/_next/static/chunks/045d3bae3a672caa.css",
+      "https://newtrip.com.vn/_next/static/chunks/cb33a49aa515924d.css"
+    ],
+    "computedFonts": [
+      "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "Poppins, Inter, sans-serif"
+    ]
+  },
+  "favicons": [
+    {
+      "href": "https://i.postimg.cc/pr3jTYMs/582549528-122103437163116307-4161394095605531748-n.jpg",
+      "sizes": "",
+      "type": ""
+    },
+    {
+      "href": "https://i.postimg.cc/pr3jTYMs/582549528-122103437163116307-4161394095605531748-n.jpg",
+      "sizes": "",
+      "type": ""
+    },
+    {
+      "href": "https://i.postimg.cc/pr3jTYMs/582549528-122103437163116307-4161394095605531748-n.jpg",
+      "sizes": "",
+      "type": ""
+    }
+  ],
+  "meta": {
+    "title": "Newtrip - Trải nghiệm phiêu lưu thiên nhiên",
+    "description": "Newtrip chuyên cung cấp các tour trekking, camping phiêu lưu an toàn và đáng nhớ. Trải nghiệm thiên nhiên cùng đội ngũ chuyên nghiệp.",
+    "ogImage": "https://i.postimg.cc/pr3jTYMs/582549528-122103437163116307-4161394095605531748-n.jpg",
+    "ogTitle": "Newtrip - Trải nghiệm phiêu lưu thiên nhiên",
+    "viewport": "width=device-width, initial-scale=1"
+  },
+  "colors": [
+    {
+      "color": "rgb(211, 218, 228)",
+      "count": 692
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 600
+    },
+    {
+      "color": "rgb(14, 20, 37)",
+      "count": 501
+    },
+    {
+      "color": "rgb(255, 255, 255)",
+      "count": 86
+    },
+    {
+      "color": "rgb(22, 162, 73)",
+      "count": 59
+    },
+    {
+      "color": "rgb(0, 0, 0)",
+      "count": 30
+    },
+    {
+      "color": "rgba(20, 31, 56, 0.1) 0px 35px 120px 0px",
+      "count": 29
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+      "count": 24
+    },
+    {
+      "color": "rgb(251, 191, 36)",
+      "count": 15
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 13
+    },
+    {
+      "color": "rgb(16, 185, 129)",
+      "count": 13
+    },
+    {
+      "color": "rgb(16, 185, 129) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 13
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 12
+    },
+    {
+      "color": "rgba(16, 185, 129, 0.9)",
+      "count": 8
+    },
+    {
+      "color": "rgba(16, 185, 129, 0.9) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 8
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) radial-gradient(circle at 0px 0px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 8
+    },
+    {
+      "color": "rgb(22, 162, 73) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 6
+    },
+    {
+      "color": "rgb(245, 158, 11)",
+      "count": 6
+    },
+    {
+      "color": "rgb(245, 158, 11) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 6
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) linear-gradient(to right, rgb(22, 162, 73), rgb(87, 13, 248)) repeat scroll 0% 0% / auto padding-box text",
+      "count": 4
+    },
+    {
+      "color": "rgb(139, 92, 246)",
+      "count": 4
+    },
+    {
+      "color": "rgba(22, 162, 73, 0.4)",
+      "count": 3
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) radial-gradient(circle at 0px 0px, rgba(34, 197, 94, 0.08), rgba(0, 0, 0, 0) 80%) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 3
+    },
+    {
+      "color": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 2
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0)) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 2
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) linear-gradient(to right bottom, rgb(22, 162, 73), rgb(139, 92, 246)) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 2
+    },
+    {
+      "color": "rgb(255, 255, 255) 0px 0px 0px 0px, rgba(255, 255, 255, 0.3) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "count": 2
+    },
+    {
+      "color": "rgb(245, 247, 250)",
+      "count": 1
+    },
+    {
+      "color": "radial-gradient(circle at 20% 20%, rgba(22, 162, 73, 0.12), rgba(0, 0, 0, 0) 45%) repeat fixed 0% 0% / auto padding-box border-box, radial-gradient(circle at 80% -10%, rgba(87, 13, 248, 0.08), rgba(0, 0, 0, 0) 55%) repeat fixed 0% 0% / auto padding-box border-box, rgb(245, 247, 250) linear-gradient(rgb(245, 247, 250) 0%, rgb(235, 239, 244) 45%, rgb(245, 247, 250) 100%) repeat fixed 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgba(255, 255, 255, 0.85)",
+      "count": 1
+    },
+    {
+      "color": "rgba(255, 255, 255, 0.85) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgb(211, 218, 228) rgb(211, 218, 228) rgba(211, 218, 228, 0.7)",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(22, 162, 73, 0.25) 0px 10px 15px -3px, rgba(22, 162, 73, 0.25) 0px 4px 6px -4px",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.25) 0px 25px 50px -12px",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) linear-gradient(to right, rgba(0, 0, 0, 0), rgb(22, 162, 73), rgba(0, 0, 0, 0)) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) linear-gradient(to right, rgba(0, 0, 0, 0), rgb(87, 13, 248), rgba(0, 0, 0, 0)) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) radial-gradient(circle at 330px 436.363px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) radial-gradient(circle at 157.336px 204.75px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) radial-gradient(circle at -0.328125px 418.75px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) radial-gradient(circle at 352px 190.279px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgb(244, 63, 94)",
+      "count": 1
+    },
+    {
+      "color": "rgb(244, 63, 94) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) linear-gradient(to right bottom, rgba(6, 78, 59, 0.4), rgba(22, 78, 99, 0.3)) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgba(22, 162, 73, 0.1)",
+      "count": 1
+    },
+    {
+      "color": "rgba(22, 162, 73, 0.1) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgba(22, 162, 73, 0.2)",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    },
+    {
+      "color": "rgba(255, 255, 255, 0.7)",
+      "count": 1
+    },
+    {
+      "color": "rgba(0, 0, 0, 0) linear-gradient(to right bottom, rgb(244, 63, 94), rgb(219, 39, 119)) repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 1
+    }
+  ],
+  "assets": {
+    "images": [
+      {
+        "src": "https://i.postimg.cc/pr3jTYMs/582549528-122103437163116307-4161394095605531748-n.jpg",
+        "alt": "Newtrip",
+        "width": 800,
+        "height": 800,
+        "parentClasses": "flex items-center gap-2.5 group z-50 outline-none",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/vBwF4WW6/LICH-THANG-(6).png",
+        "alt": "Lịch trình sắp tới 1",
+        "width": 1280,
+        "height": 672,
+        "parentClasses": "absolute inset-0 cursor-grab active:cursor-grabbing touch-pan-y",
+        "siblings": 1,
+        "position": "absolute",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/0QY6j59P/langbiang4-35.jpg",
+        "alt": "Langbiang",
+        "width": 1280,
+        "height": 809,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/zB3S7rT6/CT04_01_2026_369.jpg",
+        "alt": "Rừng Cát Tiên",
+        "width": 1280,
+        "height": 853,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/B6QpLFhB/MD-28-12-2025-408.jpg",
+        "alt": "Bù Gia Mập",
+        "width": 1280,
+        "height": 853,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/FHJpkMnZ/DSC_0032.jpg",
+        "alt": "Núi Dinh - Bà Rịa ",
+        "width": 1280,
+        "height": 852,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/MKsVVWv5/Yandoane-038.jpg",
+        "alt": "YangDoan",
+        "width": 1280,
+        "height": 853,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/Njrsn19H/DSC07358.jpg",
+        "alt": "Núi Chứa Chan ",
+        "width": 1280,
+        "height": 853,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/TwpRJMjX/z7907053911333-6513645fd78fdd8a23a05adb85297fbe.jpg",
+        "alt": "Brahyang",
+        "width": 1280,
+        "height": 853,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/pL3vQgy7/NLNN-2497.jpg",
+        "alt": "Thác Liêng Ài - Bảo Lộc",
+        "width": 1280,
+        "height": 720,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/xT487pc3/DSC06595.jpg",
+        "alt": "Tà Cú - Kê Gà ",
+        "width": 1280,
+        "height": 855,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/DwsWCTQj/IMG_2096.avif",
+        "alt": "Núi Minh Đạm - Biển Phước Hải",
+        "width": 600,
+        "height": 800,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/sxmLBLnV/thao_nguyen_pal_sol_ivivu_4.jpg",
+        "alt": "Thảo nguyên Palsol",
+        "width": 1280,
+        "height": 808,
+        "parentClasses": "relative aspect-[4/3] overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=2070",
+        "alt": "About Us",
+        "width": 2070,
+        "height": 1381,
+        "parentClasses": "lg:col-span-2 relative rounded-3xl overflow-hidden min-h-[420px] group",
+        "siblings": 1,
+        "position": "absolute",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/26jyMVj2/49.jpg",
+        "alt": "Mẹo Chọn Giày Khi Đi Trekking Không Bị Đau Chân – Bí Quyết Dân Trekking Cần Biết",
+        "width": 1280,
+        "height": 853,
+        "parentClasses": "relative h-52 overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/TP9cM5xB/62.jpg",
+        "alt": "Trekking Tự Túc: Lợi Ích & Nguy Hiểm – Những Điều Cần Lưu Ý Trước Chuyến Đi",
+        "width": 1280,
+        "height": 853,
+        "parentClasses": "relative h-52 overflow-hidden",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      },
+      {
+        "src": "https://i.postimg.cc/pr3jTYMs/582549528-122103437163116307-4161394095605531748-n.jpg",
+        "alt": "Newtrip",
+        "width": 800,
+        "height": 800,
+        "parentClasses": "flex items-center gap-2",
+        "siblings": 1,
+        "position": "static",
+        "zIndex": "auto"
+      }
+    ],
+    "videos": [],
+    "backgroundImages": [
+      {
+        "url": "radial-gradient(circle at 20% 20%, rgba(22, 162, 73, 0.12), rgba(0, 0, 0, 0) 45%), radial-gradient(circle at 80% -10%, rgba(87, 13, 248, 0.08), rgba(0, 0, 0, 0) 55%), linear-gradient(rgb(245, 247, 250) 0%, rgb(235, 239, 244) 45%, rgb(245, 247, 250) 100%)",
+        "element": "BODY.font-sans"
+      },
+      {
+        "url": "linear-gradient(to right, rgb(22, 162, 73), rgb(87, 13, 248))",
+        "element": "SPAN.text-base"
+      },
+      {
+        "url": "linear-gradient(to right, rgb(22, 162, 73), rgb(87, 13, 248))",
+        "element": "SPAN.text-gradient"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(to right, rgba(0, 0, 0, 0), rgb(22, 162, 73), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(to right, rgba(0, 0, 0, 0), rgb(87, 13, 248), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "radial-gradient(circle at 330px 436.363px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at 157.336px 204.75px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at -0.328125px 418.75px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at 352px 190.279px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(52, 211, 153, 0.12), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to right bottom, rgba(6, 78, 59, 0.4), rgba(22, 78, 99, 0.3))",
+        "element": "DIV.w-full"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(135deg, rgb(22, 162, 73) 0%, rgba(22, 162, 73, 0.8) 100%)",
+        "element": "SPAN.btn-primary"
+      },
+      {
+        "url": "linear-gradient(to right, rgb(22, 162, 73), rgb(87, 13, 248))",
+        "element": "SPAN.text-gradient"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(34, 197, 94, 0.08), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to right bottom, rgb(244, 63, 94), rgb(219, 39, 119))",
+        "element": "DIV.flex-shrink-0"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(34, 197, 94, 0.08), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to right bottom, rgb(139, 92, 246), rgb(147, 51, 234))",
+        "element": "DIV.flex-shrink-0"
+      },
+      {
+        "url": "radial-gradient(circle at 0px 0px, rgba(34, 197, 94, 0.08), rgba(0, 0, 0, 0) 80%)",
+        "element": "DIV.pointer-events-none"
+      },
+      {
+        "url": "linear-gradient(to right bottom, rgb(22, 162, 73), rgb(16, 185, 129))",
+        "element": "DIV.flex-shrink-0"
+      },
+      {
+        "url": "linear-gradient(to right, rgb(22, 162, 73), rgb(87, 13, 248))",
+        "element": "SPAN.text-gradient"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(to right bottom, rgb(22, 162, 73), rgb(139, 92, 246))",
+        "element": "DIV.w-7"
+      },
+      {
+        "url": "linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0))",
+        "element": "DIV.absolute"
+      },
+      {
+        "url": "linear-gradient(to right bottom, rgb(22, 162, 73), rgb(139, 92, 246))",
+        "element": "DIV.w-7"
+      }
+    ],
+    "svgCount": 46
+  },
+  "topology": [
+    {
+      "index": 0,
+      "tag": "header",
+      "id": "",
+      "classes": "fixed top-0 left-0 right-0 z-50 transition-all duration-300 glass-nav shadow-lg",
+      "text": "NewtripSiêu tiện - Siêu vui - Siêu Tiết KiệmTrang chủTuyến đườngVề chúng tôiLiên hệSángHệ thốngTốiĐặ",
+      "rect": {
+        "top": 0,
+        "height": 81,
+        "width": 758
+      },
+      "childCount": 1
+    },
+    {
+      "index": 1,
+      "tag": "nav",
+      "id": "",
+      "classes": "container mx-auto px-4 sm:px-6 lg:px-8",
+      "text": "NewtripSiêu tiện - Siêu vui - Siêu Tiết KiệmTrang chủTuyến đườngVề chúng tôiLiên hệSángHệ thốngTốiĐặ",
+      "rect": {
+        "top": 0,
+        "height": 80,
+        "width": 758
+      },
+      "childCount": 1
+    },
+    {
+      "index": 2,
+      "tag": "main",
+      "id": "",
+      "classes": "flex-grow",
+      "text": "Lịch trình sắp tớiNhững trải nghiệm tuyệt vời đang chờ đón bạn trong thời gian tới12 chuyếnSắp khởi ",
+      "rect": {
+        "top": -1113,
+        "height": 5872,
+        "width": 758
+      },
+      "childCount": 1
+    },
+    {
+      "index": 3,
+      "tag": "section",
+      "id": "",
+      "classes": "section-padding bg-gradient-to-b from-background to-background-accent overflow-hidden",
+      "text": "Lịch trình sắp tớiNhững trải nghiệm tuyệt vời đang chờ đón bạn trong thời gian tới",
+      "rect": {
+        "top": -1033,
+        "height": 612.25,
+        "width": 758
+      },
+      "childCount": 1
+    },
+    {
+      "index": 4,
+      "tag": "section",
+      "id": "",
+      "classes": "section-padding overflow-hidden",
+      "text": "Câu chuyện của chúng tôiVì sao chọn Newtrip?Đội ngũ hướng dẫn viên nhiệt huyết, am hiểu từng địa dan",
+      "rect": {
+        "top": 2565.75,
+        "height": 1144,
+        "width": 758
+      },
+      "childCount": 1
+    },
+    {
+      "index": 5,
+      "tag": "section",
+      "id": "",
+      "classes": "section-padding overflow-hidden",
+      "text": "Blogs & StoriesKinh nghiệm & Chia sẻNhững câu chuyện và trải nghiệm thực tế từ cộng đồng NewtripXem ",
+      "rect": {
+        "top": 3709.75,
+        "height": 1049.25,
+        "width": 758
+      },
+      "childCount": 1
+    },
+    {
+      "index": 6,
+      "tag": "footer",
+      "id": "",
+      "classes": "bg-surface text-foreground border-t border-border/60",
+      "text": "NewtripSiêu tiện - Siêu vui - Siêu Tiết KiệmChính sáchChính sách an toànChính sách hủy vé, Hoàn, Bảo",
+      "rect": {
+        "top": 4759,
+        "height": 264,
+        "width": 758
+      },
+      "childCount": 1
+    }
+  ],
+  "smoothScrollCheck": {
+    "hasLenis": false,
+    "hasLocomotive": false,
+    "hasCustomScroll": false,
+    "scrollContainers": [
+      "flex items-center gap-2 overflow-x-auto pb-1 scrol"
+    ]
+  },
+  "globalPatterns": {
+    "scrollbarHidden": false,
+    "bodyOverflow": "visible",
+    "htmlOverflow": "visible",
+    "scrollBehavior": "smooth",
+    "animationCount": 0,
+    "transitionCount": 0
+  }
+}
