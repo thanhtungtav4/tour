@@ -1,18 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { MapPinIcon, UsersIcon, CalendarIcon, MountainIcon, ChevronRightIcon } from "@/components/icons";
 
 export function HeroSection() {
   return (
     <section className="relative">
-      {/* Banner */}
-      <div
-        className="relative h-[400px] sm:h-[480px] lg:h-[560px] overflow-hidden"
-        style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7)), url('/images/banner3.jpg') center/cover no-repeat",
-        }}
-      >
+      {/* Banner with optimized image */}
+      <div className="relative h-[400px] sm:h-[480px] lg:h-[560px] overflow-hidden">
+        {/* Preload hint for LCP */}
+        <link rel="preload" href="/images/banner3.jpg" as="image" />
+        
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7)), url('/images/banner3.jpg')",
+          }}
+        />
+        
         {/* Fallback gradient if image fails */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-gray-900 to-gray-800 -z-10" />
 
@@ -24,10 +31,11 @@ export function HeroSection() {
               Trekking & Camping Experience
             </span>
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight max-w-4xl">
+          <h1 className="sr-only">Đôi Dép Adventure - Khám phá thiên nhiên Việt Nam</h1>
+          <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight max-w-4xl">
             Khám phá
             <span className="block text-emerald-400">thiên nhiên Việt Nam</span>
-          </h1>
+          </h2>
           <p className="text-lg sm:text-xl text-white/80 max-w-2xl mb-8 leading-relaxed">
             Trải nghiệm những chuyến đi trekking, camping tuyệt vời nhất cùng đội ngũ hướng dẫn viên chuyên nghiệp
           </p>
