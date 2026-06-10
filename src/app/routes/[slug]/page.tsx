@@ -343,7 +343,7 @@ export default function TourDetailPage({ params }: PageProps) {
       </section>
 
       {/* Tour Info Bar */}
-      <section className="bg-white shadow-sm sticky top-[81px] z-20 will-change-transform">
+      <section className="bg-white shadow-md sticky top-[81px] z-40 border-b border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center gap-4 py-4 text-sm">
             <Link href="/routes" className="text-gray-500 hover:text-gray-700 flex items-center gap-1">
