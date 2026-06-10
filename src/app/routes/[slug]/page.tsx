@@ -282,12 +282,12 @@ export default function TourDetailPage({ params }: PageProps) {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      {/* Hero Gallery - Optimized Grid */}
+      {/* Hero Gallery - Grid Layout */}
       <section className="relative">
-        <div className="flex flex-col lg:flex-row">
+        <div className="grid grid-cols-2 lg:grid-cols-4 h-[50vh] lg:h-[60vh]">
           {/* Main Large Image */}
           <div 
-            className="relative w-full lg:w-2/3 aspect-[16/10] lg:aspect-auto lg:h-[60vh] overflow-hidden cursor-pointer group bg-gray-100"
+            className="col-span-2 row-span-2 relative overflow-hidden cursor-pointer group bg-gray-100"
             onClick={() => setIsGalleryOpen(true)}
           >
             <img
@@ -313,32 +313,30 @@ export default function TourDetailPage({ params }: PageProps) {
             </button>
           </div>
           
-          {/* Side Images Stack */}
-          <div className="w-full lg:w-1/3 flex flex-row lg:flex-col">
-            {galleryImages.slice(1, 5).map((img, index) => (
-              <div 
-                key={index}
-                className="relative w-1/2 lg:w-full aspect-[4/3] lg:aspect-auto lg:h-1/4 overflow-hidden cursor-pointer group bg-gray-100"
-                onClick={() => { setActiveImage(index + 1); setIsGalleryOpen(true); }}
-              >
-                <img
-                  src={img}
-                  alt={`${tour.name} ${index + 2}`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.background = 'linear-gradient(135deg, #16a249 0%, #10b981 100%)';
-                  }}
-                />
-                {/* Overlay on last visible image if more than 4 */}
-                {index === 2 && galleryImages.length > 4 && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">+{galleryImages.length - 4}</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          {/* Side Images */}
+          {galleryImages.slice(1, 5).map((img, index) => (
+            <div 
+              key={index}
+              className="relative overflow-hidden cursor-pointer group bg-gray-100"
+              onClick={() => { setActiveImage(index + 1); setIsGalleryOpen(true); }}
+            >
+              <img
+                src={img}
+                alt={`${tour.name} ${index + 2}`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.background = 'linear-gradient(135deg, #16a249 0%, #10b981 100%)';
+                }}
+              />
+              {/* Overlay on last visible image if more than 4 */}
+              {index === 2 && galleryImages.length > 4 && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">+{galleryImages.length - 4}</span>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </section>
 
