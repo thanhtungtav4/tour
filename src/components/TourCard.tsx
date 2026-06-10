@@ -55,7 +55,7 @@ export function TourCard({ tour, className }: TourCardProps) {
 
   return (
     <Link
-      href={`/booking/${tour.slug}`}
+      href={`/routes/${tour.slug}`}
       className={cn(
         "group block bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100",
         "hover:shadow-xl hover:border-emerald-200 transition-all duration-300",

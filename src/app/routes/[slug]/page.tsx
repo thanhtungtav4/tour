@@ -740,13 +740,15 @@ export default function TourDetailPage({ params }: PageProps) {
                   />
                 </div>
 
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full mt-6 py-4 bg-[#16a249] text-white font-bold rounded-xl hover:bg-[#0d7a3a] transition-colors shadow-lg shadow-[#16a249]/30"
-                >
-                  Đặt tour ngay
-                </motion.button>
+                <Link href={`/booking/${slug}`}>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full mt-6 py-4 bg-[#16a249] text-white font-bold rounded-xl hover:bg-[#0d7a3a] transition-colors shadow-lg shadow-[#16a249]/30"
+                  >
+                    Đặt tour ngay
+                  </motion.button>
+                </Link>
 
                 <div className="flex items-center gap-2 mt-4 text-sm text-gray-500 justify-center">
                   <ShieldCheckIcon className="w-4 h-4 text-[#16a249]" />
