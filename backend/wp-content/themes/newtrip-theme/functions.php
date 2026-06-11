@@ -1493,8 +1493,6 @@ function newtrip_api_get_posts(WP_REST_Request $request) {
         foreach ($posts as $post) {
             $data[] = newtrip_format_wp_post($post);
         }
-    } else {
-        $data = newtrip_get_mock_posts();
     }
 
     return new WP_REST_Response([
@@ -1513,17 +1511,6 @@ function newtrip_api_get_post_by_id(WP_REST_Request $request) {
             'success' => true,
             'data' => newtrip_format_wp_post($post)
         ], 200);
-    }
-    
-    // Check mock posts
-    $mock_posts = newtrip_get_mock_posts();
-    foreach ($mock_posts as $mock) {
-        if ($mock['id'] === $id) {
-            return new WP_REST_Response([
-                'success' => true,
-                'data' => $mock
-            ], 200);
-        }
     }
 
     return new WP_REST_Response([
