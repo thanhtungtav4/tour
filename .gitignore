@@ -1,41 +1,46 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+node_modules/
 
-# testing
-/coverage
+# Next.js build output
+.next/
+out/
+build/
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
+# IDE and OS files
 .DS_Store
 *.pem
+.vscode/
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# WordPress core, database, and transient files in backend
+backend/wp-admin/
+backend/wp-includes/
+backend/wp-content/uploads/
+backend/wp-content/cache/
+backend/wp-content/upgrade/
+backend/wp-content/ai1wm-backups/
+backend/wp-content/languages/
+backend/wp-config.php
+backend/*.zip
+backend/*.gz
+backend/*.sql
+backend/index.php
+backend/license.txt
+backend/readme.html
+backend/wp-activate.php
+backend/wp-blog-header.php
+backend/wp-comments-post.php
+backend/wp-cron.php
+backend/wp-links-opml.php
+backend/wp-load.php
+backend/wp-login.php
+backend/wp-mail.php
+backend/wp-settings.php
+backend/wp-signup.php
+backend/wp-trackback.php
+backend/xmlrpc.php
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
 
 # vercel
 .vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
