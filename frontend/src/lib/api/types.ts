@@ -195,13 +195,16 @@ export interface BookingDetail {
   passengers: {
     id: number;
     full_name: string;
+    phone?: string;
     email?: string;
     seat?: string;
     pickup_point?: string;
+    pickup_point_id?: number;
     checked_in: boolean;
     birth_date?: string;
     id_number?: string;
     health_status?: string;
+    id_card_image?: string;
   }[];
   rental_items?: { id: string; name: string; qty: number; subtotal: number }[];
   payment: {

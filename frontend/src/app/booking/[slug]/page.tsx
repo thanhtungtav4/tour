@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { getTourBySlug, getRentalItems, createBooking, TourDetail, RentalItem } from "@/lib/api";
+import { getTourBySlug, getRentalItems, createBooking, uploadFile, TourDetail, RentalItem } from "@/lib/api";
 import { getTourImage } from "@/lib/utils";
 import {
   CalendarIcon,
@@ -86,9 +86,10 @@ export default function BookingTourPage({ params }: PageProps) {
     birthDate: "",
     healthStatus: "",
     pickupPointId: 0,
+    idCardImage: "",
     notes: "",
     fillAllInfo: false,
-    participantsInfo: [] as { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPointId: number }[],
+    participantsInfo: [] as { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPointId: number; idCardImage: string }[],
   });
 
   // Client-side initialization of query parameters to prevent hydration mismatches
@@ -115,8 +116,9 @@ export default function BookingTourPage({ params }: PageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "transfer">("transfer");
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const updateFormData = (field: string, value: string | number | string[] | boolean | { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPointId: number }[] | Record<string, number>) => {
+  const updateFormData = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -135,6 +137,39 @@ export default function BookingTourPage({ params }: PageProps) {
 
   const prevStep = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  const handleUploadCCCD = async (file: File, index: number) => {
+    try {
+      setUploadError(null);
+      if (index === -1) {
+        updateFormData("idCardImage", "UPLOADING");
+      } else {
+        const newInfo = [...formData.participantsInfo];
+        newInfo[index] = { ...newInfo[index], idCardImage: "UPLOADING" };
+        updateFormData("participantsInfo", newInfo);
+      }
+      
+      const res = await uploadFile(file);
+      
+      if (index === -1) {
+        updateFormData("idCardImage", res.url);
+      } else {
+        const newInfo = [...formData.participantsInfo];
+        newInfo[index] = { ...newInfo[index], idCardImage: res.url };
+        updateFormData("participantsInfo", newInfo);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setUploadError(err.message || "Không thể tải ảnh lên, vui lòng thử lại.");
+      if (index === -1) {
+        updateFormData("idCardImage", "");
+      } else {
+        const newInfo = [...formData.participantsInfo];
+        newInfo[index] = { ...newInfo[index], idCardImage: "" };
+        updateFormData("participantsInfo", newInfo);
+      }
+    }
   };
 
   const handleSubmit = async () => {
@@ -172,6 +207,7 @@ export default function BookingTourPage({ params }: PageProps) {
             id_number: formData.idNumber,
             health_status: formData.healthStatus,
             pickup_point_id: formData.pickupPointId,
+            id_card_image: formData.idCardImage || undefined,
           },
           ...formData.participantsInfo.map((p) => ({
             full_name: p.name,
@@ -181,6 +217,7 @@ export default function BookingTourPage({ params }: PageProps) {
             id_number: p.idNumber,
             health_status: p.healthStatus,
             pickup_point_id: p.pickupPointId || formData.pickupPointId,
+            id_card_image: p.idCardImage || undefined,
           })),
         ],
         notes: formData.notes || undefined,
@@ -432,7 +469,7 @@ export default function BookingTourPage({ params }: PageProps) {
                               if (!e.target.checked) {
                                 updateFormData("participantsInfo", []);
                               } else {
-                                const emptyInfo = Array.from({ length: formData.participants - 1 }, () => ({ name: "", phone: "", email: "", birthDate: "", idNumber: "", healthStatus: "", pickupPointId: 0 }));
+                                const emptyInfo = Array.from({ length: formData.participants - 1 }, () => ({ name: "", phone: "", email: "", birthDate: "", idNumber: "", healthStatus: "", pickupPointId: 0, idCardImage: "" }));
                                 updateFormData("participantsInfo", emptyInfo);
                               }
                             }}
@@ -528,6 +565,64 @@ export default function BookingTourPage({ params }: PageProps) {
                               placeholder="Mắc bệnh tim, hen suyễn... hoặc ghi 'Không' nếu sức khỏe bình thường"
                               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                             />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Ảnh CCCD / Passport (Mặt trước) <span className="text-gray-400 font-normal">(tùy chọn)</span>
+                            </label>
+                            {formData.idCardImage === "UPLOADING" ? (
+                              <div className="flex items-center justify-center h-32 border-2 border-dashed border-gray-250 rounded-xl bg-gray-50">
+                                <div className="flex flex-col items-center gap-2">
+                                  <svg className="animate-spin h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                  </svg>
+                                  <span className="text-sm text-gray-500 font-medium">Đang tải ảnh lên...</span>
+                                </div>
+                              </div>
+                            ) : formData.idCardImage ? (
+                              <div className="relative inline-block mt-1">
+                                <img
+                                  src={formData.idCardImage}
+                                  alt="Ảnh CCCD"
+                                  className="w-48 h-32 object-cover rounded-xl border border-gray-250 shadow-sm"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => updateFormData("idCardImage", "")}
+                                  className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md focus:outline-none"
+                                  aria-label="Xóa ảnh"
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-emerald-400 transition-all group">
+                                <div className="flex flex-col items-center gap-1.5 text-center px-4">
+                                  <svg className="w-8 h-8 text-gray-400 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                                  </svg>
+                                  <span className="text-sm font-medium text-gray-600 group-hover:text-emerald-600 transition-colors">Tải ảnh lên (mặt trước CCCD)</span>
+                                  <span className="text-xs text-gray-400">Chấp nhận JPG, PNG dung lượng dưới 5MB</span>
+                                </div>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleUploadCCCD(file, -1);
+                                  }}
+                                  className="hidden"
+                                />
+                              </label>
+                            )}
+                            {uploadError && (
+                              <p className="text-xs text-red-500 mt-1">{uploadError}</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -636,6 +731,64 @@ export default function BookingTourPage({ params }: PageProps) {
                                       }}
                                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Ảnh CCCD / Passport (Mặt trước) <span className="text-gray-400 font-normal">(tùy chọn)</span>
+                                    </label>
+                                    {formData.participantsInfo[index]?.idCardImage === "UPLOADING" ? (
+                                      <div className="flex items-center justify-center h-28 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                                        <div className="flex flex-col items-center gap-1.5">
+                                          <svg className="animate-spin h-6 w-6 text-emerald-500" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                          </svg>
+                                          <span className="text-xs text-gray-500 font-medium">Đang tải ảnh lên...</span>
+                                        </div>
+                                      </div>
+                                    ) : formData.participantsInfo[index]?.idCardImage ? (
+                                      <div className="relative inline-block mt-1">
+                                        <img
+                                          src={formData.participantsInfo[index].idCardImage}
+                                          alt="Ảnh CCCD"
+                                          className="w-40 h-28 object-cover rounded-xl border border-gray-200 shadow-sm"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newInfo = [...formData.participantsInfo];
+                                            newInfo[index] = { ...newInfo[index], idCardImage: "" };
+                                            updateFormData("participantsInfo", newInfo);
+                                          }}
+                                          className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md focus:outline-none"
+                                          aria-label="Xóa ảnh"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-emerald-400 transition-all group">
+                                        <div className="flex flex-col items-center gap-1 text-center px-4">
+                                          <svg className="w-6 h-6 text-gray-400 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                                          </svg>
+                                          <span className="text-xs font-medium text-gray-600 group-hover:text-emerald-600 transition-colors">Tải ảnh lên CCCD</span>
+                                        </div>
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleUploadCCCD(file, index);
+                                          }}
+                                          className="hidden"
+                                        />
+                                      </label>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -919,6 +1072,12 @@ export default function BookingTourPage({ params }: PageProps) {
                             <span className="text-gray-500">Sức khỏe / Bệnh lý</span>
                             <span className="font-medium text-gray-900">{formData.healthStatus || "Bình thường"}</span>
                           </div>
+                          {formData.idCardImage && (
+                            <div className="flex justify-between items-center col-span-2 pt-2 border-t border-gray-100 mt-2">
+                              <span className="text-gray-500 text-sm">Ảnh CCCD</span>
+                              <img src={formData.idCardImage} alt="Ảnh CCCD Đại diện" className="w-16 h-10 object-cover rounded border border-gray-200 shadow-sm" />
+                            </div>
+                          )}
                         </div>
                         {formData.fillAllInfo && formData.participantsInfo.map((info, index) => (
                           <div key={index} className="pt-3 border-t">
@@ -948,6 +1107,12 @@ export default function BookingTourPage({ params }: PageProps) {
                                 <span className="text-gray-500">Sức khỏe</span>
                                 <span className="font-medium text-gray-900">{info.healthStatus || "Bình thường"}</span>
                               </div>
+                              {info.idCardImage && (
+                                <div className="flex justify-between items-center col-span-2 pt-1 border-t border-gray-100 mt-1">
+                                  <span className="text-gray-500">Ảnh CCCD</span>
+                                  <img src={info.idCardImage} alt={`Ảnh CCCD người thứ ${index + 2}`} className="w-16 h-10 object-cover rounded border border-gray-200 shadow-sm" />
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}

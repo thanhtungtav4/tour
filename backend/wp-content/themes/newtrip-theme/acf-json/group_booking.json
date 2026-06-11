@@ -251,6 +251,13 @@
           "label": "Tình trạng sức khỏe / Bệnh lý",
           "name": "health_status",
           "type": "text"
+        },
+        {
+          "key": "field_booking_passenger_id_card_image",
+          "label": "Ảnh CCCD",
+          "name": "id_card_image",
+          "type": "image",
+          "return_format": "url"
         }
       ]
     },

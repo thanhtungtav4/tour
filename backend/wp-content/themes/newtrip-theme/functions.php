@@ -630,6 +630,20 @@ add_action('rest_api_init', function () {
         },
     ]);
 
+    // 5.6c POST /wp-json/newtrip/v1/booking/<id>/update-passengers - Cập nhật thông tin hành khách
+    register_rest_route('newtrip/v1', '/booking/(?P<id>[a-zA-Z0-9-]+)/update-passengers', [
+        'methods' => 'POST',
+        'callback' => 'newtrip_api_update_booking_passengers',
+        'permission_callback' => '__return_true',
+    ]);
+
+    // 5.6d POST /wp-json/newtrip/v1/upload - Tải tệp lên công cộng bảo mật
+    register_rest_route('newtrip/v1', '/upload', [
+        'methods' => 'POST',
+        'callback' => 'newtrip_api_upload_file',
+        'permission_callback' => '__return_true',
+    ]);
+
     // 5.7 GET /wp-json/newtrip/v1/posts - Lấy danh sách bài viết
     register_rest_route('newtrip/v1', '/posts', [
         'methods' => 'GET',
@@ -1144,6 +1158,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     }
 
     // Gửi email xác nhận
+    $update_url = sprintf('https://doi-dep.vercel.app/booking/update?bookingId=%s&email=%s', $booking_code, urlencode($email));
     $subject = sprintf('Xác nhận đặt tour %s [%s]', $tour_post->post_title, $booking_code);
     $body = sprintf(
         "Chào %s,\n\nCảm ơn bạn đã đặt tour tại Đôi Dép Adventure!\n\nChi tiết đơn đặt tour:\n" .
@@ -1153,6 +1168,8 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         "- Số người: %d\n" .
         "- Tổng thanh toán: %s đ\n" .
         "- Phương thức: %s\n\n" .
+        "Để bổ sung, cập nhật thông tin của các thành viên tham gia chuyến đi (như Ngày sinh, SĐT, Bệnh lý...) và tải lên ảnh CCCD để ban tổ chức mua bảo hiểm du lịch bắt buộc, quý khách vui lòng truy cập liên kết sau:\n" .
+        "%s\n\n" .
         "Chúng tôi sẽ liên hệ lại qua số điện thoại %s để xác nhận thông tin sớm nhất.\n\nTrân trọng,\nĐôi Dép Adventure.",
         $full_name,
         $booking_code,
@@ -1161,6 +1178,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         $participants,
         number_format($total_amount, 0, ',', '.'),
         $payment_method === 'transfer' ? 'Chuyển khoản ngân hàng' : 'Tiền mặt',
+        $update_url,
         $phone
     );
     wp_mail($email, $subject, $body);
@@ -1269,23 +1287,38 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'email' => $p['email'] ?? '',
                 'seat' => $p['seat'] ?? '',
                 'pickup_point' => $pickup_name,
+                'pickup_point_id' => $p_pickup_point_id,
                 'checked_in' => !empty($p['checked_in']) ? (bool)$p['checked_in'] : false,
                 'birth_date' => $p['birth_date'] ?? ($p['birth_year'] ?? ''),
                 'id_number' => $p['id_number'] ?? '',
                 'health_status' => $p['health_status'] ?? '',
+                'id_card_image' => $p['id_card_image'] ?? '',
             ];
         }
     } else {
+        $p_pickup_point_id = 0;
+        $p_pickup_point = newtrip_get_field('pickup_point_id', $b_id);
+        if ($p_pickup_point) {
+            if (is_object($p_pickup_point)) {
+                $p_pickup_point_id = $p_pickup_point->ID;
+            } elseif (is_array($p_pickup_point) && isset($p_pickup_point['ID'])) {
+                $p_pickup_point_id = $p_pickup_point['ID'];
+            } else {
+                $p_pickup_point_id = intval($p_pickup_point);
+            }
+        }
         $passengers = [
             [
                 'id' => 1000,
                 'full_name' => newtrip_get_field('full_name', $b_id),
                 'phone' => newtrip_get_field('phone', $b_id),
                 'email' => newtrip_get_field('email', $b_id),
+                'pickup_point_id' => $p_pickup_point_id,
                 'checked_in' => !empty(newtrip_get_field('checked_in', $b_id)) ? (bool)newtrip_get_field('checked_in', $b_id) : false,
                 'birth_date' => newtrip_get_field('birth_date', $b_id) ?: (newtrip_get_field('birth_year', $b_id) ?: ''),
                 'id_number' => newtrip_get_field('id_number', $b_id) ?: '',
                 'health_status' => newtrip_get_field('health_status', $b_id) ?: '',
+                'id_card_image' => get_post_meta($b_id, 'id_card_image', true) ?: '',
             ]
         ];
     }
@@ -2302,6 +2335,167 @@ function newtrip_api_get_page_by_slug(WP_REST_Request $request) {
     return new WP_REST_Response([
         'success' => true,
         'data' => $data
+    ], 200);
+}
+
+// 6.11 Tải tệp lên công cộng bảo mật
+function newtrip_api_upload_file(WP_REST_Request $request) {
+    $files = $request->get_file_params();
+    if (empty($files) || !isset($files['file'])) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'missing_file', 'message' => 'Vui lòng cung cấp tệp tin để tải lên']
+        ], 400);
+    }
+
+    $file = $files['file'];
+
+    // Giới hạn 5MB
+    $max_size = 5 * 1024 * 1024;
+    if ($file['size'] > $max_size) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'file_too_large', 'message' => 'Kích thước tệp tin không được vượt quá 5MB']
+        ], 400);
+    }
+
+    // Chỉ cho phép ảnh
+    $allowed_exts = ['jpg', 'jpeg', 'png'];
+    $file_ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($file_ext, $allowed_exts, true)) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'invalid_file_type', 'message' => 'Chỉ chấp nhận các định dạng ảnh: jpg, jpeg, png']
+        ], 400);
+    }
+
+    if (!function_exists('wp_handle_upload')) {
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+        require_once(ABSPATH . 'wp-admin/includes/media.php');
+    }
+
+    $upload_overrides = array('test_form' => false);
+    $movefile = wp_handle_upload($file, $upload_overrides);
+
+    if ($movefile && !isset($movefile['error'])) {
+        $attachment = array(
+            'guid'           => $movefile['url'],
+            'post_mime_type' => $movefile['type'],
+            'post_title'     => preg_replace('/\.[^.]+$/', '', basename($file['name'])),
+            'post_content'   => '',
+            'post_status'    => 'inherit'
+        );
+
+        $attach_id = wp_insert_attachment($attachment, $movefile['file']);
+        $attach_data = wp_generate_attachment_metadata($attach_id, $movefile['file']);
+        wp_update_attachment_metadata($attach_id, $attach_data);
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => [
+                'id' => $attach_id,
+                'url' => $movefile['url'],
+            ]
+        ], 200);
+    } else {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'upload_error', 'message' => $movefile['error'] ?? 'Lỗi xảy ra khi tải ảnh lên']
+        ], 500);
+    }
+}
+
+// 6.12 Cập nhật thông tin hành khách du lịch
+function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
+    $booking_code = sanitize_text_field($request->get_param('id'));
+    $params = $request->get_json_params();
+    if (!is_array($params)) $params = [];
+
+    $email = sanitize_email($params['email'] ?? '');
+    $passengers = $params['passengers'] ?? [];
+
+    if (empty($email)) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'missing_email', 'message' => 'Cần cung cấp email liên hệ để xác thực']
+        ], 400);
+    }
+
+    if (!is_array($passengers)) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'invalid_passengers', 'message' => 'Danh sách thành viên không hợp lệ']
+        ], 400);
+    }
+
+    $query = new WP_Query([
+        'post_type'  => 'booking',
+        'meta_query' => [
+            'relation' => 'AND',
+            ['key' => 'booking_code', 'value' => $booking_code, 'compare' => '='],
+            ['key' => 'email', 'value' => $email, 'compare' => '='],
+        ],
+        'posts_per_page' => 1,
+    ]);
+
+    if (!$query->have_posts()) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'booking_not_found', 'message' => 'Không tìm thấy đơn hàng khớp với thông tin cung cấp']
+        ], 404);
+    }
+
+    $b_id = $query->posts[0]->ID;
+
+    $passengers_data = [];
+    foreach ($passengers as $idx => $p) {
+        $p_name = sanitize_text_field($p['full_name'] ?? '');
+        if (empty($p_name)) continue;
+
+        $p_phone = sanitize_text_field($p['phone'] ?? '');
+        $p_email = sanitize_email($p['email'] ?? '');
+        $p_birth = sanitize_text_field($p['birth_date'] ?? '');
+        $p_id_num = sanitize_text_field($p['id_number'] ?? '');
+        $p_health = sanitize_text_field($p['health_status'] ?? '');
+        $p_seat = sanitize_text_field($p['seat'] ?? '');
+        $p_checkin = !empty($p['checked_in']) ? 1 : 0;
+        $p_image = esc_url_raw($p['id_card_image'] ?? '');
+        $p_pickup_point_id = intval($p['pickup_point_id'] ?? 0);
+
+        $passengers_data[] = [
+            'full_name' => $p_name,
+            'phone' => $p_phone,
+            'email' => $p_email,
+            'birth_date' => $p_birth,
+            'id_number' => $p_id_num,
+            'pickup_point_id' => $p_pickup_point_id ?: null,
+            'seat' => $p_seat,
+            'checked_in' => $p_checkin,
+            'health_status' => $p_health,
+            'id_card_image' => $p_image,
+        ];
+    }
+
+    if (empty($passengers_data)) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'empty_passengers', 'message' => 'Danh sách thành viên phải chứa ít nhất một người hợp lệ']
+        ], 400);
+    }
+
+    if (function_exists('update_field')) {
+        update_field('field_booking_passengers', $passengers_data, $b_id);
+    } else {
+        update_post_meta($b_id, 'passengers', $passengers_data);
+    }
+
+    // Kích hoạt save hook để tính toán lại giá/tiêu đề
+    do_action('acf/save_post', $b_id);
+
+    return new WP_REST_Response([
+        'success' => true,
+        'message' => 'Cập nhật thông tin thành viên thành công'
     ], 200);
 }
 
