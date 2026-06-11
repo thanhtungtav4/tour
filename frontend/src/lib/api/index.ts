@@ -1,3 +1,3 @@
-// API Service - uses mock API (swap to real API later)
-export * from "./mock";
+// API Service - uses live WordPress REST API client
+export * from "./client";
 export * from "./types";

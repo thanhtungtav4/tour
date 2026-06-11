@@ -90,6 +90,149 @@
       "default_value": "pending"
     },
     {
+      "key": "field_booking_pickup_point_id",
+      "label": "Điểm đón chung",
+      "name": "pickup_point_id",
+      "type": "post_object",
+      "post_type": [
+        "pickup_point"
+      ],
+      "required": 0
+    },
+    {
+      "key": "field_booking_services",
+      "label": "Dịch vụ đã chọn",
+      "name": "services",
+      "type": "repeater",
+      "layout": "table",
+      "button_label": "Thêm dịch vụ",
+      "sub_fields": [
+        {
+          "key": "field_booking_service_id",
+          "label": "ID Dịch vụ",
+          "name": "service_id",
+          "type": "text",
+          "required": 1
+        },
+        {
+          "key": "field_booking_service_name",
+          "label": "Tên dịch vụ",
+          "name": "name",
+          "type": "text",
+          "required": 1
+        },
+        {
+          "key": "field_booking_service_price",
+          "label": "Giá dịch vụ",
+          "name": "price",
+          "type": "number",
+          "required": 1
+        }
+      ]
+    },
+    {
+      "key": "field_booking_rental_items",
+      "label": "Đồ thuê đi kèm",
+      "name": "rental_items",
+      "type": "repeater",
+      "layout": "table",
+      "button_label": "Thêm đồ thuê",
+      "sub_fields": [
+        {
+          "key": "field_booking_rental_item_id",
+          "label": "ID Đồ thuê",
+          "name": "item_id",
+          "type": "text",
+          "required": 1
+        },
+        {
+          "key": "field_booking_rental_item_name",
+          "label": "Tên đồ thuê",
+          "name": "name",
+          "type": "text",
+          "required": 1
+        },
+        {
+          "key": "field_booking_rental_item_qty",
+          "label": "Số lượng",
+          "name": "qty",
+          "type": "number",
+          "required": 1,
+          "default_value": 1
+        },
+        {
+          "key": "field_booking_rental_item_price",
+          "label": "Đơn giá",
+          "name": "price",
+          "type": "number",
+          "required": 1
+        },
+        {
+          "key": "field_booking_rental_item_subtotal",
+          "label": "Thành tiền",
+          "name": "subtotal",
+          "type": "number",
+          "required": 1
+        }
+      ]
+    },
+    {
+      "key": "field_booking_passengers",
+      "label": "Danh sách thành viên tham gia (ACF Pro Repeater)",
+      "name": "passengers",
+      "type": "repeater",
+      "layout": "row",
+      "button_label": "Thêm thành viên",
+      "sub_fields": [
+        {
+          "key": "field_booking_passenger_full_name",
+          "label": "Họ và tên",
+          "name": "full_name",
+          "type": "text",
+          "required": 1
+        },
+        {
+          "key": "field_booking_passenger_phone",
+          "label": "Số điện thoại",
+          "name": "phone",
+          "type": "text"
+        },
+        {
+          "key": "field_booking_passenger_email",
+          "label": "Email",
+          "name": "email",
+          "type": "email"
+        },
+        {
+          "key": "field_booking_passenger_birth_year",
+          "label": "Năm sinh",
+          "name": "birth_year",
+          "type": "text"
+        },
+        {
+          "key": "field_booking_passenger_id_number",
+          "label": "Số CMND/CCCD",
+          "name": "id_number",
+          "type": "text"
+        },
+        {
+          "key": "field_booking_passenger_pickup_point_id",
+          "label": "Điểm đón riêng",
+          "name": "pickup_point_id",
+          "type": "post_object",
+          "post_type": [
+            "pickup_point"
+          ]
+        },
+        {
+          "key": "field_booking_passenger_seat",
+          "label": "Số ghế",
+          "name": "seat",
+          "type": "text"
+        }
+      ]
+    },
+    {
       "key": "field_booking_notes",
       "label": "Ghi chú từ khách hàng",
       "name": "notes",

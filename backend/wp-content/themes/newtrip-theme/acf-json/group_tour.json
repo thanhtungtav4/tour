@@ -43,22 +43,47 @@
       "default_value": "Sáng"
     },
     {
-      "key": "field_tour_available_spots",
-      "label": "Số chỗ trống",
-      "name": "available_spots",
-      "type": "number",
-      "instructions": "Tổng số chỗ trống còn lại",
-      "required": 1,
-      "default_value": 10
+      "key": "field_tour_gallery",
+      "label": "Thư viện ảnh (ACF Pro)",
+      "name": "gallery",
+      "type": "gallery",
+      "instructions": "Chọn nhiều ảnh từ thư viện Media của WordPress",
+      "required": 0,
+      "return_format": "url",
+      "preview_size": "medium",
+      "insert": "append"
     },
     {
       "key": "field_tour_departure_dates",
-      "label": "Các ngày khởi hành",
+      "label": "Các ngày khởi hành (ACF Pro Repeater)",
       "name": "departure_dates",
-      "type": "textarea",
-      "instructions": "Mỗi ngày khởi hành nằm trên một dòng (Định dạng YYYY-MM-DD, ví dụ: 2026-06-15)",
-      "required": 1,
-      "default_value": ""
+      "type": "repeater",
+      "instructions": "Quản lý các ngày khởi hành và số chỗ trống tương ứng cho từng ngày",
+      "required": 0,
+      "collapsed": "field_tour_dep_date",
+      "min": 0,
+      "max": 0,
+      "layout": "table",
+      "button_label": "Thêm ngày khởi hành",
+      "sub_fields": [
+        {
+          "key": "field_tour_dep_date",
+          "label": "Ngày đi",
+          "name": "date",
+          "type": "date_picker",
+          "required": 1,
+          "display_format": "d/m/Y",
+          "return_format": "Y-m-d"
+        },
+        {
+          "key": "field_tour_dep_spots",
+          "label": "Số chỗ trống",
+          "name": "available_spots",
+          "type": "number",
+          "required": 1,
+          "default_value": 15
+        }
+      ]
     },
     {
       "key": "field_tour_highlights",
@@ -70,22 +95,35 @@
       "default_value": ""
     },
     {
-      "key": "field_tour_gallery",
-      "label": "Thư viện ảnh",
-      "name": "gallery",
-      "type": "textarea",
-      "instructions": "Mỗi URL ảnh nằm trên một dòng (Nếu dùng bản ACF Pro, bạn có thể chuyển thành trường Gallery)",
-      "required": 0,
-      "default_value": ""
-    },
-    {
       "key": "field_tour_itinerary",
-      "label": "Lịch trình chi tiết",
+      "label": "Lịch trình chi tiết (ACF Pro Repeater)",
       "name": "itinerary",
-      "type": "textarea",
-      "instructions": "Mỗi hoạt động nằm trên một dòng theo định dạng: Giờ|Hoạt động (Ví dụ: 05:30|Tập trung tại điểm đón)",
+      "type": "repeater",
+      "instructions": "Nhập lịch trình chi tiết theo từng mốc thời gian",
       "required": 0,
-      "default_value": ""
+      "collapsed": "field_tour_itinerary_time",
+      "min": 0,
+      "max": 0,
+      "layout": "row",
+      "button_label": "Thêm mốc lịch trình",
+      "sub_fields": [
+        {
+          "key": "field_tour_itinerary_time",
+          "label": "Mốc thời gian",
+          "name": "time",
+          "type": "text",
+          "instructions": "Ví dụ: 05:30 hoặc Ngày 1 - 08:00",
+          "required": 1
+        },
+        {
+          "key": "field_tour_itinerary_activity",
+          "label": "Hoạt động",
+          "name": "activity",
+          "type": "textarea",
+          "required": 1,
+          "rows": 2
+        }
+      ]
     },
     {
       "key": "field_tour_included",
