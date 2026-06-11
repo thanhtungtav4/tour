@@ -189,7 +189,7 @@
       "label": "Danh sách thành viên tham gia (ACF Pro Repeater)",
       "name": "passengers",
       "type": "repeater",
-      "layout": "table",
+      "layout": "block",
       "button_label": "Thêm thành viên",
       "sub_fields": [
         {
@@ -197,31 +197,46 @@
           "label": "Họ và tên",
           "name": "full_name",
           "type": "text",
-          "required": 1
+          "required": 1,
+          "wrapper": {
+            "width": "33"
+          }
         },
         {
           "key": "field_booking_passenger_phone",
           "label": "Số điện thoại",
           "name": "phone",
-          "type": "text"
+          "type": "text",
+          "wrapper": {
+            "width": "33"
+          }
         },
         {
           "key": "field_booking_passenger_email",
           "label": "Email",
           "name": "email",
-          "type": "email"
+          "type": "email",
+          "wrapper": {
+            "width": "34"
+          }
         },
         {
           "key": "field_booking_passenger_birth_date",
           "label": "Ngày sinh",
           "name": "birth_date",
-          "type": "text"
+          "type": "text",
+          "wrapper": {
+            "width": "25"
+          }
         },
         {
           "key": "field_booking_passenger_id_number",
           "label": "Số CMND/CCCD",
           "name": "id_number",
-          "type": "text"
+          "type": "text",
+          "wrapper": {
+            "width": "25"
+          }
         },
         {
           "key": "field_booking_passenger_pickup_point_id",
@@ -230,13 +245,19 @@
           "type": "post_object",
           "post_type": [
             "pickup_point"
-          ]
+          ],
+          "wrapper": {
+            "width": "30"
+          }
         },
         {
           "key": "field_booking_passenger_seat",
           "label": "Số ghế",
           "name": "seat",
-          "type": "text"
+          "type": "text",
+          "wrapper": {
+            "width": "20"
+          }
         },
         {
           "key": "field_booking_passenger_checked_in",
@@ -244,20 +265,29 @@
           "name": "checked_in",
           "type": "true_false",
           "default_value": 0,
-          "ui": 1
+          "ui": 1,
+          "wrapper": {
+            "width": "15"
+          }
         },
         {
           "key": "field_booking_passenger_health_status",
           "label": "Tình trạng sức khỏe / Bệnh lý",
           "name": "health_status",
-          "type": "text"
+          "type": "text",
+          "wrapper": {
+            "width": "50"
+          }
         },
         {
           "key": "field_booking_passenger_id_card_image",
           "label": "Ảnh CCCD",
           "name": "id_card_image",
           "type": "image",
-          "return_format": "url"
+          "return_format": "url",
+          "wrapper": {
+            "width": "35"
+          }
         }
       ]
     },
