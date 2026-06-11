@@ -1,67 +1,29 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ArrowRightIcon } from "@/components/icons";
-
-const blogPosts = [
-  {
-    id: 1,
-    title: "Mẹo Chọn Giày Khi Đi Trekking Không Bị Đau Chân – Bí Quyết Dân Trekking Cần Biết",
-    excerpt: "Việc chọn đúng đôi giày trekking có thể quyết định trải nghiệm của bạn. Hãy cùng Đôi Dép Adventure khám phá những bí quyết...",
-    author: "Ne",
-    date: "30/1/2026",
-    category: "Kinh nghiệm",
-    image: "/images/blog-1.jpg",
-  },
-  {
-    id: 2,
-    title: "Trekking Tự Túc: Lợi Ích & Nguy Hiểm – Những Điều Cần Lưu Ý Trước Chuyến Đi",
-    excerpt: "Trekking tự túc mang lại nhiều trải nghiệm độc đáo nhưng cũng tiềm ẩn không ít nguy hiểm. Cùng tìm hiểu...",
-    author: "Mi",
-    date: "30/1/2026",
-    category: "An toàn",
-    image: "/images/blog-2.jpg",
-  },
-  {
-    id: 3,
-    title: "Top 10 Đỉnh Núi Trekking Đẹp Nhất Việt Nam",
-    excerpt: "Việt Nam có vô số đỉnh núi đẹp mê hồn, từ Bắc vào Nam. Cùng Đôi Dép Adventure khám phá top 10 đỉnh núi không thể bỏ qua...",
-    author: "Admin",
-    date: "25/1/2026",
-    category: "Địa điểm",
-    image: "/images/langbiang.jpg",
-  },
-  {
-    id: 4,
-    title: "Camping 101: Hướng Dẫn Cho Người Mới Bắt Đầu",
-    excerpt: "Bạn mới bắt đầu với camping? Đừng lo lắng! Đôi Dép Adventure sẽ hướng dẫn bạn từ A đến Z để có một chuyến camping hoàn hảo...",
-    author: "Hoàng Nam",
-    date: "20/1/2026",
-    category: "Hướng dẫn",
-    image: "/images/bu-gia-map.jpg",
-  },
-  {
-    id: 5,
-    title: "Những Sai Lầm Thường Gặp Khi Đi Trekking Mùa Mưa",
-    excerpt: "Đi trekking mùa mưa có những rủi ro riêng. Hãy tránh những sai lầm phổ biến để chuyến đi của bạn an toàn hơn...",
-    author: "Thu Hà",
-    date: "15/1/2026",
-    category: "An toàn",
-    image: "/images/rung-cat-tien.jpg",
-  },
-  {
-    id: 6,
-    title: "Trải Nghiệm Trekking Đỉnh Langbiang - Ký Ức Không Quên",
-    excerpt: "Chinh phục đỉnh Langbiang 2163m là một trong những trải nghiệm đáng nhớ nhất của nhiều trekker. Cùng lắng nghe...",
-    author: "Văn Đức",
-    date: "10/1/2026",
-    category: "Trải nghiệm",
-    image: "/images/ta-cu-ke-ga.jpg",
-  },
-];
+import { getBlogPosts, ApiBlogPost } from "@/lib/api";
 
 export default function ExperiencePage() {
+  const [posts, setPosts] = useState<ApiBlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getBlogPosts()
+      .then((data) => {
+        setPosts(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError("Không thể tải danh sách bài viết. Vui lòng thử lại sau.");
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -84,59 +46,115 @@ export default function ExperiencePage() {
         {/* Blog Grid */}
         <section className="section-padding">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {blogPosts.map((post) => (
-                <article
-                  key={post.id}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group"
+            {loading ? (
+              /* Loading Skeletons */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 animate-pulse"
+                  >
+                    <div className="h-52 bg-gray-200" />
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-gray-200" />
+                        <div className="h-4 bg-gray-200 rounded w-24" />
+                      </div>
+                      <div className="h-6 bg-gray-200 rounded w-full mb-3" />
+                      <div className="h-6 bg-gray-200 rounded w-2/3 mb-4" />
+                      <div className="h-4 bg-gray-200 rounded w-full mb-2" />
+                      <div className="h-4 bg-gray-200 rounded w-5/6 mb-4" />
+                      <div className="h-4 bg-gray-200 rounded w-16" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : error ? (
+              /* Error message */
+              <div className="text-center py-12 bg-red-50/50 rounded-2xl border border-red-100 max-w-lg mx-auto">
+                <p className="text-red-600 font-medium">{error}</p>
+                <button
+                  onClick={() => {
+                    setLoading(true);
+                    setError(null);
+                    getBlogPosts()
+                      .then((data) => {
+                        setPosts(data);
+                        setLoading(false);
+                      })
+                      .catch((err) => {
+                        console.error(err);
+                        setError("Không thể tải danh sách bài viết. Vui lòng thử lại sau.");
+                        setLoading(false);
+                      });
+                  }}
+                  className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors"
                 >
-                  <div className="relative h-52 overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={post.image}
-                      alt={post.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) parent.style.background = 'linear-gradient(135deg, #16a249 0%, #10b981 100%)';
-                      }}
-                    />
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-semibold text-[#16a249]">
-                        {post.category}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#16a249] to-[#10b981] flex items-center justify-center">
-                        <span className="text-white text-xs font-semibold">{post.author[0]}</span>
+                  Tử lại
+                </button>
+              </div>
+            ) : posts.length === 0 ? (
+              /* Empty state */
+              <div className="text-center py-12">
+                <p className="text-gray-500">Chưa có bài viết nào được đăng tải.</p>
+              </div>
+            ) : (
+              /* Posts Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {posts.map((post) => (
+                  <article
+                    key={post.id}
+                    className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group"
+                  >
+                    <div className="relative h-52 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={post.image}
+                        alt={post.title}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null;
+                          target.src = '/images/logo.png';
+                        }}
+                      />
+                      <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-semibold text-[#16a249]">
+                          {post.category}
+                        </span>
                       </div>
-                      <div className="text-sm text-[#6b7280]">
-                        <span className="font-medium text-[#0e1425]">{post.author}</span>
-                        <span className="mx-2">•</span>
-                        <span>{post.date}</span>
-                      </div>
                     </div>
-                    <h3 className="text-lg font-bold text-[#0e1425] mb-3 line-clamp-2 group-hover:text-[#16a249] transition-colors">
-                      {post.title}
-                    </h3>
-                    <p className="text-sm text-[#6b7280] mb-4 line-clamp-2">
-                      {post.excerpt}
-                    </p>
-                    <a
-                      href={`/experience/${post.id}`}
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-[#16a249] hover:gap-3 transition-all"
-                    >
-                      Đọc tiếp
-                      <ArrowRightIcon className="w-4 h-4" />
-                    </a>
-                  </div>
-                </article>
-              ))}
-            </div>
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#16a249] to-[#10b981] flex items-center justify-center">
+                          <span className="text-white text-xs font-semibold">
+                            {post.author ? post.author[0] : "A"}
+                          </span>
+                        </div>
+                        <div className="text-sm text-[#6b7280]">
+                          <span className="font-medium text-[#0e1425]">{post.author}</span>
+                          <span className="mx-2">•</span>
+                          <span>{post.date}</span>
+                        </div>
+                      </div>
+                      <h3 className="text-lg font-bold text-[#0e1425] mb-3 line-clamp-2 group-hover:text-[#16a249] transition-colors">
+                        {post.title}
+                      </h3>
+                      <p className="text-sm text-[#6b7280] mb-4 line-clamp-2">
+                        {post.excerpt}
+                      </p>
+                      <a
+                        href={`/experience/${post.id}`}
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-[#16a249] hover:gap-3 transition-all"
+                      >
+                        Đọc tiếp
+                        <ArrowRightIcon className="w-4 h-4" />
+                      </a>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </main>

@@ -252,7 +252,8 @@ export default function TourDetailPage({ params }: PageProps) {
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.style.background = 'linear-gradient(135deg, #16a249 0%, #10b981 100%)';
+                target.onerror = null;
+                target.src = '/images/logo.png';
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -282,7 +283,8 @@ export default function TourDetailPage({ params }: PageProps) {
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.style.background = 'linear-gradient(135deg, #16a249 0%, #10b981 100%)';
+                  target.onerror = null;
+                  target.src = '/images/logo.png';
                 }}
               />
               {/* Overlay on last visible image if more than 4 */}

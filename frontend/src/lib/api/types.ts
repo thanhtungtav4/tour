@@ -229,3 +229,21 @@ export interface PaymentInfo {
     deeplink: string;
   };
 }
+
+// Blog / Post types
+export interface ApiBlogPost {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string;
+  author: string;
+  author_bio: string;
+  date: string;
+  read_time: string;
+  category: string;
+  tags: string[];
+  image: string;
+  color?: string;
+  content: string;
+}
+

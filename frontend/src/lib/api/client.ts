@@ -6,7 +6,8 @@ import {
   BookingRequest,
   BookingResponse,
   BookingDetail,
-  PaymentInfo
+  PaymentInfo,
+  ApiBlogPost
 } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tour-api.nttung.dev/wp-json/newtrip/v1";
@@ -181,4 +182,28 @@ export async function getPaymentInfo(bookingId: string): Promise<PaymentInfo> {
       deeplink: "",
     },
   };
+}
+
+export async function getBlogPosts(): Promise<ApiBlogPost[]> {
+  const url = `${API_BASE_URL}/posts`;
+  const res = await fetch(url, {
+    next: { revalidate: 60 }, // Cache response for 60 seconds
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.message || "Không thể tải danh sách bài viết");
+  }
+  return json.data;
+}
+
+export async function getBlogPost(id: string | number): Promise<ApiBlogPost> {
+  const url = `${API_BASE_URL}/posts/${id}`;
+  const res = await fetch(url, {
+    next: { revalidate: 60 },
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.message || "Không thể tải chi tiết bài viết");
+  }
+  return json.data;
 }
