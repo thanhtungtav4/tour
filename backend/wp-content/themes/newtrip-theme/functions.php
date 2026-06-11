@@ -184,6 +184,111 @@ function newtrip_parse_departure_dates_pro($value, $post_id) {
     return $dates;
 }
 
+// Xử lý Danh sách trang bị từ ACF Pro Repeater
+function newtrip_parse_gear_list_pro($value) {
+    if (empty($value)) return [];
+    $gear_list = [];
+    if (is_array($value)) {
+        foreach ($value as $row) {
+            $gear_list[] = [
+                'icon' => isset($row['icon']) ? trim($row['icon']) : '👟',
+                'name' => isset($row['name']) ? trim($row['name']) : '',
+                'important' => !empty($row['important'])
+            ];
+        }
+        return $gear_list;
+    }
+    return [];
+}
+
+// Loại bỏ dấu tiếng Việt để tạo nội dung chuyển khoản chuẩn không dấu
+function newtrip_remove_accents($str) {
+    $unicode = array(
+        'a'=>'á|à|ả|ã|ạ|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ',
+        'd'=>'đ',
+        'e'=>'é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ',
+        'i'=>'í|ì|ỉ|ĩ|ị',
+        'o'=>'ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ',
+        'u'=>'ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự',
+        'y'=>'ý|ỳ|ỷ|ỹ|ỵ',
+        'A'=>'Á|À|Ả|Ã|Ạ|Ă|Ắ|Ằ|Ẳ|Ẵ|Ặ|Â|Ấ|Ầ|Ẩ|Ẫ|Ậ',
+        'D'=>'Đ',
+        'E'=>'É|È|Ẻ|Ẽ|Ẹ|Ê|Ế|Ề|Ể|Ễ|Ệ',
+        'I'=>'Í|Ì|Ỉ|Ĩ|Ị',
+        'O'=>'Ó|Ò|Ỏ|Õ|Ọ|Ô|Ố|Ồ|Ổ|Ỗ|Ộ|Ơ|Ớ|Ờ|Ở|Ỡ|Ợ',
+        'U'=>'Ú|Ù|Ủ|Ũ|Ụ|Ư|Ứ|Ừ|Ử|Ữ|Ự',
+        'Y'=>'Ý|Ỳ|Ỷ|Ỹ|Ỵ',
+    );
+    foreach($unicode as $nonUnicode=>$uni){
+        $str = preg_replace("/($uni)/i", $nonUnicode, $str);
+    }
+    return $str;
+}
+
+// Tính checksum CRC-16 CCITT cho VietQR/EMVCo
+function newtrip_calculate_crc16($data) {
+    $crc = 0xFFFF;
+    $polynomial = 0x1021;
+    $length = strlen($data);
+    for ($i = 0; $i < $length; $i++) {
+        $crc ^= (ord($data[$i]) << 8);
+        for ($j = 0; $j < 8; $j++) {
+            if (($crc & 0x8000) !== 0) {
+                $crc = (($crc << 1) ^ $polynomial) & 0xFFFF;
+            } else {
+                $crc = ($crc << 1) & 0xFFFF;
+            }
+        }
+    }
+    return strtoupper(str_pad(dechex($crc), 4, '0', STR_PAD_LEFT));
+}
+
+// Tạo chuỗi VietQR chuẩn EMVCo
+function newtrip_generate_vietqr_payload($bank_bin, $account_no, $amount, $description, $account_name = '') {
+    $emvco = '';
+    
+    // Tag 00: Payload Format Indicator (01)
+    $emvco .= sprintf('%02s%02d%s', '00', 2, '01');
+    
+    // Tag 01: Point of Initiation Method (12: Dynamic QR with amount, 11: Static)
+    $emvco .= sprintf('%02s%02d%s', '01', 2, '12');
+    
+    // Tag 38: Merchant Account Information
+    $sub_sub_tag00 = sprintf('%02s%02d%s', '00', strlen($bank_bin), $bank_bin);
+    $sub_sub_tag01 = sprintf('%02s%02d%s', '01', strlen($account_no), $account_no);
+    $sub_tag01 = sprintf('%02s%02d%s', '01', strlen($sub_sub_tag00 . $sub_sub_tag01), $sub_sub_tag00 . $sub_sub_tag01);
+    $sub_tag00 = sprintf('%02s%02d%s', '00', 10, 'A000000727');
+    $emvco .= sprintf('%02s%02d%s', '38', strlen($sub_tag00 . $sub_tag01), $sub_tag00 . $sub_tag01);
+    
+    // Tag 53: Transaction Currency (704: VND)
+    $emvco .= sprintf('%02s%02d%s', '53', 3, '704');
+    
+    // Tag 54: Transaction Amount
+    $emvco .= sprintf('%02s%02d%s', '54', strlen($amount), $amount);
+    
+    // Tag 58: Country Code (VN)
+    $emvco .= sprintf('%02s%02d%s', '58', 2, 'VN');
+    
+    // Tag 59: Merchant Name (Account Name)
+    $clean_account_name = newtrip_remove_accents($account_name);
+    $clean_account_name = strtoupper(preg_replace('/[^A-Za-z0-9 ]/', '', $clean_account_name));
+    if (!empty($clean_account_name)) {
+        $emvco .= sprintf('%02s%02d%s', '59', strlen($clean_account_name), $clean_account_name);
+    }
+    
+    // Tag 62: Additional Data Template
+    $clean_desc = newtrip_remove_accents($description);
+    $clean_desc = strtoupper(preg_replace('/[^A-Za-z0-9 ]/', '', $clean_desc));
+    $sub_tag08 = sprintf('%02s%02d%s', '08', strlen($clean_desc), $clean_desc);
+    $emvco .= sprintf('%02s%02d%s', '62', strlen($sub_tag08), $sub_tag08);
+    
+    // Tag 63: CRC16 checksum
+    $emvco .= '6304';
+    $crc = newtrip_calculate_crc16($emvco);
+    
+    return $emvco . $crc;
+}
+
 // 4. Biến đổi dữ liệu Post sang định dạng JSON mà Frontend yêu cầu
 function newtrip_format_tour_list_item($post) {
     $post_id = $post->ID;
@@ -261,6 +366,13 @@ function newtrip_format_tour_detail($post) {
         'services' => $services,
         'departure_dates' => $departure_dates,
         'pickup_points' => $pickup_points,
+        'distance' => newtrip_get_field('distance', $post_id) ?: '8-10 km',
+        'elevation' => newtrip_get_field('elevation', $post_id) ?: '1.200m',
+        'max_altitude' => newtrip_get_field('max_altitude', $post_id) ?: '1.500m',
+        'terrain' => newtrip_get_field('terrain', $post_id) ?: 'Rừng, đồi, suối',
+        'age_min' => newtrip_get_field('age_min', $post_id) ?: '16+',
+        'fitness' => newtrip_get_field('fitness', $post_id) ?: 'Trung bình',
+        'gear_list' => newtrip_parse_gear_list_pro(newtrip_get_field('gear_list', $post_id)),
     ]);
 }
 
@@ -317,6 +429,9 @@ function newtrip_api_get_tours(WP_REST_Request $request) {
     $difficulty = $request->get_param('difficulty');
     $duration = $request->get_param('duration');
     $departure_time = $request->get_param('departure_time');
+    $price_min = $request->get_param('price_min');
+    $price_max = $request->get_param('price_max');
+    $sort = $request->get_param('sort');
     
     $args = [
         'post_type' => 'tour',
@@ -343,6 +458,22 @@ function newtrip_api_get_tours(WP_REST_Request $request) {
             'compare' => '=',
         ];
     }
+    if (isset($price_min) && $price_min !== '') {
+        $meta_query[] = [
+            'key' => 'price',
+            'value' => floatval($price_min),
+            'type' => 'NUMERIC',
+            'compare' => '>=',
+        ];
+    }
+    if (isset($price_max) && $price_max !== '') {
+        $meta_query[] = [
+            'key' => 'price',
+            'value' => floatval($price_max),
+            'type' => 'NUMERIC',
+            'compare' => '<=',
+        ];
+    }
     if (!empty($meta_query)) {
         $args['meta_query'] = $meta_query;
     }
@@ -364,14 +495,39 @@ function newtrip_api_get_tours(WP_REST_Request $request) {
         }
     }
 
+    // Sắp xếp (sorting) ở PHP
+    if ($sort === 'price-asc') {
+        usort($data, function($a, $b) {
+            return $a['price'] <=> $b['price'];
+        });
+    } elseif ($sort === 'price-desc') {
+        usort($data, function($a, $b) {
+            return $b['price'] <=> $a['price'];
+        });
+    } elseif ($sort === 'rating-desc') {
+        usort($data, function($a, $b) {
+            return $b['review_count'] <=> $a['review_count']; // Sort by popularity
+        });
+    }
+
+    // Phân trang ở PHP (để đảm bảo chính xác sau khi lọc ở PHP)
+    $page = intval($request->get_param('page') ?: 1);
+    $per_page = intval($request->get_param('per_page') ?: 10);
+    
+    $total_items = count($data);
+    $total_pages = max(1, ceil($total_items / $per_page));
+    
+    $offset = ($page - 1) * $per_page;
+    $paginated_data = array_slice($data, $offset, $per_page);
+
     return new WP_REST_Response([
         'success' => true,
-        'data' => $data,
+        'data' => $paginated_data,
         'meta' => [
-            'total' => count($data),
-            'page' => 1,
-            'per_page' => count($data),
-            'total_pages' => 1
+            'total' => $total_items,
+            'page' => $page,
+            'per_page' => $per_page,
+            'total_pages' => $total_pages
         ]
     ], 200);
 }
@@ -614,8 +770,9 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         
         $p_phone = isset($p['phone']) ? sanitize_text_field($p['phone']) : '';
         $p_email = isset($p['email']) ? sanitize_email($p['email']) : '';
-        $p_birth = isset($p['birth_year']) ? sanitize_text_field($p['birth_year']) : '';
+        $p_birth = isset($p['birth_date']) ? sanitize_text_field($p['birth_date']) : (isset($p['birth_year']) ? sanitize_text_field($p['birth_year']) : '');
         $p_id_no = isset($p['id_number']) ? sanitize_text_field($p['id_number']) : '';
+        $p_health = isset($p['health_status']) ? sanitize_text_field($p['health_status']) : '';
         $p_seat = isset($params['selected_seats'][$idx]) ? sanitize_text_field($params['selected_seats'][$idx]) : '';
         
         $p_pickup_point_id = isset($p['pickup_point_id']) ? intval($p['pickup_point_id']) : 0;
@@ -635,10 +792,12 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
             'full_name' => $p_name,
             'phone' => $p_phone,
             'email' => $p_email,
-            'birth_year' => $p_birth,
+            'birth_date' => $p_birth,
             'id_number' => $p_id_no,
             'pickup_point_id' => $p_pickup_point_id ?: null,
             'seat' => $p_seat,
+            'checked_in' => 0,
+            'health_status' => $p_health,
         ];
         
         $passengers_response_data[] = [
@@ -646,7 +805,11 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
             'full_name' => $p_name,
             'seat' => $p_seat,
             'pickup_point' => $pickup_name,
-            'qr_code_url' => sprintf('https://tour-api.nttung.dev/qr/%s-P%d.png', $booking_code, $p_id_counter + $idx),
+            'checked_in' => false,
+            'birth_date' => $p_birth,
+            'id_number' => $p_id_no,
+            'health_status' => $p_health,
+            'qr_code_url' => sprintf('%s/qr/%s-P%d.png', untrailingslashit(get_site_url()), $booking_code, $p_id_counter + $idx),
         ];
     }
 
@@ -828,7 +991,10 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'email' => $p['email'] ?? '',
                 'seat' => $p['seat'] ?? '',
                 'pickup_point' => $pickup_name,
-                'checked_in' => false,
+                'checked_in' => !empty($p['checked_in']) ? (bool)$p['checked_in'] : false,
+                'birth_date' => $p['birth_date'] ?? ($p['birth_year'] ?? ''),
+                'id_number' => $p['id_number'] ?? '',
+                'health_status' => $p['health_status'] ?? '',
             ];
         }
     } else {
@@ -838,7 +1004,10 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'full_name' => newtrip_get_field('full_name', $b_id),
                 'phone' => newtrip_get_field('phone', $b_id),
                 'email' => newtrip_get_field('email', $b_id),
-                'checked_in' => false,
+                'checked_in' => !empty(newtrip_get_field('checked_in', $b_id)) ? (bool)newtrip_get_field('checked_in', $b_id) : false,
+                'birth_date' => newtrip_get_field('birth_date', $b_id) ?: (newtrip_get_field('birth_year', $b_id) ?: ''),
+                'id_number' => newtrip_get_field('id_number', $b_id) ?: '',
+                'health_status' => newtrip_get_field('health_status', $b_id) ?: '',
             ]
         ];
     }
@@ -863,15 +1032,21 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
 
     $bank_info = null;
     if ($method === 'transfer') {
+        $bank_bin = '970422';
+        $account_no = '123456789';
+        $account_name = 'DOI DEP ADVENTURE COMPANY';
+        $qr_payload = newtrip_generate_vietqr_payload($bank_bin, $account_no, $total, $booking_code, $account_name);
+
         $bank_info = [
             'bank_name' => 'MB Bank',
-            'bank_bin' => '970422',
-            'account_no' => '123456789',
-            'account_name' => 'DOI DEP ADVENTURE COMPANY',
+            'bank_bin' => $bank_bin,
+            'account_no' => $account_no,
+            'account_name' => $account_name,
             'amount' => $total,
             'content' => $booking_code,
-            'qr_url' => sprintf('https://img.vietqr.io/image/MB-123456789-compact2.png?amount=%d&addInfo=%s&accountName=DOI+DEP+ADVENTURE+COMPANY', $total, $booking_code),
-            'deeplink' => sprintf('https://link.vietqr.io/2.0/referral/vietqr?bin=970422&account=123456789&amount=%d&addInfo=%s', $total, $booking_code)
+            'qr_payload' => $qr_payload,
+            'qr_url' => sprintf('https://chart.googleapis.com/chart?chs=350x350&cht=qr&chl=%s', urlencode($qr_payload)),
+            'deeplink' => sprintf('https://link.vietqr.io/2.0/referral/vietqr?bin=%s&account=%s&amount=%d&addInfo=%s', $bank_bin, $account_no, $total, $booking_code)
         ];
     }
 

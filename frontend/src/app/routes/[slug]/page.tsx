@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { tours, getTourBySlug } from "@/data/tours";
+import { getTourBySlug, TourDetail } from "@/lib/api";
 import { 
   ClockIcon, 
   MapPinIcon, 
@@ -28,6 +28,15 @@ import { cn } from "@/lib/utils";
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
+
+const getItineraryIcon = (activity: string) => {
+  const text = activity.toLowerCase();
+  if (text.includes("đón") || text.includes("hẹn")) return MapPinIcon;
+  if (text.includes("ăn") || text.includes("bbq") || text.includes("sáng") || text.includes("trưa") || text.includes("tối")) return SunIcon;
+  if (text.includes("trek") || text.includes("leo") || text.includes("đỉnh") || text.includes("núi")) return MountainIcon;
+  if (text.includes("nghỉ") || text.includes("hoàng hôn") || text.includes("lửa trại")) return EyeIcon;
+  return FootprintsIcon;
+};
 
 // Image Gallery Modal
 function ImageGalleryModal({ 
@@ -135,16 +144,49 @@ export default function TourDetailPage({ params }: PageProps) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  
-  const tour = getTourBySlug(slug);
+
+  const [tour, setTour] = useState<TourDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getTourBySlug(slug)
+      .then((tourData) => {
+        if (cancelled) return;
+        setTour(tourData);
+      })
+      .catch((err) => {
+        console.error("Error loading tour details:", err);
+        if (!cancelled) setTour(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500">Đang tải chi tiết tour...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!tour) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Tour không tìm thấy</h1>
-          <Link href="/routes" className="text-[#16a249] hover:underline">
-            ← Quay lại danh sách tour
+          <Link href="/booking" className="text-[#16a249] hover:underline">
+            ← Quay lại trang đặt tour
           </Link>
         </div>
       </div>
@@ -156,134 +198,41 @@ export default function TourDetailPage({ params }: PageProps) {
     medium: { label: "Trung bình", color: "bg-yellow-100 text-yellow-700", desc: "Có kinh nghiệm trekking" },
     hard: { label: "Khó", color: "bg-red-100 text-red-700", desc: "Thử thách cao" },
   };
-  const difficulty = difficultyConfig[tour.difficulty as keyof typeof difficultyConfig];
+  const difficulty = difficultyConfig[tour.difficulty as keyof typeof difficultyConfig] || difficultyConfig.easy;
 
-  // Gallery images from tour data (always 5 images)
-  const galleryImages = tour.gallery;
+  // Gallery images from tour data
+  const galleryImages = tour.gallery && tour.gallery.length > 0 
+    ? tour.gallery 
+    : ["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80"];
 
   // Tour Summary data
   const tourSummary = {
     duration: tour.duration,
-    distance: "8-10 km",
-    elevation: "1.200m",
-    maxAltitude: "1.500m",
-    terrain: "Rừng, đồi, suối",
-    ageMin: "16+",
-    fitness: "Trung bình",
-  };
-
-  // Detailed schedule
-  const schedule = [
-    {
-      time: "05:30 - 06:00",
-      title: "Đón khách tại điểm hẹn",
-      description: "Xe đưa đón tận nơi trong khu vực TP.HCM và các tỉnh lân cận. Check-in và nhận dụng cụ.",
-      icon: MapPinIcon,
-    },
-    {
-      time: "07:00 - 09:00",
-      title: "Di chuyển đến điểm xuất phát",
-      description: "Trên đường đi, hướng dẫn viên sẽ giới thiệu về tour, những lưu ý an toàn và phổ biến kỹ năng trekking cơ bản.",
-      icon: MountainIcon,
-    },
-    {
-      time: "09:00 - 09:30",
-      title: "Khởi động & Brief về an toàn",
-      description: "Thực hiện các bài khởi động, kiểm tra trang bị và phổ biến quy tắc an toàn trên trail.",
-      icon: ShieldCheckIcon,
-    },
-    {
-      time: "09:30 - 12:00",
-      title: "Bắt đầu Trekking - Đoạn 1",
-      description: "Đoạn đường đầu tiên đi qua rừng thông, dốc nhẹ. Cảnh quan bắt đầu mở ra với tầm view bao quát.",
-      subActivities: [
-        "Đoạn đường: 3km",
-        "Độ cao tăng: +400m",
-        "Nghỉ 2 lần, mỗi lần 10 phút",
-      ],
-      icon: FootprintsIcon,
-    },
-    {
-      time: "12:00 - 13:00",
-      title: "Nghỉ trưa & Bữa trưa",
-      description: "Nghỉ ngơi tại điểm có bóng mát, thưởng thức bữa trưa với các món ăn địa phương. Thời gian tự do chụp ảnh.",
-      subActivities: [
-        "Bữa trưa: Cơm rang, mì xào, đồ uống",
-        "Thời gian nghỉ: 60 phút",
-      ],
-      icon: SunIcon,
-    },
-    {
-      time: "13:00 - 15:30",
-      title: "Trekking - Đoạn 2 (Đỉnh)",
-      description: "Đoạn cuối leo lên đỉnh. Địa hình dốc hơn nhưng tầm view tuyệt đẹp. Đạt đỉnh và chụp ảnh kỷ niệm.",
-      subActivities: [
-        "Đoạn đường: 4km",
-        "Độ cao tăng: +600m",
-        "Đạt đỉnh: Checkpoint 1.500m",
-      ],
-      icon: MountainIcon,
-    },
-    {
-      time: "15:30 - 16:00",
-      title: "Đạt đỉnh - Ngắm cảnh",
-      description: "Thời gian nghỉ ngơi tại đỉnh, ngắm toàn cảnh panorama 360°. Chụp ảnh, chia sẻ trải nghiệm.",
-      subActivities: [
-        "Thời gian: 30 phút",
-        "Độ cao đỉnh: 1.500m",
-      ],
-      icon: EyeIcon,
-    },
-    {
-      time: "16:00 - 18:00",
-      title: "Xuống núi",
-      description: "Quay trở lại điểm xuất phát theo đường cũ. Đường xuống dốc hơn, cần chú ý an toàn.",
-      subActivities: [
-        "Đoạn đường: 5km",
-        "Độ cao giảm: -1.000m",
-        "Thời gian: ~2 tiếng",
-      ],
-      icon: FootprintsIcon,
-    },
-    {
-      time: "18:00 - 20:00",
-      title: "Về đến TP.HCM",
-      description: "Kết thúc chuyến đi, tiễn khách tại điểm đón. Hẹn gặp lại trong chuyến đi tiếp theo!",
-      icon: CalendarIcon,
-    },
-  ];
-
-  // What's included
-  const included = {
-    included: [
-      "Xe đưa đón khứ hồi (TP.HCM)",
-      "Bữa trưa tại trail",
-      "Nước uống (2 chai/person)",
-      "Hướng dẫn viên chuyên nghiệp (2 người)",
-      "Bảo hiểm du lịch",
-      "Dụng cụ an toàn (nón, găng tay)",
-      "Áo phông Đôi Dép Adventure",
-      "Khăn đa năng",
-    ],
-    notIncluded: [
-      "Thuốc men personal",
-      "Đồ ăn vặt cá nhân",
-      "Tip cho HDV (tùy ý)",
-      "Chi phí cá nhân khác",
-    ],
+    distance: tour.distance || "8-10 km",
+    elevation: tour.elevation || "1.200m",
+    maxAltitude: tour.max_altitude || "1.500m",
+    terrain: tour.terrain || "Rừng, đồi, suối",
+    ageMin: tour.age_min || "16+",
+    fitness: tour.fitness || "Trung bình",
   };
 
   // Gear recommendations
-  const gearList = [
-    { icon: "👟", name: "Giày trekking", important: true },
-    { icon: "🎒", name: "Ba lô 20-30L", important: true },
-    { icon: "🧴", name: "Kem chống nắng", important: true },
-    { icon: "🧢", name: "Mũ/nón", important: true },
-    { icon: "👕", name: "Áo thun thoáng khí", important: false },
-    { icon: "🩳", name: "Quần dài trekking", important: false },
-    { icon: "🔦", name: "Đèn pin/flashlight", important: false },
-    { icon: "💧", name: "Bình nước 1.5L", important: true },
-  ];
+  const gearList = tour.gear_list && tour.gear_list.length > 0 
+    ? tour.gear_list 
+    : [
+        { icon: "👟", name: "Giày trekking", important: true },
+        { icon: "🎒", name: "Ba lô 20-30L", important: true },
+        { icon: "🧴", name: "Kem chống nắng", important: true },
+        { icon: "🧢", name: "Mũ/nón", important: true },
+        { icon: "👕", name: "Áo thun thoáng khí", important: false },
+        { icon: "🩳", name: "Quần dài trekking", important: false },
+        { icon: "🔦", name: "Đèn pin/flashlight", important: false },
+        { icon: "💧", name: "Bình nước 1.5L", important: true },
+      ];
+
+  const itinerary = tour.itinerary || [];
+  const includedList = tour.included || [];
+  const excludedList = tour.excluded || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -339,7 +288,7 @@ export default function TourDetailPage({ params }: PageProps) {
               {/* Overlay on last visible image if more than 4 */}
               {index === 2 && galleryImages.length > 4 && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">+${galleryImages.length - 4}</span>
+                  <span className="text-white font-bold text-lg">+{galleryImages.length - 4}</span>
                 </div>
               )}
             </div>
@@ -352,7 +301,7 @@ export default function TourDetailPage({ params }: PageProps) {
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-between gap-4 py-3 text-sm">
             <div className="flex items-center gap-2">
-              <Link href="/routes" className="text-gray-500 hover:text-emerald-700 flex items-center gap-1 font-medium">
+              <Link href="/booking" className="text-gray-500 hover:text-emerald-700 flex items-center gap-1 font-medium">
                 Tour <ChevronRightIcon className="w-4 h-4" />
               </Link>
               <span className="font-bold text-gray-900 max-w-[120px] sm:max-w-xs truncate">{tour.name}</span>
@@ -406,7 +355,7 @@ export default function TourDetailPage({ params }: PageProps) {
               </div>
               <div className="flex items-center gap-1.5 text-gray-600 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
                 <UsersIcon className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-xs font-medium">{tour.availableSpots} chỗ trống</span>
+                <span className="text-xs font-medium">{tour.available_spots} chỗ trống</span>
               </div>
             </div>
           </div>
@@ -437,7 +386,7 @@ export default function TourDetailPage({ params }: PageProps) {
                 </span>
                 <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
                   <MapPinIcon className="w-4 h-4" />
-                  {tour.departureTime}
+                  {tour.departure_times?.[0] || "Sáng"}
                 </span>
               </div>
             </div>
@@ -473,23 +422,27 @@ export default function TourDetailPage({ params }: PageProps) {
             {/* Highlights */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Điểm nổi bật</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {tour.highlights.map((highlight, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-center gap-3 p-4 bg-gradient-to-r from-[#16a249]/5 to-transparent rounded-xl border border-gray-100"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-[#16a249] flex items-center justify-center">
-                      <CheckIcon className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-medium text-gray-800">{highlight}</span>
-                  </motion.div>
-                ))}
-              </div>
+              {tour.highlights && tour.highlights.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {tour.highlights.map((highlight, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-center gap-3 p-4 bg-gradient-to-r from-[#16a249]/5 to-transparent rounded-xl border border-gray-100"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-[#16a249] flex items-center justify-center flex-shrink-0">
+                        <CheckIcon className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="font-medium text-gray-800">{highlight}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">Thông tin điểm nổi bật đang được cập nhật.</p>
+              )}
             </div>
 
             {/* Tabs Section */}
@@ -524,52 +477,46 @@ export default function TourDetailPage({ params }: PageProps) {
               <div className="p-6">
                 {activeTab === "lich-trinh" && (
                   <div className="space-y-6">
-                    {schedule.map((item, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: index * 0.05 }}
-                        className="flex gap-4"
-                      >
-                        {/* Timeline */}
-                        <div className="flex flex-col items-center">
-                          <div className={cn(
-                            "w-12 h-12 rounded-2xl flex items-center justify-center",
-                            "bg-gradient-to-br from-[#16a249] to-[#10b981] text-white shadow-lg"
-                          )}>
-                            <item.icon className="w-5 h-5" />
-                          </div>
-                          {index < schedule.length - 1 && (
-                            <div className="w-0.5 flex-1 bg-gray-200 my-2 min-h-[40px]" />
-                          )}
-                        </div>
-                        
-                        {/* Content */}
-                        <div className="flex-1 pb-6">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="text-sm font-semibold text-[#16a249] bg-[#16a249]/10 px-3 py-1 rounded-full">
-                              {item.time}
-                            </span>
-                          </div>
-                          <h4 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h4>
-                          <p className="text-gray-600 mb-3">{item.description}</p>
-                          
-                          {/* Sub Activities */}
-                          {item.subActivities && (
-                            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                              {item.subActivities.map((sub, subIndex) => (
-                                <div key={subIndex} className="flex items-center gap-2 text-sm text-gray-600">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-[#16a249]" />
-                                  <span>{sub}</span>
-                                </div>
-                              ))}
+                    {itinerary.length > 0 ? (
+                      itinerary.map((item, index) => {
+                        const IconComponent = getItineraryIcon(item.activity);
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: index * 0.05 }}
+                            className="flex gap-4"
+                          >
+                            {/* Timeline */}
+                            <div className="flex flex-col items-center">
+                              <div className={cn(
+                                "w-12 h-12 rounded-2xl flex items-center justify-center",
+                                "bg-gradient-to-br from-[#16a249] to-[#10b981] text-white shadow-lg"
+                              )}>
+                                <IconComponent className="w-5 h-5" />
+                              </div>
+                              {index < itinerary.length - 1 && (
+                                <div className="w-0.5 flex-1 bg-gray-200 my-2 min-h-[40px]" />
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
+                            
+                            {/* Content */}
+                            <div className="flex-1 pb-6">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="text-sm font-semibold text-[#16a249] bg-[#16a249]/10 px-3 py-1 rounded-full">
+                                  {item.time}
+                                </span>
+                              </div>
+                              <h4 className="text-lg font-bold text-gray-900 mb-2">{item.activity}</h4>
+                            </div>
+                          </motion.div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-gray-500 text-center py-6">Chưa có lịch trình chi tiết.</p>
+                    )}
                   </div>
                 )}
 
@@ -578,15 +525,24 @@ export default function TourDetailPage({ params }: PageProps) {
                     {/* About Tour */}
                     <div>
                       <h3 className="text-lg font-bold text-gray-900 mb-3">Giới thiệu</h3>
-                      <p className="text-gray-600 leading-relaxed mb-4">
-                        {tour.description}
-                      </p>
-                      <p className="text-gray-600 leading-relaxed">
-                        Hành trình mang đến cho bạn trải nghiệm tuyệt vời với thiên nhiên hoang sơ, 
-                        không khí trong lành và những khung cảnh đẹp mê lòng người. 
-                        Đội ngũ hướng dẫn viên giàu kinh nghiệm sẽ đồng hành cùng bạn trong suốt chuyến đi, 
-                        đảm bảo an toàn và mang đến những khoảnh khắc đáng nhớ nhất.
-                      </p>
+                      {tour.content ? (
+                        <div 
+                          className="prose max-w-none text-gray-600 leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: tour.content }}
+                        />
+                      ) : (
+                        <>
+                          <p className="text-gray-600 leading-relaxed mb-4">
+                            {tour.description}
+                          </p>
+                          <p className="text-gray-600 leading-relaxed">
+                            Hành trình mang đến cho bạn trải nghiệm tuyệt vời với thiên nhiên hoang sơ, 
+                            không khí trong lành và những khung cảnh đẹp mê lòng người. 
+                            Đội ngũ hướng dẫn viên giàu kinh nghiệm sẽ đồng hành cùng bạn trong suốt chuyến đi, 
+                            đảm bảo an toàn và mang đến những khoảnh khắc đáng nhớ nhất.
+                          </p>
+                        </>
+                      )}
                     </div>
 
                     {/* Difficulty Guide */}
@@ -641,21 +597,25 @@ export default function TourDetailPage({ params }: PageProps) {
                         <CheckIcon className="w-5 h-5 text-[#16a249]" />
                         Đã bao gồm
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {included.included.map((item, index) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: index * 0.05 }}
-                            className="flex items-center gap-3 p-3 bg-green-50 rounded-xl"
-                          >
-                            <CheckIcon className="w-5 h-5 text-[#16a249] flex-shrink-0" />
-                            <span className="text-gray-700">{item}</span>
-                          </motion.div>
-                        ))}
-                      </div>
+                      {includedList.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {includedList.map((item, index) => (
+                            <motion.div
+                              key={index}
+                              initial={{ opacity: 0 }}
+                              whileInView={{ opacity: 1 }}
+                              viewport={{ once: true }}
+                              transition={{ delay: index * 0.05 }}
+                              className="flex items-center gap-3 p-3 bg-green-50 rounded-xl"
+                            >
+                              <CheckIcon className="w-5 h-5 text-[#16a249] flex-shrink-0" />
+                              <span className="text-gray-700">{item}</span>
+                            </motion.div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500">Chi tiết dịch vụ đã bao gồm đang được cập nhật.</p>
+                      )}
                     </div>
 
                     {/* Not Included */}
@@ -666,21 +626,25 @@ export default function TourDetailPage({ params }: PageProps) {
                         </svg>
                         Không bao gồm
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {included.notIncluded.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
-                          >
-                            <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0">
-                              <svg className="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
+                      {excludedList.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {excludedList.map((item, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
+                            >
+                              <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </div>
+                              <span className="text-gray-500">{item}</span>
                             </div>
-                            <span className="text-gray-500">{item}</span>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500">Chi tiết dịch vụ không bao gồm đang được cập nhật.</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -752,11 +716,11 @@ export default function TourDetailPage({ params }: PageProps) {
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center gap-3 text-gray-600">
                     <CalendarIcon className="w-5 h-5 text-[#16a249]" />
-                    <span>Khởi hành: {tour.departureTime}</span>
+                    <span>Khởi hành: {tour.departure_times?.[0] || "Sáng"}</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-600">
                     <UsersIcon className="w-5 h-5 text-[#16a249]" />
-                    <span>Còn {tour.availableSpots} chỗ trống</span>
+                    <span>Còn {tour.available_spots} chỗ trống</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-600">
                     <ClockIcon className="w-5 h-5 text-[#16a249]" />
@@ -776,7 +740,7 @@ export default function TourDetailPage({ params }: PageProps) {
                     type="number"
                     placeholder="Số lượng (1-10)"
                     min="1"
-                    max={Math.min(tour.availableSpots, 10)}
+                    max={Math.min(tour.available_spots || 10, 10)}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent"

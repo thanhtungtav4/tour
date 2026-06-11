@@ -151,6 +151,92 @@
       "instructions": "Các dặn dò hoặc chuẩn bị cần thiết cho chuyến đi",
       "required": 0,
       "default_value": ""
+    },
+    {
+      "key": "field_tour_distance",
+      "label": "Quãng đường trekking (ví dụ: 8-10 km)",
+      "name": "distance",
+      "type": "text",
+      "required": 0,
+      "default_value": "8-10 km"
+    },
+    {
+      "key": "field_tour_elevation",
+      "label": "Độ cao dốc (ví dụ: 1.200m)",
+      "name": "elevation",
+      "type": "text",
+      "required": 0,
+      "default_value": "1.200m"
+    },
+    {
+      "key": "field_tour_max_altitude",
+      "label": "Độ cao cực đại (ví dụ: 1.500m)",
+      "name": "max_altitude",
+      "type": "text",
+      "required": 0,
+      "default_value": "1.500m"
+    },
+    {
+      "key": "field_tour_terrain",
+      "label": "Địa hình (ví dụ: Rừng, đồi, suối)",
+      "name": "terrain",
+      "type": "text",
+      "required": 0,
+      "default_value": "Rừng, đồi, suối"
+    },
+    {
+      "key": "field_tour_age_min",
+      "label": "Độ tuổi tối thiểu (ví dụ: 16+)",
+      "name": "age_min",
+      "type": "text",
+      "required": 0,
+      "default_value": "16+"
+    },
+    {
+      "key": "field_tour_fitness",
+      "label": "Yêu cầu thể lực (ví dụ: Trung bình)",
+      "name": "fitness",
+      "type": "text",
+      "required": 0,
+      "default_value": "Trung bình"
+    },
+    {
+      "key": "field_tour_gear_list",
+      "label": "Danh sách trang bị khuyến nghị (ACF Pro Repeater)",
+      "name": "gear_list",
+      "type": "repeater",
+      "instructions": "Quản lý trang bị khuyến nghị cho tour",
+      "required": 0,
+      "collapsed": "field_tour_gear_name",
+      "min": 0,
+      "max": 0,
+      "layout": "table",
+      "button_label": "Thêm trang bị",
+      "sub_fields": [
+        {
+          "key": "field_tour_gear_icon",
+          "label": "Biểu tượng (Emoji)",
+          "name": "icon",
+          "type": "text",
+          "required": 1,
+          "default_value": "👟"
+        },
+        {
+          "key": "field_tour_gear_name",
+          "label": "Tên trang bị",
+          "name": "name",
+          "type": "text",
+          "required": 1
+        },
+        {
+          "key": "field_tour_gear_important",
+          "label": "Bắt buộc/Quan trọng",
+          "name": "important",
+          "type": "true_false",
+          "default_value": 1,
+          "ui": 1
+        }
+      ]
     }
   ],
   "location": [

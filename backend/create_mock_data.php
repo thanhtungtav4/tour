@@ -167,6 +167,18 @@ $tours = [
                 'https://images.unsplash.com/photo-1472214222541-d510753a8707?w=800&q=80',
                 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80'
             ],
+            'distance' => '28 km',
+            'elevation' => '1.500m',
+            'max_altitude' => '1.700m',
+            'terrain' => 'Đồi cỏ, dốc đá, rừng thông',
+            'age_min' => '18+',
+            'fitness' => 'Tốt',
+            'gear_list' => [
+                ['icon' => '👟', 'name' => 'Giày trekking chuyên dụng', 'important' => 1],
+                ['icon' => '🎒', 'name' => 'Balo leo núi 30L', 'important' => 1],
+                ['icon' => '🧴', 'name' => 'Kem chống côn trùng', 'important' => 1],
+                ['icon' => '🧥', 'name' => 'Áo khoác gió nhẹ', 'important' => 0]
+            ],
             'departure_dates' => [
                 [
                     'date' => $date1,
@@ -222,10 +234,10 @@ $tours = [
         ]
     ],
     [
-        'title' => 'Chinh phục Đỉnh Langbiang',
+        'title' => 'Langbiang',
         'content' => 'Langbiang được mệnh danh là nóc nhà của thành phố sương mù Đà Lạt. Hành trình leo núi Langbiang trekking xuyên rừng thông cổ thụ, qua rừng lá rộng nhiệt đới và chinh phục đỉnh radar cao 2.167m, mở ra tầm nhìn bao quát toàn bộ Suối Vàng, Suối Bạc và thành phố Đà Lạt từ trên cao.',
         'fields' => [
-            'price' => 1200000,
+            'price' => 450000,
             'difficulty' => 'easy',
             'duration' => '1 ngày',
             'departure_time' => '07:30 Sáng',
@@ -240,18 +252,30 @@ $tours = [
                 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80',
                 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80'
             ],
+            'distance' => '8-10 km',
+            'elevation' => '1.200m',
+            'max_altitude' => '2.167m',
+            'terrain' => 'Rừng thông, dốc thoải',
+            'age_min' => '10+',
+            'fitness' => 'Trung bình',
+            'gear_list' => [
+                ['icon' => '👟', 'name' => 'Giày trekking/thể thao', 'important' => 1],
+                ['icon' => '🧥', 'name' => 'Áo khoác giữ ấm nhẹ', 'important' => 1],
+                ['icon' => '🧴', 'name' => 'Kem chống nắng', 'important' => 1],
+                ['icon' => '💧', 'name' => 'Bình nước 1.5L', 'important' => 1]
+            ],
             'departure_dates' => [
                 [
                     'date' => $date1,
-                    'available_spots' => 10
+                    'available_spots' => 15
                 ],
                 [
                     'date' => $date2,
-                    'available_spots' => 8
+                    'available_spots' => 21
                 ],
                 [
                     'date' => $date3,
-                    'available_spots' => 10
+                    'available_spots' => 18
                 ]
             ],
             'itinerary' => [
@@ -309,6 +333,18 @@ $tours = [
                 'https://images.unsplash.com/photo-1425913397330-cf8af2ff40a1?w=800&q=80',
                 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=800&q=80'
             ],
+            'distance' => '7 km',
+            'elevation' => '600m',
+            'max_altitude' => '886m',
+            'terrain' => 'Dốc đá, bậc thang, cỏ tranh',
+            'age_min' => '12+',
+            'fitness' => 'Trung bình',
+            'gear_list' => [
+                ['icon' => '👟', 'name' => 'Giày trekking/thể thao độ bám tốt', 'important' => 1],
+                ['icon' => '🧢', 'name' => 'Mũ che nắng rộng vành', 'important' => 1],
+                ['icon' => '🧴', 'name' => 'Kem chống nắng', 'important' => 0],
+                ['icon' => '💧', 'name' => 'Bình nước 2L', 'important' => 1]
+            ],
             'departure_dates' => [
                 [
                     'date' => $date1,
@@ -355,6 +391,95 @@ $tours = [
                 [
                     'time' => '19:30',
                     'activity' => 'Về đến điểm đón ban đầu, kết thúc hành trình'
+                ]
+            ]
+        ]
+    ],
+    [
+        'title' => 'Rừng Cát Tiên',
+        'content' => 'Rừng Cát Tiên là điểm đến lý tưởng cho hoạt động đạp xe và đi bộ khám phá rừng ngập mặn, ngắm nhìn thảm thực vật phong phú và tìm hiểu về các loài động vật hoang dã quý hiếm. Chuyến đi mang lại cảm giác thư thái gần gũi thiên nhiên nguyên sơ chỉ cách TP.HCM vài giờ di chuyển.',
+        'fields' => [
+            'price' => 380000,
+            'difficulty' => 'easy',
+            'duration' => '1 ngày',
+            'departure_time' => 'Sáng',
+            'highlights' => "Rừng ngập mặn\nĐộng vật hoang dã\nThiên nhiên nguyên sơ",
+            'included' => "Xe đưa đón khứ hồi từ TP.HCM\nVé cổng Vườn quốc gia Cát Tiên\nHướng dẫn viên suốt tuyến\nNước uống 1.5L",
+            'excluded' => "Chi phí cá nhân ngoài chương trình\nThuê xe đạp tự túc\nThuế VAT",
+            'notes' => 'Vui lòng chuẩn bị quần áo dài chống muỗi và vắt, giày đi bộ thoải mái.',
+            'gallery' => [
+                'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=800&q=80',
+                'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&q=80',
+                'https://images.unsplash.com/photo-1542273917363-3b1817f69a8d?w=800&q=80',
+                'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80',
+                'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80'
+            ],
+            'distance' => '8-10 km',
+            'elevation' => '1.200m',
+            'max_altitude' => '1.500m',
+            'terrain' => 'Rừng, đồi, suối',
+            'age_min' => '16+',
+            'fitness' => 'Trung bình',
+            'gear_list' => [
+                ['icon' => '👟', 'name' => 'Giày trekking', 'important' => 1],
+                ['icon' => '🎒', 'name' => 'Ba lô 20-30L', 'important' => 1],
+                ['icon' => '🧴', 'name' => 'Kem chống nắng', 'important' => 1],
+                ['icon' => '🧢', 'name' => 'Mũ/nón', 'important' => 1],
+                ['icon' => '👕', 'name' => 'Áo thun thoáng khí', 'important' => 0],
+                ['icon' => '🩳', 'name' => 'Quần dài trekking', 'important' => 0],
+                ['icon' => '🔦', 'name' => 'Đèn pin/flashlight', 'important' => 0],
+                ['icon' => '💧', 'name' => 'Bình nước 1.5L', 'important' => 1]
+            ],
+            'departure_dates' => [
+                [
+                    'date' => $date1,
+                    'available_spots' => 12
+                ],
+                [
+                    'date' => $date2,
+                    'available_spots' => 17
+                ],
+                [
+                    'date' => $date3,
+                    'available_spots' => 8
+                ]
+            ],
+            'itinerary' => [
+                [
+                    'time' => '05:30 - 06:00',
+                    'activity' => 'Đón khách tại điểm hẹn'
+                ],
+                [
+                    'time' => '07:00 - 09:00',
+                    'activity' => 'Di chuyển đến điểm xuất phát'
+                ],
+                [
+                    'time' => '09:00 - 09:30',
+                    'activity' => 'Khởi động & Brief về an toàn'
+                ],
+                [
+                    'time' => '09:30 - 12:00',
+                    'activity' => 'Bắt đầu Trekking - Đoạn 1'
+                ],
+                [
+                    'time' => '12:00 - 13:00',
+                    'activity' => 'Nghỉ trưa & Bữa trưa'
+                ],
+                [
+                    'time' => '13:00 - 15:30',
+                    'activity' => 'Trekking - Đoạn 2 (Đỉnh)'
+                ],
+                [
+                    'time' => '15:30 - 16:00',
+                    'activity' => 'Đạt đỉnh - Ngắm cảnh'
+                ],
+                [
+                    'time' => '16:00 - 18:00',
+                    'activity' => 'Xuống núi'
+                ],
+                [
+                    'time' => '18:00 - 20:00',
+                    'activity' => 'Về đến TP.HCM'
                 ]
             ]
         ]

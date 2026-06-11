@@ -77,6 +77,13 @@ export interface TourDetail extends TourListItem {
     pickup_time: string;
     time: string;
   }[];
+  distance?: string;
+  elevation?: string;
+  max_altitude?: string;
+  terrain?: string;
+  age_min?: string;
+  fitness?: string;
+  gear_list?: { icon: string; name: string; important: boolean }[];
 }
 
 // Rental Item types
@@ -123,8 +130,10 @@ export interface BookingRequest {
     full_name: string;
     phone: string;
     email?: string;
-    birth_year: string;
+    birth_year?: string;
+    birth_date?: string;
     id_number?: string;
+    health_status?: string;
     pickup_point_id?: number;
   }[];
   selected_seats?: string[];
@@ -172,6 +181,9 @@ export interface BookingDetail {
     seat?: string;
     pickup_point?: string;
     checked_in: boolean;
+    birth_date?: string;
+    id_number?: string;
+    health_status?: string;
   }[];
   rental_items?: { id: string; name: string; qty: number; subtotal: number }[];
   payment: {

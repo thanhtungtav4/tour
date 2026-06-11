@@ -204,9 +204,9 @@
           "type": "email"
         },
         {
-          "key": "field_booking_passenger_birth_year",
-          "label": "Năm sinh",
-          "name": "birth_year",
+          "key": "field_booking_passenger_birth_date",
+          "label": "Ngày sinh",
+          "name": "birth_date",
           "type": "text"
         },
         {
@@ -228,6 +228,20 @@
           "key": "field_booking_passenger_seat",
           "label": "Số ghế",
           "name": "seat",
+          "type": "text"
+        },
+        {
+          "key": "field_booking_passenger_checked_in",
+          "label": "Đã check-in",
+          "name": "checked_in",
+          "type": "true_false",
+          "default_value": 0,
+          "ui": 1
+        },
+        {
+          "key": "field_booking_passenger_health_status",
+          "label": "Tình trạng sức khỏe / Bệnh lý",
+          "name": "health_status",
           "type": "text"
         }
       ]

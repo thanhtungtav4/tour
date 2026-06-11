@@ -77,9 +77,12 @@ export default function BookingTourPage({ params }: PageProps) {
     fullName: "",
     phone: "",
     email: "",
+    idNumber: "",
+    birthDate: "",
+    healthStatus: "",
     notes: "",
     fillAllInfo: false,
-    participantsInfo: [] as { name: string; phone: string; email: string; birthYear: string; pickupPoint: string }[],
+    participantsInfo: [] as { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPoint: string }[],
   });
 
   // Pre-fill form from query params on mount
@@ -107,7 +110,7 @@ export default function BookingTourPage({ params }: PageProps) {
 
   const bookingRef = useMemo(() => `NTR-${slug.toUpperCase().replace(/[^A-Z0-9]/g, "-")}`, [slug]);
 
-  const updateFormData = (field: string, value: string | number | string[] | boolean | { name: string; phone: string; email: string; birthYear: string; pickupPoint: string }[] | Record<string, number>) => {
+  const updateFormData = (field: string, value: string | number | string[] | boolean | { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPoint: string }[] | Record<string, number>) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -151,14 +154,18 @@ export default function BookingTourPage({ params }: PageProps) {
             full_name: formData.fullName,
             phone: formData.phone,
             email: formData.email,
-            birth_year: "",
+            birth_date: formData.birthDate,
+            id_number: formData.idNumber,
+            health_status: formData.healthStatus,
             pickup_point_id: 1,
           },
           ...formData.participantsInfo.map((p) => ({
             full_name: p.name,
             phone: p.phone,
             email: p.email || undefined,
-            birth_year: p.birthYear,
+            birth_date: p.birthDate,
+            id_number: p.idNumber,
+            health_status: p.healthStatus,
             pickup_point_id: 1,
           })),
         ],
@@ -416,7 +423,7 @@ export default function BookingTourPage({ params }: PageProps) {
                               if (!e.target.checked) {
                                 updateFormData("participantsInfo", []);
                               } else {
-                                const emptyInfo = Array.from({ length: formData.participants - 1 }, () => ({ name: "", phone: "", email: "", birthYear: "", pickupPoint: "" }));
+                                const emptyInfo = Array.from({ length: formData.participants - 1 }, () => ({ name: "", phone: "", email: "", birthDate: "", idNumber: "", healthStatus: "", pickupPoint: "" }));
                                 updateFormData("participantsInfo", emptyInfo);
                               }
                             }}
@@ -467,6 +474,46 @@ export default function BookingTourPage({ params }: PageProps) {
                                 className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                               />
                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Ngày sinh <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={formData.birthDate}
+                                onChange={(e) => updateFormData("birthDate", e.target.value)}
+                                placeholder="DD/MM/YYYY (VD: 25/08/1995)"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Số CMND/CCCD <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={formData.idNumber}
+                                onChange={(e) => updateFormData("idNumber", e.target.value)}
+                                placeholder="Số CMND hoặc CCCD"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Tình trạng sức khỏe / Bệnh lý <span className="text-gray-400 font-normal">(tùy chọn)</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.healthStatus}
+                              onChange={(e) => updateFormData("healthStatus", e.target.value)}
+                              placeholder="Mắc bệnh tim, hen suyễn... hoặc ghi 'Không' nếu sức khỏe bình thường"
+                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                            />
                           </div>
                         </div>
                       </div>
@@ -528,14 +575,14 @@ export default function BookingTourPage({ params }: PageProps) {
                                       />
                                     </div>
                                     <div>
-                                      <label className="block text-sm font-medium text-gray-700 mb-1">Năm sinh</label>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Ngày sinh <span className="text-red-500">*</span></label>
                                       <input
                                         type="text"
-                                        placeholder="VD: 1990"
-                                        value={formData.participantsInfo[index]?.birthYear || ""}
+                                        placeholder="DD/MM/YYYY"
+                                        value={formData.participantsInfo[index]?.birthDate || ""}
                                         onChange={(e) => {
                                           const newInfo = [...formData.participantsInfo];
-                                          newInfo[index] = { ...newInfo[index], birthYear: e.target.value };
+                                          newInfo[index] = { ...newInfo[index], birthDate: e.target.value };
                                           updateFormData("participantsInfo", newInfo);
                                         }}
                                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -560,6 +607,37 @@ export default function BookingTourPage({ params }: PageProps) {
                                         <option value="thao-dien">Thảo Điền, TP. Thủ Đức</option>
                                         <option value="bien-hoa">Biên Hòa, Đồng Nai</option>
                                       </select>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Số CMND/CCCD <span className="text-red-500">*</span></label>
+                                      <input
+                                        type="text"
+                                        placeholder="Số CMND hoặc CCCD"
+                                        value={formData.participantsInfo[index]?.idNumber || ""}
+                                        onChange={(e) => {
+                                          const newInfo = [...formData.participantsInfo];
+                                          newInfo[index] = { ...newInfo[index], idNumber: e.target.value };
+                                          updateFormData("participantsInfo", newInfo);
+                                        }}
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Sức khỏe / Bệnh lý</label>
+                                      <input
+                                        type="text"
+                                        placeholder="Ghi rõ bệnh lý hoặc 'Không'"
+                                        value={formData.participantsInfo[index]?.healthStatus || ""}
+                                        onChange={(e) => {
+                                          const newInfo = [...formData.participantsInfo];
+                                          newInfo[index] = { ...newInfo[index], healthStatus: e.target.value };
+                                          updateFormData("participantsInfo", newInfo);
+                                        }}
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                      />
                                     </div>
                                   </div>
                                 </div>
@@ -833,6 +911,20 @@ export default function BookingTourPage({ params }: PageProps) {
                           <span className="text-gray-500">Người đại diện</span>
                           <span className="font-medium text-gray-900">{formData.fullName} - {formData.phone}</span>
                         </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm pt-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Ngày sinh</span>
+                            <span className="font-medium text-gray-900">{formData.birthDate || "Chưa nhập"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Số CCCD</span>
+                            <span className="font-medium text-gray-900">{formData.idNumber || "Chưa nhập"}</span>
+                          </div>
+                          <div className="col-span-2 flex justify-between">
+                            <span className="text-gray-500">Sức khỏe / Bệnh lý</span>
+                            <span className="font-medium text-gray-900">{formData.healthStatus || "Bình thường"}</span>
+                          </div>
+                        </div>
                         {formData.fillAllInfo && formData.participantsInfo.map((info, index) => (
                           <div key={index} className="pt-3 border-t">
                             <p className="text-sm font-medium text-gray-700 mb-1">Người thứ {index + 2}</p>
@@ -850,12 +942,20 @@ export default function BookingTourPage({ params }: PageProps) {
                                 <span className="font-medium text-gray-900">{info.email || "Chưa nhập"}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-gray-500">Năm sinh</span>
-                                <span className="font-medium text-gray-900">{info.birthYear || "Chưa nhập"}</span>
+                                <span className="text-gray-500">Ngày sinh</span>
+                                <span className="font-medium text-gray-900">{info.birthDate || "Chưa nhập"}</span>
                               </div>
-                              <div className="col-span-2 flex justify-between">
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Số CCCD</span>
+                                <span className="font-medium text-gray-900">{info.idNumber || "Chưa nhập"}</span>
+                              </div>
+                              <div className="flex justify-between">
                                 <span className="text-gray-500">Điểm đón</span>
                                 <span className="font-medium text-gray-900">{info.pickupPoint || "Chưa chọn"}</span>
+                              </div>
+                              <div className="col-span-2 flex justify-between">
+                                <span className="text-gray-500">Sức khỏe</span>
+                                <span className="font-medium text-gray-900">{info.healthStatus || "Bình thường"}</span>
                               </div>
                             </div>
                           </div>
@@ -1021,7 +1121,13 @@ export default function BookingTourPage({ params }: PageProps) {
                     onClick={nextStep}
                     disabled={
                       (currentStep === 1 && (!formData.departureDate || formData.participants < 1)) ||
-                      (currentStep === 2 && (!formData.fullName || !formData.phone || !formData.email))
+                      (currentStep === 2 && (
+                        !formData.fullName || !formData.phone || !formData.email || 
+                        !formData.idNumber || !formData.birthDate ||
+                        (formData.fillAllInfo && formData.participants > 1 && 
+                          formData.participantsInfo.some(p => !p.name || !p.phone || !p.birthDate || !p.idNumber)
+                        )
+                      ))
                     }
                     className="flex items-center gap-2 px-8 py-3 bg-emerald-500 text-white font-semibold rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
