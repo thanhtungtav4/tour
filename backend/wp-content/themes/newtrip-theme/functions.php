@@ -634,6 +634,13 @@ add_action('rest_api_init', function () {
         'callback' => 'newtrip_api_get_post_by_id',
         'permission_callback' => '__return_true',
     ]);
+
+    // 5.9 GET /wp-json/newtrip/v1/settings - Lấy cấu hình chung
+    register_rest_route('newtrip/v1', '/settings', [
+        'methods' => 'GET',
+        'callback' => 'newtrip_api_get_general_settings',
+        'permission_callback' => '__return_true',
+    ]);
 });
 
 // 6. Định nghĩa callbacks cho các API Endpoints
@@ -1517,6 +1524,32 @@ function newtrip_api_get_post_by_id(WP_REST_Request $request) {
         'success' => false,
         'error' => ['code' => 'post_not_found', 'message' => 'Không tìm thấy bài viết yêu cầu']
     ], 404);
+}
+
+// 6.9 Lấy cấu hình chung website Đôi Dép
+function newtrip_api_get_general_settings(WP_REST_Request $request) {
+    if (!function_exists('get_field')) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'acf_not_active', 'message' => 'ACF Pro is not active']
+        ], 500);
+    }
+    
+    $settings = [
+        'default_tour_image' => get_field('default_tour_image', 'option') ?: '/images/default-tour.jpg',
+        'hotline'            => get_field('hotline', 'option') ?: '0928 382 087',
+        'zalo_link'          => get_field('zalo_link', 'option') ?: 'https://zalo.me/0928382087',
+        'contact_email'      => get_field('contact_email', 'option') ?: 'doidepadventure@gmail.com',
+        'company_address'    => get_field('company_address', 'option') ?: 'TP. Hồ Chí Minh',
+        'facebook_link'      => get_field('facebook_link', 'option') ?: '',
+        'instagram_link'     => get_field('instagram_link', 'option') ?: '',
+        'payment'            => newtrip_get_bank_info(),
+    ];
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => $settings
+    ], 200);
 }
 
 // Định dạng bài viết từ WordPress

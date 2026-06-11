@@ -1,0 +1,65 @@
+{
+  "key": "group_post_fields",
+  "title": "Thông tin Tác giả & Cài đặt Bài viết",
+  "fields": [
+    {
+      "key": "field_post_author_name",
+      "label": "Tên tác giả",
+      "name": "author_name",
+      "type": "text",
+      "instructions": "Nhập tên tác giả hiển thị. Để trống sẽ tự động lấy tên hiển thị của tài khoản viết bài.",
+      "required": 0
+    },
+    {
+      "key": "field_post_author_bio",
+      "label": "Tiểu sử ngắn của tác giả",
+      "name": "author_bio",
+      "type": "textarea",
+      "rows": 3,
+      "instructions": "Giới thiệu ngắn về kinh nghiệm, sở thích của tác giả. Để trống sẽ lấy mô tả của tài khoản.",
+      "required": 0
+    },
+    {
+      "key": "field_post_author_avatar",
+      "label": "Ảnh đại diện tác giả",
+      "name": "author_avatar",
+      "type": "image",
+      "instructions": "Tải lên hoặc chọn ảnh đại diện của tác giả. Để trống sẽ tự lấy Gravatar theo email tài khoản.",
+      "required": 0,
+      "return_format": "url",
+      "preview_size": "thumbnail",
+      "library": "all"
+    },
+    {
+      "key": "field_post_read_time",
+      "label": "Thời gian đọc (Phút)",
+      "name": "read_time",
+      "type": "text",
+      "instructions": "Ví dụ: 5 phút. Nếu để trống, hệ thống sẽ tự động tính toán dựa trên số từ của bài viết.",
+      "required": 0
+    },
+    {
+      "key": "field_post_featured_image_url",
+      "label": "URL ảnh đại diện phụ",
+      "name": "featured_image_url",
+      "type": "text",
+      "instructions": "Đường dẫn hình ảnh ngoài nếu không sử dụng Ảnh đại diện (Featured Image) của WordPress.",
+      "required": 0
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "post"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "active": true
+}

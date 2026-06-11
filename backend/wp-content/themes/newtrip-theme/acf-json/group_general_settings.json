@@ -1,6 +1,6 @@
 {
   "key": "group_general_settings",
-  "title": "Cài đặt chung",
+  "title": "Cài đặt chung Đôi Dép",
   "fields": [
     {
       "key": "field_general_default_tour_image",
@@ -13,6 +13,58 @@
       "library": "all",
       "min_width": 0,
       "min_height": 0,
+      "required": 0
+    },
+    {
+      "key": "field_general_hotline",
+      "label": "Hotline / Số điện thoại liên hệ",
+      "name": "hotline",
+      "type": "text",
+      "instructions": "Số điện thoại hiển thị trên toàn bộ website (Ví dụ: 0928 382 087).",
+      "required": 0,
+      "default_value": "0928 382 087"
+    },
+    {
+      "key": "field_general_zalo_link",
+      "label": "Đường dẫn Zalo Chat",
+      "name": "zalo_link",
+      "type": "text",
+      "instructions": "Đường dẫn chat Zalo trực tiếp (Ví dụ: https://zalo.me/0928382087).",
+      "required": 0,
+      "default_value": "https://zalo.me/0928382087"
+    },
+    {
+      "key": "field_general_contact_email",
+      "label": "Email liên hệ",
+      "name": "contact_email",
+      "type": "email",
+      "instructions": "Địa chỉ email chính thức (Ví dụ: doidepadventure@gmail.com).",
+      "required": 0,
+      "default_value": "doidepadventure@gmail.com"
+    },
+    {
+      "key": "field_general_company_address",
+      "label": "Địa chỉ văn phòng",
+      "name": "company_address",
+      "type": "text",
+      "instructions": "Địa chỉ hiển thị ở Footer và trang Liên hệ.",
+      "required": 0,
+      "default_value": "TP. Hồ Chí Minh"
+    },
+    {
+      "key": "field_general_facebook_link",
+      "label": "Đường dẫn Facebook Page",
+      "name": "facebook_link",
+      "type": "text",
+      "instructions": "URL trang Facebook (Ví dụ: https://facebook.com/doidepadventure).",
+      "required": 0
+    },
+    {
+      "key": "field_general_instagram_link",
+      "label": "Đường dẫn Instagram",
+      "name": "instagram_link",
+      "type": "text",
+      "instructions": "URL trang Instagram.",
       "required": 0
     }
   ],
