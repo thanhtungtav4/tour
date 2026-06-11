@@ -3,6 +3,14 @@
   "title": "Thông tin Tour",
   "fields": [
     {
+      "key": "field_tour_tab_general",
+      "label": "Thông tin cơ bản",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
       "key": "field_tour_price",
       "label": "Giá tour",
       "name": "price",
@@ -43,15 +51,23 @@
       "default_value": "Sáng"
     },
     {
-      "key": "field_tour_gallery",
-      "label": "Thư viện ảnh (ACF Pro)",
-      "name": "gallery",
-      "type": "gallery",
-      "instructions": "Chọn nhiều ảnh từ thư viện Media của WordPress",
-      "required": 0,
-      "return_format": "url",
-      "preview_size": "medium",
-      "insert": "append"
+      "key": "field_tour_services",
+      "label": "Dịch vụ bổ sung",
+      "name": "services",
+      "type": "relationship",
+      "instructions": "Chọn các dịch vụ bổ sung khả dụng cho tour này (xe đưa đón, bảo hiểm,...). Tạo dịch vụ ở menu 'Dịch vụ Tour'.",
+      "post_type": ["tour_service"],
+      "filters": ["search"],
+      "return_format": "id",
+      "required": 0
+    },
+    {
+      "key": "field_tour_tab_departures_gallery",
+      "label": "Ngày đi & Hình ảnh",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
     },
     {
       "key": "field_tour_departure_dates",
@@ -86,71 +102,23 @@
       ]
     },
     {
-      "key": "field_tour_highlights",
-      "label": "Điểm nổi bật",
-      "name": "highlights",
-      "type": "textarea",
-      "instructions": "Mỗi điểm nổi bật nằm trên một dòng",
+      "key": "field_tour_gallery",
+      "label": "Thư viện ảnh (ACF Pro)",
+      "name": "gallery",
+      "type": "gallery",
+      "instructions": "Chọn nhiều ảnh từ thư viện Media của WordPress",
       "required": 0,
-      "default_value": ""
+      "return_format": "url",
+      "preview_size": "medium",
+      "insert": "append"
     },
     {
-      "key": "field_tour_itinerary",
-      "label": "Lịch trình chi tiết (ACF Pro Repeater)",
-      "name": "itinerary",
-      "type": "repeater",
-      "instructions": "Nhập lịch trình chi tiết theo từng mốc thời gian",
-      "required": 0,
-      "collapsed": "field_tour_itinerary_time",
-      "min": 0,
-      "max": 0,
-      "layout": "row",
-      "button_label": "Thêm mốc lịch trình",
-      "sub_fields": [
-        {
-          "key": "field_tour_itinerary_time",
-          "label": "Mốc thời gian",
-          "name": "time",
-          "type": "text",
-          "instructions": "Ví dụ: 05:30 hoặc Ngày 1 - 08:00",
-          "required": 1
-        },
-        {
-          "key": "field_tour_itinerary_activity",
-          "label": "Hoạt động",
-          "name": "activity",
-          "type": "textarea",
-          "required": 1,
-          "rows": 2
-        }
-      ]
-    },
-    {
-      "key": "field_tour_included",
-      "label": "Dịch vụ đã bao gồm",
-      "name": "included",
-      "type": "textarea",
-      "instructions": "Mỗi dịch vụ nằm trên một dòng",
-      "required": 0,
-      "default_value": ""
-    },
-    {
-      "key": "field_tour_excluded",
-      "label": "Dịch vụ không bao gồm",
-      "name": "excluded",
-      "type": "textarea",
-      "instructions": "Mỗi dịch vụ nằm trên một dòng",
-      "required": 0,
-      "default_value": ""
-    },
-    {
-      "key": "field_tour_notes",
-      "label": "Lưu ý quan trọng",
-      "name": "notes",
-      "type": "textarea",
-      "instructions": "Các dặn dò hoặc chuẩn bị cần thiết cho chuyến đi",
-      "required": 0,
-      "default_value": ""
+      "key": "field_tour_tab_specs",
+      "label": "Thông số trekking",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
     },
     {
       "key": "field_tour_distance",
@@ -201,6 +169,89 @@
       "default_value": "Trung bình"
     },
     {
+      "key": "field_tour_tab_itinerary",
+      "label": "Lịch trình & Điểm nhấn",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_tour_highlights",
+      "label": "Điểm nổi bật",
+      "name": "highlights",
+      "type": "textarea",
+      "instructions": "Mỗi điểm nổi bật nằm trên một dòng",
+      "required": 0,
+      "default_value": ""
+    },
+    {
+      "key": "field_tour_itinerary",
+      "label": "Lịch trình chi tiết (ACF Pro Repeater)",
+      "name": "itinerary",
+      "type": "repeater",
+      "instructions": "Nhập lịch trình chi tiết theo từng mốc thời gian",
+      "required": 0,
+      "collapsed": "field_tour_itinerary_time",
+      "min": 0,
+      "max": 0,
+      "layout": "row",
+      "button_label": "Thêm mốc lịch trình",
+      "sub_fields": [
+        {
+          "key": "field_tour_itinerary_time",
+          "label": "Mốc thời gian",
+          "name": "time",
+          "type": "text",
+          "instructions": "Ví dụ: 05:30 hoặc Ngày 1 - 08:00",
+          "required": 1
+        },
+        {
+          "key": "field_tour_itinerary_activity",
+          "label": "Hoạt động",
+          "name": "activity",
+          "type": "textarea",
+          "required": 1,
+          "rows": 2
+        }
+      ]
+    },
+    {
+      "key": "field_tour_tab_services_notes",
+      "label": "Dịch vụ & Dặn dò",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_tour_included",
+      "label": "Dịch vụ đã bao gồm",
+      "name": "included",
+      "type": "textarea",
+      "instructions": "Mỗi dịch vụ nằm trên một dòng",
+      "required": 0,
+      "default_value": ""
+    },
+    {
+      "key": "field_tour_excluded",
+      "label": "Dịch vụ không bao gồm",
+      "name": "excluded",
+      "type": "textarea",
+      "instructions": "Mỗi dịch vụ nằm trên một dòng",
+      "required": 0,
+      "default_value": ""
+    },
+    {
+      "key": "field_tour_notes",
+      "label": "Lưu ý quan trọng",
+      "name": "notes",
+      "type": "textarea",
+      "instructions": "Các dặn dò hoặc chuẩn bị cần thiết cho chuyến đi",
+      "required": 0,
+      "default_value": ""
+    },
+    {
       "key": "field_tour_gear_list",
       "label": "Danh sách trang bị khuyến nghị (ACF Pro Repeater)",
       "name": "gear_list",
@@ -237,17 +288,6 @@
           "ui": 1
         }
       ]
-    },
-    {
-      "key": "field_tour_services",
-      "label": "Dịch vụ bổ sung",
-      "name": "services",
-      "type": "relationship",
-      "instructions": "Chọn các dịch vụ bổ sung khả dụng cho tour này (xe đưa đón, bảo hiểm,...). Tạo dịch vụ ở menu 'Dịch vụ Tour'.",
-      "post_type": ["tour_service"],
-      "filters": ["search"],
-      "return_format": "id",
-      "required": 0
     }
   ],
   "location": [
