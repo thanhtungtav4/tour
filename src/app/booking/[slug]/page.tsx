@@ -82,6 +82,23 @@ export default function BookingTourPage({ params }: PageProps) {
     participantsInfo: [] as { name: string; phone: string; email: string; birthYear: string; pickupPoint: string }[],
   });
 
+  // Pre-fill form from query params on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const slots = parseInt(searchParams.get("slots") || "1", 10);
+      const paramPhone = searchParams.get("phone") || "";
+      const paramEmail = searchParams.get("email") || "";
+
+      setFormData((prev) => ({
+        ...prev,
+        participants: slots > 0 ? slots : prev.participants,
+        phone: paramPhone || prev.phone,
+        email: paramEmail || prev.email,
+      }));
+    }
+  }, []);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "transfer">("transfer");
   const [bookingError, setBookingError] = useState<string | null>(null);

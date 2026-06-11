@@ -131,6 +131,9 @@ export default function TourDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState<"lich-trinh" | "chi-tiet" | "bao-gom">("lich-trinh");
   const [activeImage, setActiveImage] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   
   const tour = getTourBySlug(slug);
 
@@ -335,7 +338,7 @@ export default function TourDetailPage({ params }: PageProps) {
               {/* Overlay on last visible image if more than 4 */}
               {index === 2 && galleryImages.length > 4 && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">+{galleryImages.length - 4}</span>
+                  <span className="text-white font-bold text-lg">+${galleryImages.length - 4}</span>
                 </div>
               )}
             </div>
@@ -346,20 +349,63 @@ export default function TourDetailPage({ params }: PageProps) {
       {/* Tour Info Bar */}
       <section className="bg-white shadow-md sticky top-[81px] z-40 border-b border-gray-200">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap items-center gap-4 py-4 text-sm">
-            <Link href="/routes" className="text-gray-500 hover:text-gray-700 flex items-center gap-1">
-              Tour <ChevronRightIcon className="w-4 h-4" />
-            </Link>
-            <span className="font-medium text-gray-900">{tour.name}</span>
-            <div className="flex items-center gap-4 ml-auto">
-              <div className="flex items-center gap-1 text-[#16a249]">
-                <StarIcon className="w-4 h-4 fill-current" />
-                <span className="font-semibold">4.9</span>
-                <span className="text-gray-500">(128 đánh giá)</span>
+          <div className="flex flex-wrap items-center justify-between gap-4 py-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Link href="/routes" className="text-gray-500 hover:text-emerald-700 flex items-center gap-1 font-medium">
+                Tour <ChevronRightIcon className="w-4 h-4" />
+              </Link>
+              <span className="font-bold text-gray-900 max-w-[120px] sm:max-w-xs truncate">{tour.name}</span>
+              
+              {/* Desktop Sub Navigation tabs */}
+              <div className="hidden md:flex items-center gap-5 ml-6 border-l border-gray-200 pl-6">
+                <button
+                  onClick={() => document.getElementById("tong-quan")?.scrollIntoView({ behavior: "smooth" })}
+                  className="text-gray-500 hover:text-emerald-700 font-semibold cursor-pointer transition-colors"
+                >
+                  Tổng quan
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("lich-trinh");
+                    document.getElementById("tabs-section")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className={cn(
+                    "font-semibold cursor-pointer transition-colors",
+                    activeTab === "lich-trinh" ? "text-emerald-700 font-bold" : "text-gray-500 hover:text-emerald-700"
+                  )}
+                >
+                  Lịch trình
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("chi-tiet");
+                    document.getElementById("tabs-section")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className={cn(
+                    "font-semibold cursor-pointer transition-colors",
+                    activeTab === "chi-tiet" ? "text-emerald-700 font-bold" : "text-gray-500 hover:text-emerald-700"
+                  )}
+                >
+                  Chi tiết
+                </button>
+                <button
+                  onClick={() => document.getElementById("danh-gia")?.scrollIntoView({ behavior: "smooth" })}
+                  className="text-gray-500 hover:text-emerald-700 font-semibold cursor-pointer transition-colors"
+                >
+                  Đánh giá
+                </button>
               </div>
-              <div className="flex items-center gap-1 text-gray-600">
-                <UsersIcon className="w-4 h-4" />
-                <span>{tour.availableSpots} chỗ trống</span>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:flex items-center gap-1 text-[#16a249]">
+                <StarIcon className="w-4 h-4 fill-current" />
+                <span className="font-bold text-emerald-800">4.9</span>
+                <span className="text-gray-500 text-xs">(128)</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-gray-600 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                <UsersIcon className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-xs font-medium">{tour.availableSpots} chỗ trống</span>
               </div>
             </div>
           </div>
@@ -368,18 +414,13 @@ export default function TourDetailPage({ params }: PageProps) {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Content */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Title & Quick Info */}
+          <div id="tong-quan" className="lg:col-span-2 space-y-8 scroll-mt-[150px]">
+            {/* Title & Description */}
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-                {tour.name}
-              </h1>
-              <p className="text-lg text-gray-600 mb-6">
-                {tour.description}
-              </p>
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{tour.name}</h1>
+              <p className="text-gray-600 leading-relaxed text-lg mb-6">{tour.description}</p>
               
               {/* Quick Stats */}
               <div className="flex flex-wrap gap-3">
@@ -451,7 +492,7 @@ export default function TourDetailPage({ params }: PageProps) {
             </div>
 
             {/* Tabs Section */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div id="tabs-section" className="scroll-mt-[150px] bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="flex border-b">
                 {[
                   { id: "lich-trinh", label: "Lịch trình" },
@@ -646,7 +687,7 @@ export default function TourDetailPage({ params }: PageProps) {
             </div>
 
             {/* Reviews */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <div id="danh-gia" className="scroll-mt-[150px] bg-white rounded-2xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900">Đánh giá từ khách hàng</h2>
                 <div className="flex items-center gap-1">
@@ -702,9 +743,9 @@ export default function TourDetailPage({ params }: PageProps) {
               >
                 <div className="mb-6">
                   <span className="text-3xl font-bold text-[#16a249]">
-                    {tour.price.toLocaleString("vi-VN")}
+                    {(tour.price * quantity).toLocaleString("vi-VN")}
                   </span>
-                  <span className="text-gray-500">/người</span>
+                  <span className="text-gray-500">/ {quantity > 1 ? `${quantity} khách` : 'người'}</span>
                 </div>
 
                 <div className="space-y-3 mb-6">
@@ -728,22 +769,27 @@ export default function TourDetailPage({ params }: PageProps) {
                     placeholder="Số lượng (1-10)"
                     min="1"
                     max={Math.min(tour.availableSpots, 10)}
-                    defaultValue="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent"
                   />
                   <input
                     type="tel"
                     placeholder="Số điện thoại *"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent"
                   />
                   <input
                     type="email"
                     placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent"
                   />
                 </div>
 
-                <Link href={`/booking/${slug}`}>
+                <Link href={`/booking/${slug}?slots=${quantity}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}`}>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -767,14 +813,19 @@ export default function TourDetailPage({ params }: PageProps) {
                 className="bg-gradient-to-br from-[#16a249] to-[#0d7a3a] rounded-2xl p-6 text-white"
               >
                 <h3 className="font-bold mb-2">Cần hỗ trợ?</h3>
-                <p className="text-white/80 text-sm mb-4">Liên hệ trực tiếp với chúng tôi</p>
-                <a href="tel:0909123456" className="flex items-center gap-2 text-xl font-bold hover:underline">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  0909 123 456
-                </a>
-                <p className="text-white/60 text-sm mt-2">Zalo: 0909 123 456</p>
+                <p className="text-white/80 text-sm mb-4">Liên hệ trực tiếp với chúng tôi để được tư vấn miễn phí 24/7</p>
+                <div className="flex flex-col gap-2">
+                  <a href="tel:0928382087" className="flex items-center justify-center gap-2 py-3 bg-white text-emerald-800 font-bold rounded-xl hover:bg-emerald-50 transition-colors shadow-sm">
+                    <svg className="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    Gọi 0928 382 087
+                  </a>
+                  <a href="https://zalo.me/0928382087" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 py-3 bg-[#0068ff] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm">
+                    <span className="font-extrabold text-lg">Z</span>
+                    Nhắn Zalo: 0928 382 087
+                  </a>
+                </div>
               </motion.div>
 
               {/* Share Card */}
