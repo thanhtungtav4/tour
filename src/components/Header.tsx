@@ -45,11 +45,9 @@ export function Header() {
     <>
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          isMobileMenuOpen ? "" : isHidden ? "-translate-y-full" : "translate-y-0",
-          isScrolled
-            ? "h-[64px] bg-white/95 backdrop-blur-md shadow-md"
-            : "h-[81px] bg-white/85 backdrop-blur-[18px] shadow-sm"
+          "fixed top-0 left-0 right-0 z-50 h-[81px] transition-all duration-300",
+          "bg-white/85 backdrop-blur-[18px]",
+          isScrolled ? "shadow-md" : "shadow-sm"
         )}
       >
         <nav className="container mx-auto px-4 sm:px-6 lg:px-8 h-full">
@@ -57,10 +55,7 @@ export function Header() {
             {/* Logo */}
             <Link
               href="/"
-              className={cn(
-                "flex items-center gap-2.5 transition-all duration-300",
-                isScrolled ? "text-lg" : "text-xl font-bold text-[#0e1425]"
-              )}
+              className="flex items-center gap-2.5 text-xl font-bold text-[#0e1425] transition-all duration-300"
             >
               <div className="relative w-9 h-9 rounded-full overflow-hidden bg-emerald-600 flex items-center justify-center">
                 <span className="text-white font-bold text-base">N</span>
@@ -101,10 +96,7 @@ export function Header() {
               </a>
               <Link
                 href="/booking"
-                className={cn(
-                  "px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-all duration-200 shadow-sm hover:shadow-md",
-                  isScrolled ? "py-1.5 text-xs" : ""
-                )}
+                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 Đặt vé ngay
               </Link>
