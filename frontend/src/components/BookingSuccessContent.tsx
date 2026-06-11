@@ -13,6 +13,7 @@ interface BookingSuccessContentProps {
   date: string;
   participants: string;
   total: string;
+  email?: string;
 }
 
 const CopyIcon = ({ className }: { className?: string }) => (
@@ -57,6 +58,7 @@ export function BookingSuccessContent({
   date,
   participants,
   total,
+  email,
 }: BookingSuccessContentProps) {
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ export function BookingSuccessContent({
   };
 
   useEffect(() => {
-    getBooking(bookingId)
+    getBooking(bookingId, email)
       .then((data) => {
         setBooking(data);
       })
@@ -80,7 +82,7 @@ export function BookingSuccessContent({
       .finally(() => {
         setLoading(false);
       });
-  }, [bookingId]);
+  }, [bookingId, email]);
 
   const displayTourName = (booking && booking.tour.name) ? booking.tour.name : decodeURIComponent(tourName || "Tour");
   const displayDate = (booking && booking.departure.date) ? booking.departure.date : date;

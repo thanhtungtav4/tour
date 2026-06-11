@@ -878,6 +878,9 @@ function newtrip_api_get_pickup_points(WP_REST_Request $request) {
 function newtrip_api_create_booking(WP_REST_Request $request) {
     $params = $request->get_json_params();
     
+    // Log request params
+    file_put_contents(ABSPATH . 'wp-content/booking_debug.log', date('Y-m-d H:i:s') . " - CREATE BOOKING PARAMS: " . print_r($params, true) . "\n", FILE_APPEND);
+    
     $tour_slug = isset($params['tour_slug']) ? sanitize_text_field($params['tour_slug']) : '';
     $departure_date = isset($params['departure_date']) ? sanitize_text_field($params['departure_date']) : '';
     $participants = isset($params['participants']) ? intval($params['participants']) : 1;
@@ -890,6 +893,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     $email = isset($main_contact['email']) ? sanitize_email($main_contact['email']) : '';
 
     if (empty($tour_slug) || empty($full_name) || empty($phone) || empty($email) || empty($departure_date)) {
+        file_put_contents(ABSPATH . 'wp-content/booking_debug.log', date('Y-m-d H:i:s') . " - ERROR: missing_fields\n", FILE_APPEND);
         return new WP_REST_Response([
             'success' => false,
             'error' => ['code' => 'missing_fields', 'message' => 'Vui lòng nhập đầy đủ các trường bắt buộc']
@@ -897,6 +901,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     }
 
     if (!is_email($email)) {
+        file_put_contents(ABSPATH . 'wp-content/booking_debug.log', date('Y-m-d H:i:s') . " - ERROR: invalid_email ($email)\n", FILE_APPEND);
         return new WP_REST_Response([
             'success' => false,
             'error' => ['code' => 'invalid_email', 'message' => 'Email không hợp lệ']
@@ -904,8 +909,9 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     }
 
     // Phone VN: bắt đầu bằng 0 hoặc +84, tổng cộng 10-11 chữ số (đã trừ '+')
-    $phone_normalized = preg_replace('/\s+/', '', $phone);
+    $phone_normalized = preg_replace('/[^\d+]/', '', $phone);
     if (!preg_match('/^(\+?84|0)\d{9,10}$/', $phone_normalized)) {
+        file_put_contents(ABSPATH . 'wp-content/booking_debug.log', date('Y-m-d H:i:s') . " - ERROR: invalid_phone ($phone -> $phone_normalized)\n", FILE_APPEND);
         return new WP_REST_Response([
             'success' => false,
             'error' => ['code' => 'invalid_phone', 'message' => 'Số điện thoại không hợp lệ (phải có 10-11 chữ số, bắt đầu bằng 0 hoặc +84)']
@@ -913,6 +919,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     }
 
     if (!in_array($payment_method, ['cash', 'transfer'], true)) {
+        file_put_contents(ABSPATH . 'wp-content/booking_debug.log', date('Y-m-d H:i:s') . " - ERROR: invalid_payment_method ($payment_method)\n", FILE_APPEND);
         return new WP_REST_Response([
             'success' => false,
             'error' => ['code' => 'invalid_payment_method', 'message' => "payment_method phải là 'cash' hoặc 'transfer'"]
@@ -958,6 +965,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     }
 
     if (!$found_date) {
+        file_put_contents(ABSPATH . 'wp-content/booking_debug.log', date('Y-m-d H:i:s') . " - ERROR: departure_full (requested: $departure_date, avail: $available_spots, parts: $participants)\n", FILE_APPEND);
         return new WP_REST_Response([
             'success' => false,
             'error' => ['code' => 'departure_full', 'message' => 'Ngày khởi hành yêu cầu đã hết chỗ hoặc không đủ số lượng chỗ trống']
@@ -1046,12 +1054,13 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         $p_name = isset($p['full_name']) ? sanitize_text_field($p['full_name']) : '';
         if (empty($p_name)) continue;
         
-        $p_phone = isset($p['phone']) ? sanitize_text_field($p['phone']) : '';
+        $p_phone = isset($p['phone']) ? preg_replace('/[^\d+]/', '', sanitize_text_field($p['phone'])) : '';
         $p_email = isset($p['email']) ? sanitize_email($p['email']) : '';
         $p_birth = isset($p['birth_date']) ? sanitize_text_field($p['birth_date']) : (isset($p['birth_year']) ? sanitize_text_field($p['birth_year']) : '');
         $p_id_no = isset($p['id_number']) ? sanitize_text_field($p['id_number']) : '';
         $p_health = isset($p['health_status']) ? sanitize_text_field($p['health_status']) : '';
         $p_seat = isset($params['selected_seats'][$idx]) ? sanitize_text_field($params['selected_seats'][$idx]) : '';
+        $p_image = isset($p['id_card_image']) ? esc_url_raw($p['id_card_image']) : '';
         
         $p_pickup_point_id = isset($p['pickup_point_id']) ? intval($p['pickup_point_id']) : 0;
         if (!$p_pickup_point_id) {
@@ -1076,6 +1085,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
             'seat' => $p_seat,
             'checked_in' => 0,
             'health_status' => $p_health,
+            'id_card_image' => $p_image,
         ];
         
         $passengers_response_data[] = [
@@ -1221,13 +1231,27 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
 // 6.6 Tra cứu đơn hàng
 function newtrip_api_get_booking(WP_REST_Request $request) {
     $booking_code = sanitize_text_field($request->get_param('id'));
+    $email = sanitize_email($request->get_param('email'));
+
+    if (empty($email)) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'missing_email', 'message' => 'Cần cung cấp email liên hệ để xác thực']
+        ], 400);
+    }
     
     $query = new WP_Query([
         'post_type' => 'booking',
         'meta_query' => [
+            'relation' => 'AND',
             [
                 'key' => 'booking_code',
                 'value' => $booking_code,
+                'compare' => '=',
+            ],
+            [
+                'key' => 'email',
+                'value' => $email,
                 'compare' => '=',
             ]
         ],
@@ -2453,7 +2477,7 @@ function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
         $p_name = sanitize_text_field($p['full_name'] ?? '');
         if (empty($p_name)) continue;
 
-        $p_phone = sanitize_text_field($p['phone'] ?? '');
+        $p_phone = preg_replace('/[^\d+]/', '', sanitize_text_field($p['phone'] ?? ''));
         $p_email = sanitize_email($p['email'] ?? '');
         $p_birth = sanitize_text_field($p['birth_date'] ?? '');
         $p_id_num = sanitize_text_field($p['id_number'] ?? '');

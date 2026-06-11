@@ -224,7 +224,7 @@ export default function BookingTourPage({ params }: PageProps) {
         agree_terms: true,
       });
 
-      router.push(`/booking/success?bookingId=${result.booking_id}&tour=${encodeURIComponent(tour?.name || "")}&date=${encodeURIComponent(formData.departureDate)}&participants=${formData.participants}&total=${result.total_amount}`);
+      router.push(`/booking/success?bookingId=${result.booking_id}&tour=${encodeURIComponent(tour?.name || "")}&date=${encodeURIComponent(formData.departureDate)}&participants=${formData.participants}&total=${result.total_amount}&email=${encodeURIComponent(formData.email)}`);
       router.refresh();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Đã có lỗi xảy ra";

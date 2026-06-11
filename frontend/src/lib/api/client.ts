@@ -111,8 +111,9 @@ export async function createBooking(request: BookingRequest): Promise<BookingRes
   return json.data;
 }
 
-export async function getBooking(bookingId: string): Promise<BookingDetail> {
-  const url = `${API_BASE_URL}/booking/${bookingId}`;
+export async function getBooking(bookingId: string, email?: string): Promise<BookingDetail> {
+  const query = email ? `?email=${encodeURIComponent(email)}` : "";
+  const url = `${API_BASE_URL}/booking/${bookingId}${query}`;
   const res = await fetch(url, {
     cache: "no-store", // Do not cache single booking lookup
   });

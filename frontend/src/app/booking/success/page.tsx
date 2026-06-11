@@ -10,6 +10,7 @@ interface BookingSuccessPageProps {
     date?: string;
     participants?: string;
     total?: string;
+    email?: string;
   }>;
 }
 
@@ -20,6 +21,7 @@ export default async function BookingSuccessPage({ searchParams }: BookingSucces
   const date = params.date || "";
   const participants = params.participants || "1";
   const total = params.total || "0";
+  const email = params.email || "";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,6 +45,7 @@ export default async function BookingSuccessPage({ searchParams }: BookingSucces
             date={date}
             participants={participants}
             total={total}
+            email={email}
           />
         </Suspense>
       </main>
