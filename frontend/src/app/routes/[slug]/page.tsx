@@ -23,6 +23,8 @@ import {
   XIcon,
   ChevronLeftIcon,
   ChevronRightIcon as ChevronRightIconAlt,
+  CompassIcon,
+  FlameIcon,
 } from "@/components/icons";
 import { cn, getTourGallery } from "@/lib/utils";
 
@@ -406,17 +408,22 @@ export default function TourDetailPage({ params }: PageProps) {
                 </svg>
                 Tour Summary
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {[
                   { label: "Thời gian", value: tourSummary.duration, icon: ClockIcon },
                   { label: "Quãng đường", value: tourSummary.distance, icon: FootprintsIcon },
                   { label: "Độ cao", value: tourSummary.elevation, icon: MountainIcon },
                   { label: "Độ cao MAX", value: tourSummary.maxAltitude, icon: ChevronRightIcon },
+                  { label: "Địa hình", value: tourSummary.terrain, icon: CompassIcon },
+                  { label: "Độ tuổi", value: tourSummary.ageMin, icon: UsersIcon },
+                  { label: "Thể lực", value: tourSummary.fitness, icon: FlameIcon },
                 ].map((item, index) => (
-                  <div key={index} className="bg-white/10 rounded-xl p-4 text-center">
-                    <item.icon className="w-5 h-5 mx-auto mb-2 opacity-80" />
-                    <p className="text-2xl font-bold">{item.value}</p>
-                    <p className="text-sm opacity-80">{item.label}</p>
+                  <div key={index} className="bg-white/10 rounded-xl p-4 text-center flex flex-col justify-between min-h-[110px]">
+                    <item.icon className="w-5 h-5 mx-auto mb-1.5 opacity-80 flex-shrink-0" />
+                    <div className="flex-grow flex items-center justify-center">
+                      <p className="text-base sm:text-lg font-bold leading-snug">{item.value}</p>
+                    </div>
+                    <p className="text-xs opacity-75 mt-1.5 uppercase tracking-wider font-semibold">{item.label}</p>
                   </div>
                 ))}
               </div>
