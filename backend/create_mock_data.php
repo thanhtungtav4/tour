@@ -490,4 +490,271 @@ foreach ($tours as $t) {
     create_mock_post($t['title'], 'tour', $t['fields'], $t['content']);
 }
 
+// 4. Create Blog Posts
+echo "\n--- Creating Blog Posts ---\n";
+$blog_posts = [
+    [
+        'title' => 'Mẹo Chọn Giày Khi Đi Trekking Không Bị Đau Chân – Bí Quyết Dân Trekking Cần Biết',
+        'content' => '
+          <p class="lead">Việc chọn đúng đôi giày trekking có thể quyết định hoàn toàn trải nghiệm của bạn trên đường đi. Một đôi giày phù hợp không chỉ giúp bạn di chuyển thoải mái mà còn bảo vệ đôi chân khỏi những chấn thương không đáng có.</p>
+    
+          <h2>Tại sao giày trekking quan trọng?</h2>
+          <p>Khác với giày thể thao thông thường, giày trekking được thiết kế đặc biệt để đối phó với địa hình phức tạp: đá sỏi, bùn lầy, suối nước... Đế giày có độ bám cao, cổ giày bảo vệ mắt cá, và chất liệu chống thấm nước.</p>
+          
+          <blockquote>
+            "Một đôi giày tốt có thể làm cho một chuyến đi tồi tệ trở nên chấp nhận được, và một chuyến đi tốt trở nên tuyệt vời."
+          </blockquote>
+    
+          <h2>Cách chọn size giày phù hợp</h2>
+          <p>Một sai lầm phổ biến là chọn giày vừa khít như giày hàng ngày. Khi trekking, chân sẽ sưng lên sau nhiều giờ đi bộ. Hãy chọn giày lớn hơn 0.5-1 size so với bình thường, đặc biệt nếu bạn mang vớ dày.</p>
+          
+          <div class="tip-box">
+            <strong>💡 Mẹo:</strong> Thử giày vào buổi chiều khi chân đã nở to nhất. Mang vớ trekking và đi thử trong cửa hàng ít nhất 15 phút.
+          </div>
+    
+          <h2>Loại đế giày</h2>
+          <p>Đế giày là yếu tố quan trọng nhất quyết định độ bám và độ bền của giày:</p>
+          <ul>
+            <li><strong>Đế Vibram:</strong> Độ bám tốt nhất, bền, phù hợp địa hình đá và bùn. Được sử dụng bởi hầu hết các thương hiệu cao cấp.</li>
+            <li><strong>Đế cao su tổng hợp:</strong> Nhẹ hơn, phù hợp đường mòn dễ. Giá thành rẻ hơn nhưng độ bám kém hơn.</li>
+            <li><strong>Đế có rãnh sâu:</strong> Thoát nước tốt, chống trượt trên bề mặt ẩm. Phù hợp cho mùa mưa.</li>
+          </ul>
+    
+          <h2>Chất liệu giày</h2>
+          <p>Mỗi loại chất liệu có ưu nhược điểm riêng:</p>
+          <div class="comparison-grid">
+            <div class="comparison-item">
+              <h4>Da bò</h4>
+              <p>Bền, chống nước tốt nhưng nặng và cần thời gian break-in 2-3 tuần.</p>
+            </div>
+            <div class="comparison-item">
+              <h4>Vải tổng hợp</h4>
+              <p>Nhẹ, thoáng khí, khô nhanh nhưng ít bền hơn và chống nước kém.</p>
+            </div>
+            <div class="comparison-item">
+              <h4>Da + Vải kết hợp</h4>
+              <p>Cân bằng giữa độ bền và trọng lượng - lựa chọn phổ biến nhất.</p>
+            </div>
+          </div>
+    
+          <h2>Những lỗi thường gặp</h2>
+          <p>Đây là những sai lầm mà nhiều người mới mắc phải:</p>
+          <ul>
+            <li>Mang giày mới chưa break-in cho tour dài → Phồng rộp, đau chân</li>
+            <li>Không buộc dây đúng cách → Dây tuột, chân không được cố định</li>
+            <li>Chọn giày không thấm nước cho tour có vượt suối → Chân ướt, lạnh</li>
+            <li>Quên mang vớ dự phòng → Vớ ướt không thay được</li>
+          </ul>
+    
+          <div class="warning-box">
+            <strong>⚠️ Lưu ý quan trọng:</strong> Không bao giờ đi barefoot trong giày trekking, ngay cả khi trời nóng. Vớ trekking chuyên dụng giúp hấp thụ mồ hôi và giảm ma sát.
+          </div>
+    
+          <h2>Bảo quản giày sau tour</h2>
+          <p>Sau mỗi chuyến đi, hãy vệ sinh giày sạch sẽ, để khô tự nhiên (không phơi nắng trực tiếp), và xịt chống thấm định kỳ 2-3 tháng/lần. Điều này giúp giày bền hơn và sẵn sàng cho chuyến đi tiếp theo.</p>
+          
+          <h3>Các bước vệ sinh giày trekking:</h3>
+          <ol>
+            <li>Tháo lớp lót và dây giày ra</li>
+            <li>Dùng bàn chải mềm chải sạch bùn đất</li>
+            <li>Rửa nhẹ bằng nước ấm (không dùng xà phòng mạnh)</li>
+            <li>Để khô tự nhiên ở nơi thoáng mát</li>
+            <li>Xịt chống thấm và bảo quản trong túi</li>
+          </ol>
+    
+          <p class="conclusion"><em>Chúc bạn tìm được đôi giày trekking hoàn hảo cho hành trình sắp tới! Nếu có câu hỏi, hãy để lại bình luận bên dưới.</em></p>
+        ',
+        'category' => 'Kinh nghiệm',
+        'tags' => ['Trekking', 'Giày', 'Kỹ năng', 'Công cụ'],
+        'fields' => [
+            'featured_image_url' => 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=800&q=80',
+            'author_name' => 'Ne',
+            'author_bio' => 'Chuyên gia trekking với 5 năm kinh nghiệm chinh phục các đỉnh núi Việt Nam. Đam mê chia sẻ kiến thức về outdoor và sinh tồn.',
+            'read_time' => '8 phút',
+        ]
+    ],
+    [
+        'title' => 'Trekking Tự Túc: Lợi Ích & Nguy Hiểm – Những Điều Cần Lưu Ý Trước Chuyến Đi',
+        'content' => '
+          <p class="lead">Trekking tự túc đang trở thành xu hướng của nhiều bạn trẻ yêu thích khám phá. Tuy nhiên, giữa lợi ích và nguy hiểm chỉ cách nhau một ranh giới mong manh.</p>
+    
+          <h2>Lợi ích của trekking tự túc</h2>
+          <p>Khi tự mình bước vào hành trình, bạn sẽ nhận được những điều mà tour không thể mang lại:</p>
+          <ul>
+            <li><strong>Tự do lịch trình:</strong> Bạn quyết định đi đâu, dừng đâu, ở lại bao lâu. Không bị gò bó theo lịch trình cố định.</li>
+            <li><strong>Tiết kiệm chi phí:</strong> Không phải trả phí hướng dẫn viên, có thể tự nấu ăn và cắm trại.</li>
+            <li><strong>Trải nghiệm thực tế:</strong> Tự mình xử lý mọi tình huống, rèn luyện kỹ năng sinh tồn.</li>
+            <li><strong>Kết nối sâu hơn:</strong> Được hòa mình vào thiên nhiên một cách trọn vẹn.</li>
+          </ul>
+    
+          <h2>Nguy hiểm tiềm ẩn</h2>
+          <p>Bên cạnh những lợi ích, bạn cần nhận thức rõ các rủi ro:</p>
+          
+          <div class="danger-list">
+            <div class="danger-item">
+              <span class="danger-icon">🧭</span>
+              <div>
+                <strong>Lạc đường</strong>
+                <p>Đây là rủi ro phổ biến nhất. Nhiều cung trekking không có biển báo rõ ràng, đặc biệt ở vùng núi cao.</p>
+              </div>
+            </div>
+            <div class="danger-item">
+              <span class="danger-icon">⛈️</span>
+              <div>
+                <strong>Thời tiết bất ngờ</strong>
+                <p>Mưa rừng, sương mù, lũ quét có thể xảy ra mà không báo trước, đặc biệt vào mùa mưa.</p>
+              </div>
+            </div>
+            <div class="danger-item">
+              <span class="danger-icon">🏥</span>
+              <div>
+                <strong>Thiếu kỹ năng sơ cứu</strong>
+                <p>Khi bị thương giữa rừng, không có HDV hỗ trợ. Bạn cần tự xử lý trong khả năng của mình.</p>
+              </div>
+            </div>
+            <div class="danger-item">
+              <span class="danger-icon">🦎</span>
+              <div>
+                <strong>Động vật hoang dã</strong>
+                <p>Rắn, côn trùng, lợn rừng... có thể gây nguy hiểm nếu bạn không biết cách xử lý.</p>
+              </div>
+            </div>
+          </div>
+    
+          <h2>Chuẩn bị trước khi đi</h2>
+          <p>Dưới đây là checklist những thứ bạn cần chuẩn bị:</p>
+          <ul>
+            <li>Nghiên cứu kỹ cung đường, tải offline map (Maps.me, Gaia GPS)</li>
+            <li>Thông báo lịch trình cho người thân</li>
+            <li>Mang đủ nước (tối thiểu 2L/người), lương khô, bộ sơ cứu</li>
+            <li>Kiểm tra thời tiết 3 ngày trước khi đi</li>
+            <li>Có phương án dự phòng (số điện thoại cứu hộ, đường rút ngắn)</li>
+            <li>Mang theo thiết bị liên lạc (điện thoại đã sạc pin, pin dự phòng)</li>
+          </ul>
+    
+          <div class="tip-box">
+            <strong>📍 Mẹo an toàn:</strong> Luôn để lại kế hoạch chi tiết (lộ trình, thời gian dự kiến) cho ai đó ở nhà. Nếu không liên lạc được sau thời gian dự kiến, họ có thể báo cứu.
+          </div>
+    
+          <h2>Khi nào nên đi theo tour?</h2>
+          <p>Nếu bạn là người mới, chưa có kinh nghiệm đi rừng, hoặc đi đến cung đường khó (độ cao > 2000m, địa hình hiểm trở), hãy đi theo tour có HDV. Chi phí bỏ ra xứng đáng với sự an toàn của bạn.</p>
+          
+          <p><em>Adventure is out there – but safety comes first!</em></p>
+        ',
+        'category' => 'An toàn',
+        'tags' => ['Trekking tự túc', 'An toàn', 'Kinh nghiệm'],
+        'fields' => [
+            'featured_image_url' => 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=800&q=80',
+            'author_name' => 'Mi',
+            'author_bio' => 'Travel blogger và hiking enthusiast. Đã khám phá hơn 50 cung đường trekking khắp Việt Nam và Đông Nam Á.',
+            'read_time' => '10 phút',
+        ]
+    ],
+    [
+        'title' => 'Top 10 Đỉnh Núi Trekking Đẹp Nhất Việt Nam',
+        'content' => '
+          <p class="lead">Việt Nam với địa hình 3/4 là đồi núi sở hữu vô số cung đường trekking tuyệt đẹp. Từ những đỉnh núi cao vút mây phủ ở Tây Bắc đến những cung đường ven biển lộng gió miền Trung, mỗi nơi đều mang một vẻ đẹp riêng biệt.</p>
+          <h2>1. Đỉnh Fansipan (3.143m) - Lào Cai</h2>
+          <p>Được mệnh danh là "Nóc nhà Đông Dương", Fansipan luôn là thử thách mà bất kỳ trekker nào cũng muốn chinh phục ít nhất một lần trong đời. Cảm giác đứng trên đỉnh cao nhất, ngắm nhìn biển mây bồng bềnh dưới chân thật không gì tả xiết.</p>
+          <h2>2. Tà Năng - Phan Dũng (Lâm Đồng - Bình Thuận)</h2>
+          <p>Cung đường trekking được mệnh danh là đẹp nhất Việt Nam với những đồi cỏ xanh mướt trải dài tít tắp, những rừng thông reo trong gió và khoảnh khắc đón bình minh tuyệt diệu trên đồi cao.</p>
+          <h2>3. Lảo Thẩn (Lào Cai)</h2>
+          <p>Nơi được coi là "thiên đường săn mây" của Tây Bắc. Với độ khó trung bình, Lảo Thẩn rất phù hợp cho những ai mới bắt đầu làm quen với bộ môn trekking săn mây.</p>
+          <h2>4. Bạch Mộc Lương Tử (Kỳ Quan San)</h2>
+          <p>Một trong những đỉnh núi cao và hiểm trở nhất Việt Nam, nhưng bù lại, cảnh quan kỳ vĩ và biển mây ở Muối hay đỉnh Kỳ Quan San sẽ làm say đắm bất kỳ ai đặt chân tới.</p>
+          <p><em>Hãy chuẩn bị thể lực thật tốt và cùng Đôi Dép Adventure lên đường chinh phục những đỉnh cao này nhé!</em></p>
+        ',
+        'category' => 'Địa điểm',
+        'tags' => ['Địa điểm', 'Trekking', 'Việt Nam'],
+        'fields' => [
+            'featured_image_url' => 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
+            'author_name' => 'Admin',
+            'author_bio' => 'Đội ngũ biên tập viên Đôi Dép Adventure. Cung cấp thông tin du lịch và kinh nghiệm trekking chính xác nhất.',
+            'read_time' => '12 phút',
+        ]
+    ],
+    [
+        'title' => 'Camping 101: Hướng Dẫn Cho Người Mới Bắt Đầu',
+        'content' => '
+          <p class="lead">Cắm trại (Camping) là một cách tuyệt vời để trốn khỏi khói bụi thành phố và hòa mình vào thiên nhiên. Đối với người mới bắt đầu, sự chuẩn bị kỹ lưỡng là chìa khóa để có một chuyến đi an toàn và đáng nhớ.</p>
+          <h2>Lựa chọn địa điểm cắm trại</h2>
+          <p>Cho chuyến đi đầu tiên, hãy chọn những khu cắm trại dịch vụ (glamping/camping site) có đầy đủ tiện ích cơ bản như nước ngọt, nhà vệ sinh. Tránh tự ý cắm trại ở những vùng rừng sâu, hẻo lánh khi chưa có kinh nghiệm.</p>
+          <h2>Trang thiết bị thiết yếu</h2>
+          <p>Đừng quên mang theo những thứ sau:</p>
+          <ul>
+            <li>Lều chống mưa gió và cọc ghim lều</li>
+            <li>Túi ngủ và tấm trải cách nhiệt lót lều</li>
+            <li>Đèn lều, đèn pin cá nhân và pin dự phòng</li>
+            <li>Dụng cụ nấu ăn dã ngoại và bếp gas mini</li>
+            <li>Hộp sơ cứu y tế cá nhân</li>
+          </ul>
+          <h2>Nguyên tắc "Không Để Lại Dấu Vết" (Leave No Trace)</h2>
+          <p>Hãy luôn bảo vệ môi trường bằng cách dọn sạch rác thải trước khi ra về, không bẻ cành cây tươi, hạn chế đốt lửa trực tiếp trên mặt đất để giữ gìn vẻ đẹp tự nhiên của khu cắm trại.</p>
+        ',
+        'category' => 'Hướng dẫn',
+        'tags' => ['Camping', 'Cắm trại', 'Hướng dẫn', 'Người mới'],
+        'fields' => [
+            'featured_image_url' => 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&q=80',
+            'author_name' => 'Hoàng Nam',
+            'author_bio' => 'Chuyên gia cắm trại và sinh tồn dã ngoại. Thích khám phá thiên nhiên hoang dã.',
+            'read_time' => '7 phút',
+        ]
+    ],
+    [
+        'title' => 'Những Sai Lầm Thường Gặp Khi Đi Trekking Mùa Mưa',
+        'content' => '
+          <p class="lead">Trekking mùa mưa mang lại những trải nghiệm rất khác biệt: thác nước đầy ắp, rừng cây xanh tốt hơn. Tuy nhiên, nó cũng tiềm ẩn nhiều mối nguy hiểm nếu bạn phạm phải những sai lầm phổ biến dưới đây.</p>
+          <h2>1. Chủ quan không mang áo mưa chuyên dụng</h2>
+          <p>Nhiều người nghĩ chỉ cần ô hoặc áo mưa giấy mỏng. Giữa rừng, gió lớn và cành cây có thể xé rách áo mưa giấy chỉ trong vài phút. Hãy trang bị áo mưa bộ hoặc áo mưa cánh dơi chất liệu bền dai.</p>
+          <h2>2. Đi giày không chống trơn trượt</h2>
+          <p>Đường rừng mùa mưa cực kỳ trơn trượt do bùn lầy và rêu phong. Đi một đôi giày có gai đế nông hoặc giày chạy bộ trơn trượt sẽ khiến bạn dễ ngã và chấn thương.</p>
+          <h2>3. Không bảo vệ đồ điện tử và quần áo dự phòng</h2>
+          <p>Nước mưa có thể thấm qua balo. Hãy bọc quần áo dự phòng và đồ điện tử trong túi nilon chống nước trước khi cho vào balo.</p>
+          <h2>4. Không chú ý quan sát lũ quét ở suối</h2>
+          <p>Mưa lớn ở thượng nguồn có thể gây ra lũ quét rất nhanh. Không bao giờ cố vượt suối khi thấy nước bắt đầu đục và chảy xiết.</p>
+        ',
+        'category' => 'An toàn',
+        'tags' => ['An toàn', 'Mùa mưa', 'Trekking'],
+        'fields' => [
+            'featured_image_url' => 'https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=800&q=80',
+            'author_name' => 'Thu Hà',
+            'author_bio' => 'Trekker và nhiếp ảnh gia tự do. Thích ghi lại những khoảnh khắc đẹp của thiên nhiên dưới những cơn mưa rừng.',
+            'read_time' => '9 phút',
+        ]
+    ],
+    [
+        'title' => 'Trải Nghiệm Trekking Đỉnh Langbiang - Ký Ức Không Quên',
+        'content' => '
+          <p class="lead">Langbiang từ lâu đã là biểu tượng của thành phố Đà Lạt mộng mơ. Nhưng thay vì đi xe jeep lên đồi radar thông thường, việc tự mình trekking qua rừng già để lên đỉnh Langbiang cao 2.163m mới thực sự là một trải nghiệm khó quên.</p>
+          <h2>Hành trình bắt đầu từ rừng thông</h2>
+          <p>Đoạn đầu cung đường khá dễ chịu với những lối mòn đi dưới tán rừng thông mát rượi. Tiếng thông reo và không khí se lạnh của Đà Lạt làm bước chân thêm nhẹ nhàng.</p>
+          <h2>Chặng leo dốc thử thách qua rừng già</h2>
+          <p>Sau khi qua trạm kiểm lâm, địa hình thay đổi rõ rệt. Đường đi dốc hơn, độ ẩm cao hơn và bạn sẽ bước vào rừng lá rộng nguyên sinh với những gốc cây cổ thụ rêu phong phủ kín. Chặng leo dốc đứng cuối cùng đòi hỏi sự kiên trì lớn.</p>
+          <h2>Phần thưởng ngọt ngào trên đỉnh cao</h2>
+          <p>Đứng trên đỉnh Langbiang cao 2.163m, phóng tầm mắt ngắm toàn cảnh thành phố Đà Lạt, hồ Đankia hiện ra thơ mộng dưới làn sương mờ. Cảm giác mệt mỏi lập tức tan biến, nhường chỗ cho sự tự hào và sảng khoái.</p>
+        ',
+        'category' => 'Trải nghiệm',
+        'tags' => ['Trải nghiệm', 'Langbiang', 'Đà Lạt'],
+        'fields' => [
+            'featured_image_url' => 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80',
+            'author_name' => 'Văn Đức',
+            'author_bio' => 'Local guide tại Đà Lạt. Đã dẫn hàng trăm đoàn khách chinh phục đỉnh Langbiang qua đường rừng.',
+            'read_time' => '6 phút',
+        ]
+    ]
+];
+
+foreach ($blog_posts as $bp) {
+    $bp_id = create_mock_post($bp['title'], 'post', $bp['fields'], $bp['content']);
+    if ($bp_id) {
+        if (!empty($bp['category'])) {
+            $cat_id = wp_create_category($bp['category']);
+            wp_set_post_categories($bp_id, [$cat_id]);
+        }
+        if (!empty($bp['tags'])) {
+            wp_set_post_tags($bp_id, $bp['tags']);
+        }
+    }
+}
+
 echo "\nFinished mock data creation successfully!\n";

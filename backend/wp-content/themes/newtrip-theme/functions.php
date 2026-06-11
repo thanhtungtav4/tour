@@ -1171,16 +1171,28 @@ function newtrip_format_wp_post($post) {
 
     $image = get_the_post_thumbnail_url($post_id, 'large');
     if (empty($image)) {
+        $image = get_post_meta($post_id, 'featured_image_url', true);
+    }
+    if (empty($image)) {
         $image = '/images/logo.png';
     }
 
-    $author_name = get_the_author_meta('display_name', $post->post_author) ?: 'Admin';
-    $author_bio = get_the_author_meta('description', $post->post_author) ?: 'Đội ngũ biên tập viên Đôi Dép Adventure.';
+    $author_name = get_post_meta($post_id, 'author_name', true);
+    if (empty($author_name)) {
+        $author_name = get_the_author_meta('display_name', $post->post_author) ?: 'Admin';
+    }
 
-    // Tính thời gian đọc ước tính
-    $word_count = str_word_count(strip_tags($post->post_content));
-    $read_time_min = ceil($word_count / 200);
-    $read_time = ($read_time_min > 0 ? $read_time_min : 5) . ' phút';
+    $author_bio = get_post_meta($post_id, 'author_bio', true);
+    if (empty($author_bio)) {
+        $author_bio = get_the_author_meta('description', $post->post_author) ?: 'Đội ngũ biên tập viên Đôi Dép Adventure.';
+    }
+
+    $read_time = get_post_meta($post_id, 'read_time', true);
+    if (empty($read_time)) {
+        $word_count = str_word_count(strip_tags($post->post_content));
+        $read_time_min = ceil($word_count / 200);
+        $read_time = ($read_time_min > 0 ? $read_time_min : 5) . ' phút';
+    }
 
     $colors = [
         'from-emerald-500 to-emerald-600', 
