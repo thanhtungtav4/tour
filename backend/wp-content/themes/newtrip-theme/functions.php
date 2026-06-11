@@ -1061,6 +1061,12 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         $p_health = isset($p['health_status']) ? sanitize_text_field($p['health_status']) : '';
         $p_seat = isset($params['selected_seats'][$idx]) ? sanitize_text_field($params['selected_seats'][$idx]) : '';
         $p_image = isset($p['id_card_image']) ? esc_url_raw($p['id_card_image']) : '';
+        if (!empty($p_image)) {
+            $attach_id = attachment_url_to_postid($p_image);
+            if ($attach_id) {
+                $p_image = $attach_id;
+            }
+        }
         
         $p_pickup_point_id = isset($p['pickup_point_id']) ? intval($p['pickup_point_id']) : 0;
         if (!$p_pickup_point_id) {
@@ -1167,8 +1173,18 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         update_post_meta($tour_id, 'departure_dates', $updated_dates);
     }
 
-    // Gửi email xác nhận
-    $update_url = sprintf('https://doi-dep.vercel.app/booking/update?bookingId=%s&email=%s', $booking_code, urlencode($email));
+    // Gửi email xác nhận kèm link bảo mật có token hết hạn trước chuyến đi
+    $expires = newtrip_get_booking_update_expiration($departure_date);
+    $secret_key = defined('NONCE_KEY') ? NONCE_KEY : 'newtrip_secure_salt_key_123';
+    $token = hash_hmac('sha256', $booking_code . '|' . $email . '|' . $expires, $secret_key);
+    
+    $update_url = sprintf(
+        'https://doi-dep.vercel.app/booking/update?bookingId=%s&email=%s&expires=%d&token=%s',
+        $booking_code,
+        urlencode($email),
+        $expires,
+        $token
+    );
     $subject = sprintf('Xác nhận đặt tour %s [%s]', $tour_post->post_title, $booking_code);
     $body = sprintf(
         "Chào %s,\n\nCảm ơn bạn đã đặt tour tại Đôi Dép Adventure!\n\nChi tiết đơn đặt tour:\n" .
@@ -1232,12 +1248,30 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
 function newtrip_api_get_booking(WP_REST_Request $request) {
     $booking_code = sanitize_text_field($request->get_param('id'));
     $email = sanitize_email($request->get_param('email'));
+    $expires = intval($request->get_param('expires'));
+    $token = sanitize_text_field($request->get_param('token'));
 
     if (empty($email)) {
         return new WP_REST_Response([
             'success' => false,
             'error' => ['code' => 'missing_email', 'message' => 'Cần cung cấp email liên hệ để xác thực']
         ], 400);
+    }
+
+    // Nếu truyền token (từ trang update), tiến hành kiểm tra hết hạn và tính hợp lệ của chữ ký
+    if (!empty($token)) {
+        $verify = newtrip_verify_booking_token($booking_code, $email, $expires, $token);
+        if ($verify === false) {
+            return new WP_REST_Response([
+                'success' => false,
+                'error' => ['code' => 'invalid_token', 'message' => 'Liên kết xác thực không hợp lệ hoặc đã bị thay đổi']
+            ], 403);
+        } elseif ($verify === 'expired') {
+            return new WP_REST_Response([
+                'success' => false,
+                'error' => ['code' => 'link_expired', 'message' => 'Liên kết cập nhật thông tin đã hết hạn trước khi chuyến đi bắt đầu']
+            ], 400);
+        }
     }
     
     $query = new WP_Query([
@@ -1304,6 +1338,11 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 }
             }
             
+            $p_image = $p['id_card_image'] ?? '';
+            if (is_numeric($p_image) && intval($p_image) > 0) {
+                $p_image = wp_get_attachment_url(intval($p_image)) ?: '';
+            }
+            
             $passengers[] = [
                 'id' => 1000 + $idx,
                 'full_name' => $p['full_name'] ?? '',
@@ -1316,7 +1355,7 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'birth_date' => $p['birth_date'] ?? ($p['birth_year'] ?? ''),
                 'id_number' => $p['id_number'] ?? '',
                 'health_status' => $p['health_status'] ?? '',
-                'id_card_image' => $p['id_card_image'] ?? '',
+                'id_card_image' => $p_image,
             ];
         }
     } else {
@@ -1331,6 +1370,12 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 $p_pickup_point_id = intval($p_pickup_point);
             }
         }
+        
+        $p_image = get_post_meta($b_id, 'id_card_image', true) ?: '';
+        if (is_numeric($p_image) && intval($p_image) > 0) {
+            $p_image = wp_get_attachment_url(intval($p_image)) ?: '';
+        }
+        
         $passengers = [
             [
                 'id' => 1000,
@@ -1342,7 +1387,7 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'birth_date' => newtrip_get_field('birth_date', $b_id) ?: (newtrip_get_field('birth_year', $b_id) ?: ''),
                 'id_number' => newtrip_get_field('id_number', $b_id) ?: '',
                 'health_status' => newtrip_get_field('health_status', $b_id) ?: '',
-                'id_card_image' => get_post_meta($b_id, 'id_card_image', true) ?: '',
+                'id_card_image' => $p_image,
             ]
         ];
     }
@@ -2438,6 +2483,22 @@ function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
 
     $email = sanitize_email($params['email'] ?? '');
     $passengers = $params['passengers'] ?? [];
+    $expires = intval($params['expires'] ?? 0);
+    $token = sanitize_text_field($params['token'] ?? '');
+
+    // Bắt buộc phải xác thực token và thời gian hết hạn trước chuyến đi
+    $verify = newtrip_verify_booking_token($booking_code, $email, $expires, $token);
+    if ($verify === false) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'invalid_token', 'message' => 'Liên kết xác thực không hợp lệ hoặc đã bị thay đổi']
+        ], 403);
+    } elseif ($verify === 'expired') {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'link_expired', 'message' => 'Liên kết cập nhật thông tin đã hết hạn trước khi chuyến đi bắt đầu']
+        ], 400);
+    }
 
     if (empty($email)) {
         return new WP_REST_Response([
@@ -2485,6 +2546,12 @@ function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
         $p_seat = sanitize_text_field($p['seat'] ?? '');
         $p_checkin = !empty($p['checked_in']) ? 1 : 0;
         $p_image = esc_url_raw($p['id_card_image'] ?? '');
+        if (!empty($p_image)) {
+            $attach_id = attachment_url_to_postid($p_image);
+            if ($attach_id) {
+                $p_image = $attach_id;
+            }
+        }
         $p_pickup_point_id = intval($p['pickup_point_id'] ?? 0);
 
         $passengers_data[] = [
@@ -2521,6 +2588,44 @@ function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
         'success' => true,
         'message' => 'Cập nhật thông tin thành viên thành công'
     ], 200);
+}
+
+// 6.13 Helper lấy thời gian hết hạn của liên kết cập nhật (00:00:00 của ngày khởi hành)
+function newtrip_get_booking_update_expiration($departure_date_str) {
+    $dep_time = strtotime($departure_date_str . ' 00:00:00');
+    if (!$dep_time) {
+        return time() + 7 * 24 * 3600;
+    }
+    
+    // Nếu ngày khởi hành quá gần (dưới 12 tiếng) hoặc trong quá khứ, 
+    // cho phép sửa ít nhất 2 tiếng kể từ thời điểm đặt để xử lý last-minute booking
+    if ($dep_time - time() < 12 * 3600) {
+        return time() + 2 * 3600;
+    }
+    
+    return $dep_time;
+}
+
+// 6.14 Helper xác thực token bảo mật và thời gian hết hạn
+function newtrip_verify_booking_token($booking_code, $email, $expires, $token) {
+    if (empty($token) || empty($expires)) {
+        return false;
+    }
+    
+    // Kiểm tra hết hạn trước chuyến đi
+    if (time() > $expires) {
+        return 'expired';
+    }
+    
+    // Xác thực chữ ký cryptographic hmac
+    $secret_key = defined('NONCE_KEY') ? NONCE_KEY : 'newtrip_secure_salt_key_123';
+    $expected_token = hash_hmac('sha256', $booking_code . '|' . $email . '|' . $expires, $secret_key);
+    
+    if (!hash_equals($expected_token, $token)) {
+        return false;
+    }
+    
+    return true;
 }
 
 

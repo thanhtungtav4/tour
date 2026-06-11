@@ -49,6 +49,8 @@ function BookingUpdateContent() {
   const router = useRouter();
   const bookingId = searchParams.get("bookingId") || "";
   const email = searchParams.get("email") || "";
+  const expires = searchParams.get("expires") || "";
+  const token = searchParams.get("token") || "";
 
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
@@ -68,8 +70,8 @@ function BookingUpdateContent() {
   }, []);
 
   useEffect(() => {
-    if (!bookingId || !email) {
-      setError("Thiếu mã đơn hàng hoặc email xác thực. Vui lòng kiểm tra lại liên kết trong email.");
+    if (!bookingId || !email || !expires || !token) {
+      setError("Liên kết cập nhật thông tin không hợp lệ hoặc thiếu thông tin xác thực. Vui lòng kiểm tra lại liên kết trong email.");
       setLoading(false);
       return;
     }
@@ -79,7 +81,7 @@ function BookingUpdateContent() {
     const loadData = async () => {
       try {
         const [bookingData, pickupPointsData] = await Promise.all([
-          getBooking(bookingId),
+          getBooking(bookingId, email, expires, token),
           getPickupPoints(),
         ]);
 
@@ -114,11 +116,15 @@ function BookingUpdateContent() {
       } catch (err: any) {
         console.error(err);
         if (isSubscribed) {
-          setError(
-            err.message === "booking_not_found"
-              ? "Không tìm thấy đơn hàng tương ứng trên hệ thống."
-              : "Có lỗi xảy ra khi tải thông tin đơn đặt tour. Vui lòng thử lại sau."
-          );
+          let errorMsg = "Có lỗi xảy ra khi tải thông tin đơn đặt tour. Vui lòng thử lại sau.";
+          if (err.message === "link_expired") {
+            errorMsg = "Liên kết cập nhật thông tin thành viên đã hết hạn trước khi chuyến đi bắt đầu.";
+          } else if (err.message === "invalid_token") {
+            errorMsg = "Liên kết xác thực không hợp lệ hoặc đã bị thay đổi.";
+          } else if (err.message === "booking_not_found") {
+            errorMsg = "Không tìm thấy đơn hàng tương ứng trên hệ thống.";
+          }
+          setError(errorMsg);
           setLoading(false);
         }
       }
@@ -129,7 +135,7 @@ function BookingUpdateContent() {
     return () => {
       isSubscribed = false;
     };
-  }, [bookingId, email]);
+  }, [bookingId, email, expires, token]);
 
   const handlePassengerChange = (index: number, field: string, value: any) => {
     const updated = [...passengers];
@@ -175,13 +181,19 @@ function BookingUpdateContent() {
 
     try {
       setSaving(true);
-      await updateBookingPassengers(bookingId, email, passengers);
+      await updateBookingPassengers(bookingId, email, passengers, expires, token);
       setSuccess(true);
       setSaving(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Không thể cập nhật thông tin hành khách. Vui lòng thử lại.");
+      let errorMsg = err.message || "Không thể cập nhật thông tin hành khách. Vui lòng thử lại.";
+      if (err.message === "link_expired") {
+        errorMsg = "Liên kết cập nhật thông tin thành viên đã hết hạn trước khi chuyến đi bắt đầu.";
+      } else if (err.message === "invalid_token") {
+        errorMsg = "Liên kết xác thực không hợp lệ hoặc đã bị thay đổi.";
+      }
+      alert(errorMsg);
       setSaving(false);
     }
   };

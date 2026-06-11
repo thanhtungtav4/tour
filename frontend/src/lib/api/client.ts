@@ -111,9 +111,19 @@ export async function createBooking(request: BookingRequest): Promise<BookingRes
   return json.data;
 }
 
-export async function getBooking(bookingId: string, email?: string): Promise<BookingDetail> {
-  const query = email ? `?email=${encodeURIComponent(email)}` : "";
-  const url = `${API_BASE_URL}/booking/${bookingId}${query}`;
+export async function getBooking(
+  bookingId: string,
+  email?: string,
+  expires?: string,
+  token?: string
+): Promise<BookingDetail> {
+  const query = new URLSearchParams();
+  if (email) query.append("email", email);
+  if (expires) query.append("expires", expires);
+  if (token) query.append("token", token);
+
+  const queryString = query.toString() ? `?${query.toString()}` : "";
+  const url = `${API_BASE_URL}/booking/${bookingId}${queryString}`;
   const res = await fetch(url, {
     cache: "no-store", // Do not cache single booking lookup
   });
@@ -123,6 +133,7 @@ export async function getBooking(bookingId: string, email?: string): Promise<Boo
   }
   return json.data;
 }
+
 
 export async function lookupBooking(params: { email?: string; phone?: string }): Promise<BookingLookupRow[]> {
   const query = new URLSearchParams();
@@ -247,7 +258,9 @@ export async function uploadFile(file: File): Promise<{ id: number; url: string 
 export async function updateBookingPassengers(
   bookingId: string,
   email: string,
-  passengers: any[]
+  passengers: any[],
+  expires?: string,
+  token?: string
 ): Promise<{ success: boolean; message: string }> {
   const url = `${API_BASE_URL}/booking/${bookingId}/update-passengers`;
   const res = await fetch(url, {
@@ -255,7 +268,7 @@ export async function updateBookingPassengers(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email, passengers }),
+    body: JSON.stringify({ email, passengers, expires, token }),
   });
 
   const json = await res.json();
