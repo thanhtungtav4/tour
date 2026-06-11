@@ -1,0 +1,66 @@
+{
+  "key": "group_pickup_point_fields",
+  "title": "Thông tin Điểm Đón",
+  "fields": [
+    {
+      "key": "field_pickup_address",
+      "label": "Địa chỉ chi tiết",
+      "name": "address",
+      "type": "text",
+      "instructions": "Ví dụ: Công trường Quách Thị Trang, Q.1, TP.HCM",
+      "required": 1,
+      "default_value": ""
+    },
+    {
+      "key": "field_pickup_latitude",
+      "label": "Vĩ độ (Latitude)",
+      "name": "latitude",
+      "type": "text",
+      "instructions": "Ví dụ: 10.772371",
+      "required": 0,
+      "default_value": ""
+    },
+    {
+      "key": "field_pickup_longitude",
+      "label": "Kinh độ (Longitude)",
+      "name": "longitude",
+      "type": "text",
+      "instructions": "Ví dụ: 106.698120",
+      "required": 0,
+      "default_value": ""
+    },
+    {
+      "key": "field_pickup_time",
+      "label": "Giờ đón khách",
+      "name": "pickup_time",
+      "type": "text",
+      "instructions": "Ví dụ: 05:30",
+      "required": 1,
+      "default_value": "05:30"
+    },
+    {
+      "key": "field_pickup_notes",
+      "label": "Ghi chú điểm đón",
+      "name": "notes",
+      "type": "textarea",
+      "instructions": "Ví dụ: Tập trung trước nhà hát Thành Phố",
+      "required": 0,
+      "default_value": ""
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "pickup_point"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "active": true
+}

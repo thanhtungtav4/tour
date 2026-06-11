@@ -1,0 +1,114 @@
+{
+  "key": "group_booking_fields",
+  "title": "Thông tin Đơn Đặt Tour",
+  "fields": [
+    {
+      "key": "field_booking_code",
+      "label": "Mã đặt tour",
+      "name": "booking_code",
+      "type": "text",
+      "required": 1,
+      "readonly": 1
+    },
+    {
+      "key": "field_booking_tour_id",
+      "label": "Tour đã đặt",
+      "name": "tour_id",
+      "type": "post_object",
+      "post_type": [
+        "tour"
+      ],
+      "required": 1
+    },
+    {
+      "key": "field_booking_departure_date",
+      "label": "Ngày khởi hành",
+      "name": "departure_date",
+      "type": "text",
+      "required": 1
+    },
+    {
+      "key": "field_booking_participants",
+      "label": "Số lượng người đi",
+      "name": "participants",
+      "type": "number",
+      "required": 1,
+      "default_value": 1
+    },
+    {
+      "key": "field_booking_full_name",
+      "label": "Họ và tên khách đại diện",
+      "name": "full_name",
+      "type": "text",
+      "required": 1
+    },
+    {
+      "key": "field_booking_phone",
+      "label": "Số điện thoại",
+      "name": "phone",
+      "type": "text",
+      "required": 1
+    },
+    {
+      "key": "field_booking_email",
+      "label": "Email liên hệ",
+      "name": "email",
+      "type": "email",
+      "required": 1
+    },
+    {
+      "key": "field_booking_payment_method",
+      "label": "Phương thức thanh toán",
+      "name": "payment_method",
+      "type": "select",
+      "required": 1,
+      "choices": {
+        "transfer": "Chuyển khoản ngân hàng",
+        "cash": "Tiền mặt khi gặp HDV"
+      },
+      "default_value": "transfer"
+    },
+    {
+      "key": "field_booking_total_amount",
+      "label": "Tổng tiền thanh toán",
+      "name": "total_amount",
+      "type": "number",
+      "required": 1
+    },
+    {
+      "key": "field_booking_status",
+      "label": "Trạng thái đơn đặt",
+      "name": "status",
+      "type": "select",
+      "required": 1,
+      "choices": {
+        "pending": "Chờ xác nhận (Pending)",
+        "confirmed": "Đã xác nhận & Đã thanh toán (Confirmed)",
+        "cancelled": "Đã hủy (Cancelled)",
+        "completed": "Đã hoàn thành tour (Completed)"
+      },
+      "default_value": "pending"
+    },
+    {
+      "key": "field_booking_notes",
+      "label": "Ghi chú từ khách hàng",
+      "name": "notes",
+      "type": "textarea"
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "booking"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "active": true
+}

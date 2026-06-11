@@ -1,0 +1,70 @@
+{
+  "key": "group_rental_item_fields",
+  "title": "Thông tin Đồ Thuê",
+  "fields": [
+    {
+      "key": "field_rental_price",
+      "label": "Giá thuê",
+      "name": "price",
+      "type": "number",
+      "instructions": "Giá thuê mỗi đơn vị (ví dụ: 50000)",
+      "required": 1,
+      "default_value": 0
+    },
+    {
+      "key": "field_rental_unit",
+      "label": "Đơn vị tính",
+      "name": "unit",
+      "type": "text",
+      "instructions": "Ví dụ: cái/ngày hoặc lều/đêm",
+      "required": 1,
+      "default_value": "ngày"
+    },
+    {
+      "key": "field_rental_category",
+      "label": "Danh mục đồ thuê",
+      "name": "category",
+      "type": "select",
+      "required": 1,
+      "choices": {
+        "trekking": "Trang bị trekking",
+        "camping": "Đồ cắm trại",
+        "accessories": "Phụ kiện đi kèm"
+      },
+      "default_value": "trekking"
+    },
+    {
+      "key": "field_rental_icon",
+      "label": "Icon đại diện",
+      "name": "icon",
+      "type": "text",
+      "instructions": "Nhập 1 emoji đại diện (ví dụ: 🎒, ⛺, 🔦)",
+      "required": 1,
+      "default_value": "🎒"
+    },
+    {
+      "key": "field_rental_stock_available",
+      "label": "Số lượng trong kho",
+      "name": "stock_available",
+      "type": "number",
+      "instructions": "Số lượng còn sẵn để cho thuê",
+      "required": 1,
+      "default_value": 10
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "rental_item"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "active": true
+}
