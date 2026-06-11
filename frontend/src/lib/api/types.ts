@@ -36,6 +36,21 @@ export interface TourDeparture {
   available_spots: number;
 }
 
+// Yoast SEO meta (null nếu Yoast chưa cài hoặc post chưa có data)
+export interface SeoMeta {
+  title: string;
+  description: string;
+  canonical: string;
+  og_title: string;
+  og_description: string;
+  og_image: string;
+  og_type: string;
+  twitter_title: string;
+  twitter_image: string;
+  robots: string;
+  schema?: unknown;
+}
+
 export interface TourListItem {
   id: number;
   slug: string;
@@ -55,6 +70,7 @@ export interface TourListItem {
   total_departures: number;
   rating: number;
   review_count: number;
+  seo: SeoMeta | null;
 }
 
 export interface TourDetail extends TourListItem {
@@ -191,17 +207,18 @@ export interface BookingDetail {
     total: number;
     paid: number;
     remaining: number;
-    status: string;
-    bank_info?: {
+    status: "unpaid" | "partial" | "paid" | "refunded";
+    bank_info: {
       bank_name: string;
       bank_bin: string;
       account_no: string;
       account_name: string;
       amount: number;
       content: string;
+      qr_payload: string;
       qr_url: string;
       deeplink: string;
-    };
+    } | null;
   };
 }
 
@@ -212,7 +229,7 @@ export interface PaymentInfo {
   total_amount: number;
   paid_amount: number;
   remaining_amount: number;
-  payment_status: string;
+  payment_status: "unpaid" | "partial" | "paid" | "refunded";
   breakdown: {
     tour_price: number;
     services_total: number;
@@ -225,9 +242,10 @@ export interface PaymentInfo {
     account_name: string;
     amount: number;
     content: string;
+    qr_payload: string;
     qr_url: string;
     deeplink: string;
-  };
+  } | null;
 }
 
 // Blog / Post types
@@ -238,6 +256,7 @@ export interface ApiBlogPost {
   excerpt: string;
   author: string;
   author_bio: string;
+  author_avatar: string;
   date: string;
   read_time: string;
   category: string;
@@ -245,5 +264,26 @@ export interface ApiBlogPost {
   image: string;
   color?: string;
   content: string;
+  seo: SeoMeta | null;
+}
+
+// Booking lookup (GET /booking/lookup?email=...&phone=...)
+export interface BookingLookupRow {
+  booking_id: string;
+  tour_name: string;
+  departure_date: string;
+  status: string;
+  passengers_count: number;
+  payment_method: "cash" | "transfer";
+  total_amount: number;
+  payment_status: "unpaid" | "partial" | "paid" | "refunded";
+}
+
+// Admin update booking status (POST /booking/{id}/status)
+export interface BookingStatusUpdate {
+  status?: "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
+  payment_status?: "unpaid" | "partial" | "paid" | "refunded";
+  paid_amount?: number;
+  note?: string;
 }
 

@@ -4,23 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, MapPinIcon } from "@/components/icons";
+import { TourListItem } from "@/lib/api";
 
 interface TourCardProps {
-  tour: {
-    id: string;
-    slug: string;
-    name: string;
-    description: string;
-    imageFilename?: string;
-    gallery: string[];
-    price: number;
-    difficulty: "easy" | "medium" | "hard";
-    duration: string;
-    availableSpots: number;
-    departureTime: string;
-    highlights: string[];
-    departureDates: { date: string; availableSpots: number }[];
-  };
+  tour: Pick<
+    TourListItem,
+    "slug" | "name" | "description" | "thumbnail" | "gallery" | "price" | "difficulty" | "duration" | "available_spots" | "departure_times" | "highlights"
+  >;
   className?: string;
 }
 
@@ -50,8 +40,10 @@ const departureConfig = {
 
 export function TourCard({ tour, className }: TourCardProps) {
   const difficulty = difficultyConfig[tour.difficulty];
-  const departureKey = (Object.keys(departureConfig).find(key => tour.departureTime.includes(key)) || "Sáng");
+  const departureLabel = tour.departure_times[0] ?? "";
+  const departureKey = (Object.keys(departureConfig).find(key => departureLabel.includes(key)) || "Sáng");
   const departure = departureConfig[departureKey as keyof typeof departureConfig];
+  const imageSrc = tour.thumbnail || tour.gallery?.[0] || "/images/logo.png";
 
   return (
     <Link
@@ -66,7 +58,7 @@ export function TourCard({ tour, className }: TourCardProps) {
       {/* Image Container */}
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
-          src={tour.gallery?.[0] || `/images/${tour.imageFilename || `${tour.slug}.jpg`}`}
+          src={imageSrc}
           alt={tour.name}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -90,15 +82,17 @@ export function TourCard({ tour, className }: TourCardProps) {
           </span>
 
           {/* Departure Badge */}
-          <span
-            className={cn(
-              "px-2.5 py-1 text-xs font-semibold rounded-full",
-              departure.bg,
-              departure.text
-            )}
-          >
-            {tour.departureTime}
-          </span>
+          {departureLabel && (
+            <span
+              className={cn(
+                "px-2.5 py-1 text-xs font-semibold rounded-full",
+                departure.bg,
+                departure.text
+              )}
+            >
+              {departureLabel}
+            </span>
+          )}
         </div>
 
         {/* Bottom Content */}
@@ -153,7 +147,7 @@ export function TourCard({ tour, className }: TourCardProps) {
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                <span className="text-sm text-gray-500">Còn {tour.availableSpots} chỗ</span>
+                <span className="text-sm text-gray-500">Còn {tour.available_spots} chỗ</span>
               </div>
               <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
                 <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

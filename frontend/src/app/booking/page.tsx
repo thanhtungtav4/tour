@@ -379,21 +379,7 @@ export default function BookingPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {tours.map((tour) => (
                   <div key={tour.id} className="group">
-                    <TourCard tour={{
-                      id: tour.slug,
-                      slug: tour.slug,
-                      name: tour.name,
-                      description: tour.description,
-                      imageFilename: tour.image_filename,
-                      gallery: tour.gallery,
-                      price: tour.price,
-                      difficulty: tour.difficulty,
-                      duration: tour.duration,
-                      availableSpots: tour.available_spots,
-                      departureTime: tour.departure_times[0],
-                      highlights: tour.highlights,
-                      departureDates: [],
-                    }} />
+                    <TourCard tour={tour} />
                   </div>
                 ))}
               </div>

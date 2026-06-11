@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { tours } from "@/data/tours";
+import { useEffect, useMemo, useState } from "react";
 import { TourCard } from "@/components/TourCard";
 import { SunIcon, CompassIcon, MoonIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { getTours, TourListItem } from "@/lib/api";
 
 export function FeaturedTours() {
   const [selectedTime, setSelectedTime] = useState<string[]>([]);
@@ -12,9 +12,29 @@ export function FeaturedTours() {
   const [selectedDuration, setSelectedDuration] = useState<string[]>([]);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([]);
   const [visibleCount, setVisibleCount] = useState(6);
+  const [tours, setTours] = useState<TourListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getTours({ per_page: 100 })
+      .then(({ data }) => {
+        if (!cancelled) setTours(data);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Không tải được danh sách tour");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const toggleFilter = (group: "time" | "price" | "duration" | "difficulty", value: string) => {
-    setVisibleCount(6); // Reset pagination on filter change
+    setVisibleCount(6);
     if (group === "time") {
       setSelectedTime(prev =>
         prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
@@ -34,16 +54,14 @@ export function FeaturedTours() {
     }
   };
 
-  const filteredTours = tours.filter(tour => {
-    // Filter by Time
+  const filteredTours = useMemo(() => tours.filter(tour => {
     if (selectedTime.length > 0) {
-      const matchesTime = selectedTime.some(time => {
-        return tour.departureTime.toLowerCase().includes(time.toLowerCase());
-      });
+      const matchesTime = selectedTime.some(time =>
+        tour.departure_times.some(dt => dt.toLowerCase().includes(time.toLowerCase()))
+      );
       if (!matchesTime) return false;
     }
 
-    // Filter by Price
     if (selectedPrice.length > 0) {
       const matchesPrice = selectedPrice.some(priceOpt => {
         if (priceOpt === "Dưới 500k") return tour.price < 500000;
@@ -54,18 +72,16 @@ export function FeaturedTours() {
       if (!matchesPrice) return false;
     }
 
-    // Filter by Duration
     if (selectedDuration.length > 0) {
       const matchesDuration = selectedDuration.some(durationOpt => {
         if (durationOpt === "1 ngày") return tour.duration === "1 ngày";
-        if (durationOpt === "2-3 ngày") return tour.duration === "2-3 ngày";
-        if (durationOpt === "4+ ngày") return tour.duration === "4+ ngày";
+        if (durationOpt === "2-3 ngày") return tour.duration === "2-3 ngày" || /^[23] ngày/.test(tour.duration);
+        if (durationOpt === "4+ ngày") return /^[4-9]\d* ngày/.test(tour.duration) || /\d+ đêm/.test(tour.duration);
         return false;
       });
       if (!matchesDuration) return false;
     }
 
-    // Filter by Difficulty
     if (selectedDifficulty.length > 0) {
       const matchesDifficulty = selectedDifficulty.some(diffOpt => {
         const difficultyMap: Record<string, string> = {
@@ -79,7 +95,7 @@ export function FeaturedTours() {
     }
 
     return true;
-  });
+  }), [tours, selectedTime, selectedPrice, selectedDuration, selectedDifficulty]);
 
   const timeFilters = [
     { label: "Sáng", icon: <SunIcon className="w-3.5 h-3.5" /> },
@@ -217,7 +233,25 @@ export function FeaturedTours() {
         </div>
 
         {/* Tours Grid */}
-        {filteredTours.length > 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 animate-pulse">
+                <div className="aspect-[4/3] bg-gray-100" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-100 rounded w-2/3" />
+                  <div className="h-3 bg-gray-100 rounded w-1/3" />
+                  <div className="h-6 bg-gray-100 rounded w-1/2 mt-2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 bg-white rounded-2xl border border-rose-200 shadow-sm max-w-md mx-auto">
+            <p className="text-rose-600 font-semibold">Không tải được danh sách tour</p>
+            <p className="text-sm text-gray-500 mt-1">{error}</p>
+          </div>
+        ) : filteredTours.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredTours.slice(0, visibleCount).map(tour => (
               <TourCard key={tour.id} tour={tour} />

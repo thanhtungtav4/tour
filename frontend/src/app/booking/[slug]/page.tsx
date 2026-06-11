@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, use, useEffect } from "react";
+import { useState, use, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,13 +32,6 @@ const STEPS = [
   { id: 4, label: "Thanh toán", icon: CheckIcon },
 ];
 
-const BANK_INFO = {
-  bankId: "MB",
-  bankName: "MB Bank",
-  accountNo: "123456789",
-  accountName: "DOI DEP ADVENTURE COMPANY",
-};
-
 export default function BookingTourPage({ params }: PageProps) {
   const { slug } = use(params);
   const router = useRouter();
@@ -68,49 +61,43 @@ export default function BookingTourPage({ params }: PageProps) {
     };
   }, [slug]);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    departureDate: "",
-    participants: 1,
-    selectedServices: [] as string[],
-    rentalItems: {} as Record<string, number>,
-    fullName: "",
-    phone: "",
-    email: "",
-    idNumber: "",
-    birthDate: "",
-    healthStatus: "",
-    notes: "",
-    fillAllInfo: false,
-    participantsInfo: [] as { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPoint: string }[],
-  });
-
-  // Pre-fill form from query params on mount
-  useEffect(() => {
+  // Form state (lazy init: đọc tham số URL trên client để tránh setState sync trong useEffect)
+  const [formData, setFormData] = useState(() => {
+    let initialParticipants = 1;
+    let initialName = "";
+    let initialPhone = "";
+    let initialEmail = "";
     if (typeof window !== "undefined") {
-      const searchParams = new URLSearchParams(window.location.search);
-      const slots = parseInt(searchParams.get("slots") || "1", 10);
-      const paramName = searchParams.get("name") || "";
-      const paramPhone = searchParams.get("phone") || "";
-      const paramEmail = searchParams.get("email") || "";
-
-      setFormData((prev) => ({
-        ...prev,
-        participants: slots > 0 ? slots : prev.participants,
-        fullName: paramName || prev.fullName,
-        phone: paramPhone || prev.phone,
-        email: paramEmail || prev.email,
-      }));
+      const sp = new URLSearchParams(window.location.search);
+      const slots = parseInt(sp.get("slots") || "1", 10);
+      if (slots > 0) initialParticipants = slots;
+      initialName = sp.get("name") || "";
+      initialPhone = sp.get("phone") || "";
+      initialEmail = sp.get("email") || "";
     }
-  }, []);
+    return {
+      departureDate: "",
+      participants: initialParticipants,
+      selectedServices: [] as string[],
+      rentalItems: {} as Record<string, number>,
+      fullName: initialName,
+      phone: initialPhone,
+      email: initialEmail,
+      idNumber: "",
+      birthDate: "",
+      healthStatus: "",
+      pickupPointId: 0,
+      notes: "",
+      fillAllInfo: false,
+      participantsInfo: [] as { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPointId: number }[],
+    };
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "transfer">("transfer");
   const [bookingError, setBookingError] = useState<string | null>(null);
 
-  const bookingRef = useMemo(() => `NTR-${slug.toUpperCase().replace(/[^A-Z0-9]/g, "-")}`, [slug]);
-
-  const updateFormData = (field: string, value: string | number | string[] | boolean | { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPoint: string }[] | Record<string, number>) => {
+  const updateFormData = (field: string, value: string | number | string[] | boolean | { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPointId: number }[] | Record<string, number>) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -139,7 +126,7 @@ export default function BookingTourPage({ params }: PageProps) {
       const result = await createBooking({
         tour_slug: slug,
         departure_date: formData.departureDate,
-        pickup_point_id: 1,
+        pickup_point_id: formData.pickupPointId,
         participants: formData.participants,
         services: formData.selectedServices,
         rental_items: formData.rentalItems,
@@ -157,7 +144,7 @@ export default function BookingTourPage({ params }: PageProps) {
             birth_date: formData.birthDate,
             id_number: formData.idNumber,
             health_status: formData.healthStatus,
-            pickup_point_id: 1,
+            pickup_point_id: formData.pickupPointId,
           },
           ...formData.participantsInfo.map((p) => ({
             full_name: p.name,
@@ -166,7 +153,7 @@ export default function BookingTourPage({ params }: PageProps) {
             birth_date: p.birthDate,
             id_number: p.idNumber,
             health_status: p.healthStatus,
-            pickup_point_id: 1,
+            pickup_point_id: p.pickupPointId || formData.pickupPointId,
           })),
         ],
         notes: formData.notes || undefined,
@@ -174,6 +161,7 @@ export default function BookingTourPage({ params }: PageProps) {
       });
 
       router.push(`/booking/success?bookingId=${result.booking_id}&tour=${encodeURIComponent(tour?.name || "")}&date=${encodeURIComponent(formData.departureDate)}&participants=${formData.participants}&total=${result.total_amount}`);
+      router.refresh();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Đã có lỗi xảy ra";
       setBookingError(message === "tour_not_found" ? "Tour không tồn tại" :
@@ -203,12 +191,6 @@ export default function BookingTourPage({ params }: PageProps) {
   const totalPrice = (tour?.price || 0) * formData.participants + servicesTotal + rentalTotal;
 
   const selectedDeparture = tour?.departure_dates.find(d => d.date === formData.departureDate);
-
-  const vietqrUrl = useMemo(() => {
-    if (!tour) return "";
-    const desc = `THANH TOAN TOUR ${tour.name} ${bookingRef}`.substring(0, 50);
-    return `https://img.vietqr.io/image/${BANK_INFO.bankId}-${BANK_INFO.accountNo}-compact2.png?amount=${totalPrice}&addInfo=${encodeURIComponent(desc)}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`;
-  }, [totalPrice, bookingRef, tour]);
 
   if (loading) {
     return (
@@ -423,7 +405,7 @@ export default function BookingTourPage({ params }: PageProps) {
                               if (!e.target.checked) {
                                 updateFormData("participantsInfo", []);
                               } else {
-                                const emptyInfo = Array.from({ length: formData.participants - 1 }, () => ({ name: "", phone: "", email: "", birthDate: "", idNumber: "", healthStatus: "", pickupPoint: "" }));
+                                const emptyInfo = Array.from({ length: formData.participants - 1 }, () => ({ name: "", phone: "", email: "", birthDate: "", idNumber: "", healthStatus: "", pickupPointId: 0 }));
                                 updateFormData("participantsInfo", emptyInfo);
                               }
                             }}
@@ -591,21 +573,20 @@ export default function BookingTourPage({ params }: PageProps) {
                                     <div>
                                       <label className="block text-sm font-medium text-gray-700 mb-1">Điểm đón</label>
                                       <select
-                                        value={formData.participantsInfo[index]?.pickupPoint || ""}
+                                        value={formData.participantsInfo[index]?.pickupPointId || 0}
                                         onChange={(e) => {
                                           const newInfo = [...formData.participantsInfo];
-                                          newInfo[index] = { ...newInfo[index], pickupPoint: e.target.value };
+                                          newInfo[index] = { ...newInfo[index], pickupPointId: parseInt(e.target.value, 10) || 0 };
                                           updateFormData("participantsInfo", newInfo);
                                         }}
                                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
                                       >
-                                        <option value="">Chọn điểm đón</option>
-                                        <option value="ben-thanh">Bến Thành, Q.1</option>
-                                        <option value="phu-my-hung">Phú Mỹ Hưng, Q.7</option>
-                                        <option value="an-suong">Bến xe An Sương</option>
-                                        <option value="mien-tay">Bến xe Miền Tây</option>
-                                        <option value="thao-dien">Thảo Điền, TP. Thủ Đức</option>
-                                        <option value="bien-hoa">Biên Hòa, Đồng Nai</option>
+                                        <option value={0}>Chọn điểm đón</option>
+                                        {(tour.pickup_points || []).map((pp) => (
+                                          <option key={pp.id} value={pp.id}>
+                                            {pp.name}{pp.address ? ` — ${pp.address}` : ""}
+                                          </option>
+                                        ))}
                                       </select>
                                     </div>
                                   </div>
@@ -665,6 +646,28 @@ export default function BookingTourPage({ params }: PageProps) {
                             className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                           />
                         </div>
+                      </div>
+
+                      {/* Pickup point for main contact */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Điểm đón của bạn <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={formData.pickupPointId || 0}
+                          onChange={(e) => updateFormData("pickupPointId", parseInt(e.target.value, 10) || 0)}
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
+                        >
+                          <option value={0}>Chọn điểm đón</option>
+                          {(tour.pickup_points || []).map((pp) => (
+                            <option key={pp.id} value={pp.id}>
+                              {pp.name}{pp.address ? ` — ${pp.address}` : ""}{pp.pickup_time ? ` (${pp.pickup_time})` : ""}
+                            </option>
+                          ))}
+                        </select>
+                        {(!tour.pickup_points || tour.pickup_points.length === 0) && (
+                          <p className="mt-1 text-xs text-amber-600">Tour này chưa có điểm đón. Vui lòng liên hệ tổng đài để được hỗ trợ.</p>
+                        )}
                       </div>
 
                       {/* Notes */}
@@ -839,7 +842,7 @@ export default function BookingTourPage({ params }: PageProps) {
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-gray-500">Mã đặt tour</span>
-                          <span className="font-mono font-bold text-blue-600">{bookingRef}</span>
+                          <span className="font-mono font-bold text-blue-600">— sẽ được tạo sau khi xác nhận —</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Tour</span>
@@ -951,7 +954,7 @@ export default function BookingTourPage({ params }: PageProps) {
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-gray-500">Điểm đón</span>
-                                <span className="font-medium text-gray-900">{info.pickupPoint || "Chưa chọn"}</span>
+                                <span className="font-medium text-gray-900">{tour.pickup_points.find(pp => pp.id === info.pickupPointId)?.name || "Chưa chọn"}</span>
                               </div>
                               <div className="col-span-2 flex justify-between">
                                 <span className="text-gray-500">Sức khỏe</span>
@@ -1035,44 +1038,19 @@ export default function BookingTourPage({ params }: PageProps) {
                     {/* QR Code */}
                     {paymentMethod === "transfer" && (
                       <div className="mb-6 p-6 bg-gradient-to-br from-emerald-50 to-blue-50 border border-emerald-200 rounded-2xl">
-                        <h3 className="font-bold text-gray-900 mb-4 text-center">Quét mã QR để thanh toán</h3>
-
-                        <div className="flex justify-center mb-4">
-                          <div className="bg-white p-4 rounded-xl shadow-lg">
-                            <img
-                              src={vietqrUrl}
-                              alt="Mã QR thanh toán"
-                              className="w-64 h-64 object-contain"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between py-2 border-b border-emerald-100">
-                            <span className="text-gray-500">Ngân hàng</span>
-                            <span className="font-medium text-gray-900">{BANK_INFO.bankName}</span>
-                          </div>
-                          <div className="flex justify-between py-2 border-b border-emerald-100">
-                            <span className="text-gray-500">Số tài khoản</span>
-                            <span className="font-medium text-gray-900">{BANK_INFO.accountNo}</span>
-                          </div>
-                          <div className="flex justify-between py-2 border-b border-emerald-100">
-                            <span className="text-gray-500">Tên tài khoản</span>
-                            <span className="font-medium text-gray-900">{BANK_INFO.accountName}</span>
-                          </div>
-                          <div className="flex justify-between py-2 border-b border-emerald-100">
-                            <span className="text-gray-500">Số tiền</span>
+                        <h3 className="font-bold text-gray-900 mb-2 text-center">Thanh toán qua chuyển khoản</h3>
+                        <p className="text-sm text-gray-600 text-center mb-4">
+                          Sau khi xác nhận đặt tour, bạn sẽ được chuyển tới trang chi tiết với mã QR thanh toán, số tài khoản và nội dung chuyển khoản chính xác cho đơn này.
+                        </p>
+                        <div className="bg-white rounded-xl p-4 border border-emerald-100">
+                          <div className="flex justify-between py-1">
+                            <span className="text-gray-500">Số tiền dự kiến</span>
                             <span className="font-bold text-lg text-emerald-600">{totalPrice.toLocaleString("vi-VN")}đ</span>
                           </div>
-                          <div className="flex justify-between py-2">
-                            <span className="text-gray-500">Nội dung CK</span>
-                            <span className="font-mono font-bold text-blue-600">{bookingRef}</span>
-                          </div>
                         </div>
-
                         <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                           <p className="text-sm text-amber-800">
-                            ⚠️ Vui lòng chuyển <strong>đúng số tiền</strong> và <strong>đúng nội dung</strong> để hệ thống tự động đối soát.
+                            ⚠️ Vui lòng chuyển <strong>đúng số tiền</strong> và <strong>đúng nội dung</strong> hiển thị ở trang xác nhận để hệ thống tự động đối soát.
                           </p>
                         </div>
                       </div>
@@ -1122,9 +1100,9 @@ export default function BookingTourPage({ params }: PageProps) {
                     disabled={
                       (currentStep === 1 && (!formData.departureDate || formData.participants < 1)) ||
                       (currentStep === 2 && (
-                        !formData.fullName || !formData.phone || !formData.email || 
-                        !formData.idNumber || !formData.birthDate ||
-                        (formData.fillAllInfo && formData.participants > 1 && 
+                        !formData.fullName || !formData.phone || !formData.email ||
+                        !formData.idNumber || !formData.birthDate || !formData.pickupPointId ||
+                        (formData.fillAllInfo && formData.participants > 1 &&
                           formData.participantsInfo.some(p => !p.name || !p.phone || !p.birthDate || !p.idNumber)
                         )
                       ))
@@ -1217,8 +1195,8 @@ export default function BookingTourPage({ params }: PageProps) {
                 {/* Booking Reference */}
                 <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
                   <h4 className="font-bold text-blue-900 mb-2">Mã đặt tour</h4>
-                  <p className="font-mono text-2xl font-bold text-blue-600 text-center py-2">{bookingRef}</p>
-                  <p className="text-xs text-blue-700 mt-2">Dùng mã này làm nội dung chuyển khoản để đối soát</p>
+                  <p className="font-mono text-base text-blue-700 text-center py-2">Mã sẽ được hệ thống tạo sau khi bạn xác nhận đặt tour.</p>
+                  <p className="text-xs text-blue-700 mt-2">Bạn sẽ thấy mã ở trang xác nhận để dùng làm nội dung chuyển khoản.</p>
                 </div>
 
                 {/* Support */}

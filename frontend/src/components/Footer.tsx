@@ -3,21 +3,35 @@
 import Image from "next/image";
 import { PhoneIcon, MailIcon } from "@/components/icons";
 import Link from "next/link";
-import { useState } from "react";
-import { tours } from "@/data/tours";
+import { useEffect, useState } from "react";
+import { getTours, TourListItem } from "@/lib/api";
 
 const policies = [
+  { href: "/booking/lookup", label: "Tra cứu đơn đặt tour" },
   { href: "/policies/safety", label: "Chính sách an toàn" },
   { href: "/policies/cancel", label: "Chính sách hủy vé" },
   { href: "/policies/exchange", label: "Chính sách đổi vé, bảo lưu" },
   { href: "/policies/refund", label: "Chính sách hoàn tiền" },
 ];
 
-const popularTours = tours.slice(0, 4);
-
 export function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [popularTours, setPopularTours] = useState<TourListItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getTours({ per_page: 4 })
+      .then(({ data }) => {
+        if (!cancelled) setPopularTours(data);
+      })
+      .catch(() => {
+        if (!cancelled) setPopularTours([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,10 +114,10 @@ export function Footer() {
             <ul className="space-y-3">
               {popularTours.map((tour) => (
                 <li key={tour.id}>
-                  <Link href={`/booking/${tour.slug}`} className="group flex items-center gap-2">
+                  <Link href={`/routes/${tour.slug}`} className="group flex items-center gap-2">
                     <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100">
                       <Image
-                        src={tour.gallery?.[0] || `/images/${tour.imageFilename || `${tour.slug}.jpg`}`}
+                        src={tour.thumbnail || tour.gallery?.[0] || "/images/logo.png"}
                         alt={tour.name}
                         fill
                         sizes="48px"

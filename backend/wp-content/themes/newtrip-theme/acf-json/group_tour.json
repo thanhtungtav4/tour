@@ -237,6 +237,17 @@
           "ui": 1
         }
       ]
+    },
+    {
+      "key": "field_tour_services",
+      "label": "Dịch vụ bổ sung",
+      "name": "services",
+      "type": "relationship",
+      "instructions": "Chọn các dịch vụ bổ sung khả dụng cho tour này (xe đưa đón, bảo hiểm,...). Tạo dịch vụ ở menu 'Dịch vụ Tour'.",
+      "post_type": ["tour_service"],
+      "filters": ["search"],
+      "return_format": "id",
+      "required": 0
     }
   ],
   "location": [

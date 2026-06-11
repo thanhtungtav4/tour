@@ -6,6 +6,8 @@ import {
   BookingRequest,
   BookingResponse,
   BookingDetail,
+  BookingLookupRow,
+  BookingStatusUpdate,
   PaymentInfo,
   ApiBlogPost
 } from "./types";
@@ -119,31 +121,39 @@ export async function getBooking(bookingId: string): Promise<BookingDetail> {
   return json.data;
 }
 
-export async function lookupBooking(params: { booking_id?: string; email?: string; phone?: string }) {
-  if (params.booking_id) {
-    const booking = await getBooking(params.booking_id);
-    return [{
-      booking_id: booking.booking_id,
-      tour_name: booking.tour.name,
-      departure_date: booking.departure.date,
-      status: booking.status,
-      passengers_count: booking.passengers.length,
-      payment_method: booking.payment.method,
-      total_amount: booking.payment.total,
-      payment_status: booking.payment.status,
-    }];
-  }
-  
-  // Custom lookup logic if email/phone search is requested
+export async function lookupBooking(params: { email?: string; phone?: string }): Promise<BookingLookupRow[]> {
   const query = new URLSearchParams();
   if (params.email) query.append("email", params.email);
   if (params.phone) query.append("phone", params.phone);
+
+  if (!query.toString()) return [];
 
   const url = `${API_BASE_URL}/booking/lookup?${query.toString()}`;
   const res = await fetch(url, { cache: "no-store" });
   const json = await res.json();
   if (!res.ok || !json.success) {
     return [];
+  }
+  return json.data as BookingLookupRow[];
+}
+
+export async function updateBookingStatus(
+  bookingId: string,
+  update: BookingStatusUpdate,
+  authHeader: string
+): Promise<{ booking_id: string; status: string; payment_status: string; paid_amount: number; updated_at: string }> {
+  const url = `${API_BASE_URL}/booking/${bookingId}/status`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: authHeader,
+    },
+    body: JSON.stringify(update),
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.code || json.error?.message || "Không cập nhật được trạng thái");
   }
   return json.data;
 }
@@ -162,25 +172,7 @@ export async function getPaymentInfo(bookingId: string): Promise<PaymentInfo> {
       services_total: 0,
       rental_total: 0,
     },
-    bank_transfer: booking.payment.bank_info ? {
-      bank_name: booking.payment.bank_info.bank_name,
-      bank_bin: booking.payment.bank_info.bank_bin,
-      account_no: booking.payment.bank_info.account_no,
-      account_name: booking.payment.bank_info.account_name,
-      amount: booking.payment.bank_info.amount,
-      content: booking.payment.bank_info.content,
-      qr_url: booking.payment.bank_info.qr_url,
-      deeplink: booking.payment.bank_info.deeplink || "",
-    } : {
-      bank_name: "",
-      bank_bin: "",
-      account_no: "",
-      account_name: "",
-      amount: 0,
-      content: "",
-      qr_url: "",
-      deeplink: "",
-    },
+    bank_transfer: booking.payment.bank_info,
   };
 }
 

@@ -1,0 +1,52 @@
+{
+  "key": "group_tour_service",
+  "title": "Thông tin Dịch vụ Tour",
+  "fields": [
+    {
+      "key": "field_tour_service_price",
+      "label": "Giá dịch vụ",
+      "name": "price",
+      "type": "number",
+      "instructions": "Giá tính trên 1 đơn vị (mặc định: 1 người)",
+      "required": 1
+    },
+    {
+      "key": "field_tour_service_unit",
+      "label": "Đơn vị tính",
+      "name": "unit",
+      "type": "text",
+      "instructions": "Ví dụ: người, chuyến, đêm",
+      "required": 1
+    },
+    {
+      "key": "field_tour_service_description",
+      "label": "Mô tả ngắn",
+      "name": "description",
+      "type": "textarea",
+      "rows": 3,
+      "required": 1
+    },
+    {
+      "key": "field_tour_service_icon",
+      "label": "Icon (emoji)",
+      "name": "icon",
+      "type": "text",
+      "instructions": "Emoji hiển thị bên cạnh tên dịch vụ. Ví dụ: 🚌 ✅ 🎒",
+      "required": 0
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "tour_service"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "active": true
+}

@@ -1,0 +1,51 @@
+{
+  "key": "group_payment_settings",
+  "title": "Cấu hình thanh toán (VietQR)",
+  "fields": [
+    {
+      "key": "field_payment_bank_name",
+      "label": "Tên ngân hàng",
+      "name": "bank_name",
+      "type": "text",
+      "instructions": "Ví dụ: MB Bank, Vietcombank, Techcombank...",
+      "required": 1
+    },
+    {
+      "key": "field_payment_bank_bin",
+      "label": "Mã BIN ngân hàng",
+      "name": "bank_bin",
+      "type": "text",
+      "instructions": "Mã BIN 6 chữ số theo chuẩn VietQR (xem tại https://api.vietqr.io/v2/banks). MB Bank = 970422, Vietcombank = 970436, Techcombank = 970407.",
+      "required": 1
+    },
+    {
+      "key": "field_payment_account_no",
+      "label": "Số tài khoản",
+      "name": "account_no",
+      "type": "text",
+      "required": 1
+    },
+    {
+      "key": "field_payment_account_name",
+      "label": "Tên chủ tài khoản (in hoa, không dấu)",
+      "name": "account_name",
+      "type": "text",
+      "instructions": "Phải đúng theo đăng ký với ngân hàng. In hoa, không dấu.",
+      "required": 1
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "options_page",
+        "operator": "==",
+        "value": "newtrip-payment-settings"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "active": true
+}

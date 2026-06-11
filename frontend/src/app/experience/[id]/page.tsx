@@ -25,22 +25,27 @@ export default function ExperienceDetailPage({ params }: PageProps) {
 
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
-    setError(null);
+    let cancelled = false;
 
     Promise.all([getBlogPost(id), getBlogPosts()])
       .then(([detailData, listData]) => {
+        if (cancelled) return;
         setPost(detailData);
-        // Related posts: filter out current post
         const filtered = listData.filter(p => p.id !== detailData.id).slice(0, 3);
         setRelatedPosts(filtered);
-        setLoading(false);
       })
       .catch((err) => {
+        if (cancelled) return;
         console.error(err);
         setError("Không thể tải thông tin bài viết. Vui lòng thử lại sau.");
-        setLoading(false);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   useEffect(() => {

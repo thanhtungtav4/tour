@@ -183,22 +183,32 @@ export function BookingSuccessContent({
               <h3 className="text-xl font-bold text-gray-900 mb-2">Thanh toán hoàn tất!</h3>
               <p className="text-gray-600">Hệ thống đã xác nhận thanh toán tự động cho đơn hàng này.</p>
             </div>
+          ) : !booking.payment.bank_info ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+              <h3 className="font-bold text-amber-900 mb-2 text-lg flex items-center gap-2">
+                <span className="w-2.5 h-6 bg-amber-500 rounded-full inline-block"></span>
+                Thông tin thanh toán đang được chuẩn bị
+              </h3>
+              <p className="text-sm text-amber-800">
+                Quản trị viên chưa cấu hình thông tin ngân hàng. Vui lòng liên hệ tổng đài để nhận hướng dẫn chuyển khoản cho đơn này.
+              </p>
+            </div>
           ) : (
             <div>
               <h3 className="font-bold text-gray-900 mb-2 text-lg lg:text-xl border-b pb-3 border-gray-100 flex items-center gap-2">
                 <span className="w-2.5 h-6 bg-emerald-500 rounded-full inline-block"></span>
                 Hướng dẫn Thanh toán Chuyển khoản
               </h3>
-              
+
               <div className="grid md:grid-cols-2 gap-8 items-center mt-6">
                 {/* QR Code Container */}
                 <div className="flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50/50 to-blue-50/50 p-6 rounded-2xl border border-emerald-100/50 text-center">
                   <p className="text-sm font-semibold text-emerald-800 mb-3">Mở App Ngân hàng để Quét mã QR</p>
                   <div className="bg-white p-4 rounded-2xl shadow-md border border-emerald-100 relative group overflow-hidden transition-all duration-300 hover:shadow-lg">
-                    {booking.payment.bank_info?.qr_url ? (
+                    {booking.payment.bank_info.qr_url ? (
                       <img
                         src={booking.payment.bank_info.qr_url}
-                        alt="Mã QR VietQR MB Bank"
+                        alt={`Mã QR VietQR ${booking.payment.bank_info.bank_name}`}
                         className="w-56 h-56 object-contain"
                       />
                     ) : (
@@ -210,8 +220,8 @@ export function BookingSuccessContent({
                   <p className="text-xs text-gray-500 mt-3 max-w-[240px]">
                     Quét mã này bằng bất kỳ ứng dụng ngân hàng nào để tự động điền STK, số tiền & nội dung.
                   </p>
-                  
-                  {booking.payment.bank_info?.deeplink && (
+
+                  {booking.payment.bank_info.deeplink && (
                     <a
                       href={booking.payment.bank_info.deeplink}
                       target="_blank"
@@ -227,25 +237,24 @@ export function BookingSuccessContent({
                 {/* Account Details */}
                 <div className="space-y-4">
                   <p className="text-sm font-semibold text-gray-700">Hoặc chuyển khoản thủ công:</p>
-                  
+
                   <div className="space-y-3">
                     {/* Bank Name */}
                     <div className="flex justify-between items-center py-2.5 px-3 bg-gray-50 rounded-xl border border-gray-100">
                       <div>
                         <span className="text-xs text-gray-500 block">Ngân hàng</span>
-                        <span className="font-semibold text-gray-900 text-sm">{booking.payment.bank_info?.bank_name || "MB Bank"}</span>
+                        <span className="font-semibold text-gray-900 text-sm">{booking.payment.bank_info.bank_name}</span>
                       </div>
-                      <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">MB Bank</span>
                     </div>
 
                     {/* Account Number */}
                     <div className="flex justify-between items-center py-2.5 px-3 bg-gray-50 rounded-xl border border-gray-100">
                       <div>
                         <span className="text-xs text-gray-500 block">Số tài khoản</span>
-                        <span className="font-mono font-bold text-gray-900 text-base">{booking.payment.bank_info?.account_no || "123456789"}</span>
+                        <span className="font-mono font-bold text-gray-900 text-base">{booking.payment.bank_info.account_no}</span>
                       </div>
                       <button
-                        onClick={() => handleCopy(booking.payment.bank_info?.account_no || "123456789", "account")}
+                        onClick={() => handleCopy(booking.payment.bank_info!.account_no, "account")}
                         className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1 text-xs"
                       >
                         {copiedField === "account" ? (
@@ -266,7 +275,7 @@ export function BookingSuccessContent({
                     <div className="flex justify-between items-center py-2.5 px-3 bg-gray-50 rounded-xl border border-gray-100">
                       <div>
                         <span className="text-xs text-gray-500 block">Tên chủ tài khoản</span>
-                        <span className="font-semibold text-gray-900 text-sm uppercase">{booking.payment.bank_info?.account_name || "DOI DEP ADVENTURE COMPANY"}</span>
+                        <span className="font-semibold text-gray-900 text-sm uppercase">{booking.payment.bank_info.account_name}</span>
                       </div>
                     </div>
 
@@ -275,11 +284,11 @@ export function BookingSuccessContent({
                       <div>
                         <span className="text-xs text-gray-500 block">Số tiền</span>
                         <span className="font-bold text-emerald-600 text-lg">
-                          {(booking.payment.bank_info?.amount || booking.payment.total || parseInt(total)).toLocaleString("vi-VN")}đ
+                          {booking.payment.bank_info.amount.toLocaleString("vi-VN")}đ
                         </span>
                       </div>
                       <button
-                        onClick={() => handleCopy(String(booking.payment.bank_info?.amount || booking.payment.total || parseInt(total)), "amount")}
+                        onClick={() => handleCopy(String(booking.payment.bank_info!.amount), "amount")}
                         className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1 text-xs"
                       >
                         {copiedField === "amount" ? (
@@ -300,10 +309,10 @@ export function BookingSuccessContent({
                     <div className="flex justify-between items-center py-2.5 px-3 bg-emerald-50 rounded-xl border border-emerald-100">
                       <div>
                         <span className="text-xs text-emerald-700 block">Nội dung chuyển khoản</span>
-                        <span className="font-mono font-bold text-blue-600 text-base">{booking.payment.bank_info?.content || bookingId}</span>
+                        <span className="font-mono font-bold text-blue-600 text-base">{booking.payment.bank_info.content}</span>
                       </div>
                       <button
-                        onClick={() => handleCopy(booking.payment.bank_info?.content || bookingId, "content")}
+                        onClick={() => handleCopy(booking.payment.bank_info!.content, "content")}
                         className="p-1.5 hover:bg-emerald-100 rounded-lg text-emerald-700 hover:text-emerald-950 transition-colors flex items-center gap-1 text-xs"
                       >
                         {copiedField === "content" ? (
