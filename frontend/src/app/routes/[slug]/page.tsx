@@ -23,7 +23,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon as ChevronRightIconAlt,
 } from "@/components/icons";
-import { cn } from "@/lib/utils";
+import { cn, getTourGallery } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -200,10 +200,10 @@ export default function TourDetailPage({ params }: PageProps) {
   };
   const difficulty = difficultyConfig[tour.difficulty as keyof typeof difficultyConfig] || difficultyConfig.easy;
 
-  // Gallery images from tour data
-  const galleryImages = tour.gallery && tour.gallery.length > 0 
-    ? tour.gallery 
-    : ["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80"];
+  const galleryImages = getTourGallery(
+    tour.gallery && tour.gallery.length > 0 ? tour.gallery : [],
+    tour.slug
+  );
 
   // Tour Summary data
   const tourSummary = {

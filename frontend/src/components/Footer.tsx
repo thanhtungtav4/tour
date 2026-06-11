@@ -5,6 +5,7 @@ import { PhoneIcon, MailIcon } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getTours, TourListItem } from "@/lib/api";
+import { getTourImage } from "@/lib/utils";
 
 const policies = [
   { href: "/booking/lookup", label: "Tra cứu đơn đặt tour" },
@@ -117,7 +118,7 @@ export function Footer() {
                   <Link href={`/routes/${tour.slug}`} className="group flex items-center gap-2">
                     <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100">
                       <Image
-                        src={tour.thumbnail || tour.gallery?.[0] || "/images/logo.png"}
+                        src={getTourImage(tour.thumbnail || tour.gallery?.[0] || "", tour.slug)}
                         alt={tour.name}
                         fill
                         sizes="48px"

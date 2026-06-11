@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getTourBySlug, getRentalItems, createBooking, TourDetail, RentalItem } from "@/lib/api";
+import { getTourImage } from "@/lib/utils";
 import {
   CalendarIcon,
   UsersIcon,
@@ -291,7 +292,7 @@ export default function BookingTourPage({ params }: PageProps) {
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 rounded-xl overflow-hidden bg-emerald-100">
                           <img
-                            src={tour.gallery[0]}
+                            src={getTourImage(tour.thumbnail || tour.gallery?.[0] || "", tour.slug)}
                             alt={tour.name}
                             className="w-full h-full object-cover"
                           />

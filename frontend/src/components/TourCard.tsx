@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, getTourImage } from "@/lib/utils";
 import { CalendarIcon, MapPinIcon } from "@/components/icons";
 import { TourListItem } from "@/lib/api";
 
@@ -43,7 +43,7 @@ export function TourCard({ tour, className }: TourCardProps) {
   const departureLabel = tour.departure_times[0] ?? "";
   const departureKey = (Object.keys(departureConfig).find(key => departureLabel.includes(key)) || "Sáng");
   const departure = departureConfig[departureKey as keyof typeof departureConfig];
-  const imageSrc = tour.thumbnail || tour.gallery?.[0] || "/images/logo.png";
+  const imageSrc = getTourImage(tour.thumbnail || tour.gallery?.[0] || "", tour.slug);
 
   return (
     <Link
