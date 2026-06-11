@@ -82,8 +82,13 @@ export function BookingSuccessContent({
       });
   }, [bookingId]);
 
-  const formattedDate = date
-    ? new Date(date).toLocaleDateString("vi-VN", {
+  const displayTourName = (booking && booking.tour.name) ? booking.tour.name : decodeURIComponent(tourName || "Tour");
+  const displayDate = (booking && booking.departure.date) ? booking.departure.date : date;
+  const displayParticipants = booking ? booking.passengers.length : parseInt(participants || "1");
+  const displayTotal = booking ? booking.payment.total : parseInt(total || "0");
+
+  const formattedDate = displayDate
+    ? new Date(displayDate).toLocaleDateString("vi-VN", {
         weekday: "long",
         year: "numeric",
         month: "long",
@@ -135,7 +140,7 @@ export function BookingSuccessContent({
             </div>
             <div>
               <p className="text-sm text-gray-500">Tour</p>
-              <p className="font-semibold text-gray-900">{decodeURIComponent(tourName)}</p>
+              <p className="font-semibold text-gray-900">{displayTourName}</p>
             </div>
           </div>
 
@@ -155,7 +160,7 @@ export function BookingSuccessContent({
             </div>
             <div>
               <p className="text-sm text-gray-500">Số người</p>
-              <p className="font-semibold text-gray-900">{participants} người</p>
+              <p className="font-semibold text-gray-900">{displayParticipants} người</p>
             </div>
           </div>
 
@@ -163,7 +168,7 @@ export function BookingSuccessContent({
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Tổng chi phí</span>
               <span className="text-2xl font-bold text-emerald-600">
-                {parseInt(total).toLocaleString("vi-VN")}đ
+                {displayTotal.toLocaleString("vi-VN")}đ
               </span>
             </div>
           </div>

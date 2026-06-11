@@ -32,6 +32,13 @@ add_action('rest_api_init', function () {
     });
 }, 15);
 
+add_action( 'after_setup_theme', 'register_my_menu' );
+function register_my_menu() {
+  register_nav_menu( 'primary-menu', __( 'Primary Menu', 'newtrip-theme' ) );
+  register_nav_menu( 'footer-menu', __( 'Footer Menu', 'newtrip-theme' ) );
+}
+
+
 // 1. Đăng ký Custom Post Types (Tours, Bookings, Rental Items, Pickup Points)
 function newtrip_register_post_types() {
     // 1.1 CPT Tour (Chuyến đi)
@@ -193,7 +200,7 @@ function newtrip_get_tour_services_for_post($tour_id) {
 // Tra cứu 1 service theo slug (cho booking flow) — chỉ trong scope của tour
 function newtrip_find_tour_service_by_slug($tour_id, $slug) {
     foreach (newtrip_get_tour_services_for_post($tour_id) as $s) {
-        if ($s['id'] === $slug) return $s;
+        if ($s['id'] === $slug || (string)$s['post_id'] === (string)$slug) return $s;
     }
     return null;
 }
@@ -273,7 +280,8 @@ function newtrip_parse_itinerary_pro($value) {
         foreach ($value as $row) {
             $itinerary[] = [
                 'time' => isset($row['time']) ? trim($row['time']) : '',
-                'activity' => isset($row['activity']) ? trim($row['activity']) : ''
+                'activity' => isset($row['activity']) ? trim($row['activity']) : '',
+                'icon' => isset($row['icon']) ? trim($row['icon']) : 'default'
             ];
         }
         return $itinerary;
@@ -286,7 +294,8 @@ function newtrip_parse_itinerary_pro($value) {
         if (count($parts) === 2) {
             $itinerary[] = [
                 'time' => trim($parts[0]),
-                'activity' => trim($parts[1])
+                'activity' => trim($parts[1]),
+                'icon' => 'default'
             ];
         }
     }
@@ -641,6 +650,13 @@ add_action('rest_api_init', function () {
         'callback' => 'newtrip_api_get_general_settings',
         'permission_callback' => '__return_true',
     ]);
+
+    // 5.10 GET /wp-json/newtrip/v1/pages/<slug> - Lấy nội dung trang tĩnh (chính sách)
+    register_rest_route('newtrip/v1', '/pages/(?P<slug>[a-zA-Z0-9-]+)', [
+        'methods' => 'GET',
+        'callback' => 'newtrip_api_get_page_by_slug',
+        'permission_callback' => '__return_true',
+    ]);
 });
 
 // 6. Định nghĩa callbacks cho các API Endpoints
@@ -793,6 +809,7 @@ function newtrip_api_get_rental_items(WP_REST_Request $request) {
             $price = floatval(newtrip_get_field('price', $p_id));
             $data[] = [
                 'id' => $post->post_name,
+                'post_id' => $p_id,
                 'name' => $post->post_title,
                 'description' => newtrip_get_field('description', $p_id) ?: '',
                 'price' => $price,
@@ -943,7 +960,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         if ($service) {
             $services_total += $service['price'] * $participants;
             $services_data[] = [
-                'service_id' => $service['id'],
+                'service_id' => $service['post_id'], // Save numeric Post ID
                 'name'       => $service['name'],
                 'price'      => $service['price'],
             ];
@@ -958,11 +975,16 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         $qty = intval($qty);
         if ($qty <= 0) continue;
         
-        $rental_query = new WP_Query([
+        $query_args = [
             'post_type' => 'rental_item',
-            'name' => $r_id,
             'posts_per_page' => 1,
-        ]);
+        ];
+        if (is_numeric($r_id)) {
+            $query_args['p'] = intval($r_id);
+        } else {
+            $query_args['name'] = sanitize_title($r_id);
+        }
+        $rental_query = new WP_Query($query_args);
         
         if ($rental_query->have_posts()) {
             $rental_post = $rental_query->posts[0];
@@ -974,7 +996,8 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
             $rental_total += $subtotal;
             
             $rental_items_data[] = [
-                'item_id' => $r_id,
+                'item_id' => $rental_item_id, // Save numeric Post ID
+                'item_slug' => $rental_post->post_name,
                 'name' => $r_name,
                 'qty' => $qty,
                 'price' => $r_price,
@@ -1057,7 +1080,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     // Lưu booking mới vào database
     $booking_id = wp_insert_post([
         'post_type' => 'booking',
-        'post_title' => sprintf('[%s] %s - Đi: %s - Khách: %s', $booking_code, $tour_post->post_title, date('d/m/Y', strtotime($departure_date)), $full_name),
+        'post_title' => sprintf('[%s] %s', $booking_code, $full_name),
         'post_status' => 'publish',
     ]);
 
@@ -1156,7 +1179,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
                 'rental_total' => $rental_total,
                 'rental_items' => array_map(function($item) {
                     return [
-                        'id' => $item['item_id'],
+                        'id' => $item['item_slug'],
                         'name' => $item['name'],
                         'qty' => $item['qty'],
                         'subtotal' => $item['subtotal']
@@ -1202,7 +1225,17 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
 
     $post = $query->posts[0];
     $b_id = $post->ID;
-    $tour_id = intval(newtrip_get_field('tour_id', $b_id));
+    $tour_id_raw = newtrip_get_field('tour_id', $b_id);
+    if (is_object($tour_id_raw)) {
+        $tour_id = $tour_id_raw->ID;
+    } elseif (is_array($tour_id_raw)) {
+        $tour_id = $tour_id_raw['ID'] ?? 0;
+    } else {
+        $tour_id = intval($tour_id_raw);
+    }
+    if (empty($tour_id)) {
+        $tour_id = intval(get_post_meta($b_id, 'tour_id', true));
+    }
     $tour_post = get_post($tour_id);
     $total = floatval(newtrip_get_field('total_amount', $b_id));
 
@@ -1316,7 +1349,7 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
             }
             
             if ($post_obj && $post_obj->post_type === 'tour_service') {
-                $s_id = (string) $post_obj->ID;
+                $s_id = $post_obj->post_name; // Return slug string for frontend compatibility
                 if (empty($s_name)) {
                     $s_name = $post_obj->post_title;
                 }
@@ -1338,12 +1371,15 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
     $method = newtrip_get_field('payment_method', $b_id);
     $status = newtrip_get_field('status', $b_id) ?: 'pending';
 
-    // payment_status đọc từ field thật, không suy ra từ booking status
+    // payment_status đọc từ field thật, fallback sang paid nếu status là confirmed hoặc completed
     $payment_status = get_post_meta($b_id, 'payment_status', true);
-    if (empty($payment_status)) {
-        $payment_status = 'unpaid';
+    if (empty($payment_status) || (($status === 'confirmed' || $status === 'completed') && $payment_status === 'unpaid')) {
+        $payment_status = ($status === 'confirmed' || $status === 'completed') ? 'paid' : 'unpaid';
     }
     $paid_amount = floatval(get_post_meta($b_id, 'paid_amount', true));
+    if ($payment_status === 'paid' && $paid_amount < $total) {
+        $paid_amount = $total;
+    }
     $remaining_amount = max(0, $total - $paid_amount);
 
     $bank_info = null;
@@ -1438,14 +1474,24 @@ function newtrip_api_lookup_bookings(WP_REST_Request $request) {
     if ($query->have_posts()) {
         foreach ($query->posts as $post) {
             $b_id = $post->ID;
-            $tour_id = intval(newtrip_get_field('tour_id', $b_id));
+            $tour_id_raw = newtrip_get_field('tour_id', $b_id);
+            if (is_object($tour_id_raw)) {
+                $tour_id = $tour_id_raw->ID;
+            } elseif (is_array($tour_id_raw)) {
+                $tour_id = $tour_id_raw['ID'] ?? 0;
+            } else {
+                $tour_id = intval($tour_id_raw);
+            }
+            if (empty($tour_id)) {
+                $tour_id = intval(get_post_meta($b_id, 'tour_id', true));
+            }
             $tour_post = $tour_id ? get_post($tour_id) : null;
             $status = newtrip_get_field('status', $b_id) ?: 'pending';
             $passengers_raw = newtrip_get_field('passengers', $b_id);
             $passengers_count = is_array($passengers_raw) ? count($passengers_raw) : 1;
-            $payment_status = newtrip_get_field('payment_status', $b_id);
-            if (empty($payment_status)) {
-                $payment_status = ($status === 'confirmed') ? 'paid' : 'unpaid';
+            $payment_status = get_post_meta($b_id, 'payment_status', true);
+            if (empty($payment_status) || (($status === 'confirmed' || $status === 'completed') && $payment_status === 'unpaid')) {
+                $payment_status = ($status === 'confirmed' || $status === 'completed') ? 'paid' : 'unpaid';
             }
             $rows[] = [
                 'booking_id'       => newtrip_get_field('booking_code', $b_id),
@@ -2055,6 +2101,208 @@ function newtrip_booking_sortable_columns($columns) {
     $columns['total_amount'] = 'total_amount';
     $columns['status'] = 'status';
     return $columns;
+}
+
+// Tự động tính toán lại chi phí khi quản trị viên lưu/cập nhật đơn đặt tour ở Admin Dashboard
+add_action('acf/save_post', 'newtrip_calculate_booking_totals_on_save', 20);
+function newtrip_calculate_booking_totals_on_save($post_id) {
+    if (get_post_type($post_id) !== 'booking') {
+        return;
+    }
+    
+    // Tạm dừng hook để tránh lặp vô hạn khi gọi update_field
+    remove_action('acf/save_post', 'newtrip_calculate_booking_totals_on_save', 20);
+    
+    $tour_id = newtrip_get_field('tour_id', $post_id);
+    if (!$tour_id) {
+        add_action('acf/save_post', 'newtrip_calculate_booking_totals_on_save', 20);
+        return;
+    }
+    
+    if (is_object($tour_id)) {
+        $tour_id = $tour_id->ID;
+    } elseif (is_array($tour_id)) {
+        $tour_id = $tour_id['ID'] ?? 0;
+    }
+    $tour_id = intval($tour_id);
+    
+    $tour_price = floatval(newtrip_get_field('price', $tour_id));
+    $participants = intval(newtrip_get_field('participants', $post_id));
+    if ($participants <= 0) {
+        $participants = 1;
+    }
+    
+    // 1. Tính toán lại Dịch vụ
+    $services_raw = newtrip_get_field('services', $post_id);
+    $services_data = [];
+    $services_total = 0;
+    if (is_array($services_raw)) {
+        foreach ($services_raw as $s) {
+            $service_id_raw = $s['service_id'] ?? '';
+            $service_id = $service_id_raw;
+            if (is_object($service_id)) {
+                $service_id = $service_id->ID;
+            } elseif (is_array($service_id)) {
+                $service_id = $service_id['ID'] ?? 0;
+            }
+            
+            $resolved_id = 0;
+            if (is_numeric($service_id) && intval($service_id) > 0) {
+                $resolved_id = intval($service_id);
+            } else {
+                $service_slug = (string)$service_id;
+                if (!empty($service_slug)) {
+                    $query = new WP_Query([
+                        'post_type' => 'tour_service',
+                        'name' => $service_slug,
+                        'posts_per_page' => 1,
+                        'fields' => 'ids',
+                        'post_status' => 'any',
+                    ]);
+                    $resolved_id = !empty($query->posts) ? $query->posts[0] : 0;
+                }
+            }
+            
+            if ($resolved_id <= 0) continue;
+            
+            $s_price = isset($s['price']) && $s['price'] !== '' ? floatval($s['price']) : 0;
+            if ($s_price <= 0 && $resolved_id > 0) {
+                $s_price = floatval(newtrip_get_field('price', $resolved_id));
+            }
+            
+            $s_name = $s['name'] ?? '';
+            if (empty($s_name) && $resolved_id > 0) {
+                $s_name = get_the_title($resolved_id);
+            }
+            
+            $services_total += $s_price * $participants;
+            $services_data[] = [
+                'service_id' => $resolved_id,
+                'name' => $s_name,
+                'price' => $s_price,
+            ];
+        }
+        update_field('field_booking_services', $services_data, $post_id);
+    }
+    
+    // 2. Tính toán lại Đồ thuê
+    $rental_items_raw = newtrip_get_field('rental_items', $post_id);
+    $rental_items_data = [];
+    $rental_total = 0;
+    if (is_array($rental_items_raw)) {
+        foreach ($rental_items_raw as $r) {
+            $item_id_raw = $r['item_id'] ?? '';
+            $item_id = $item_id_raw;
+            if (is_object($item_id)) {
+                $item_id = $item_id->ID;
+            } elseif (is_array($item_id)) {
+                $item_id = $item_id['ID'] ?? 0;
+            }
+            
+            $resolved_id = 0;
+            if (is_numeric($item_id) && intval($item_id) > 0) {
+                $resolved_id = intval($item_id);
+            } else {
+                $item_slug = (string)$item_id;
+                if (!empty($item_slug)) {
+                    $query = new WP_Query([
+                        'post_type' => 'rental_item',
+                        'name' => $item_slug,
+                        'posts_per_page' => 1,
+                        'fields' => 'ids',
+                        'post_status' => 'any',
+                    ]);
+                    $resolved_id = !empty($query->posts) ? $query->posts[0] : 0;
+                }
+            }
+            
+            if ($resolved_id <= 0) continue;
+            
+            $r_price = isset($r['price']) && $r['price'] !== '' ? floatval($r['price']) : 0;
+            if ($r_price <= 0 && $resolved_id > 0) {
+                $r_price = floatval(newtrip_get_field('price', $resolved_id));
+            }
+            
+            $r_name = $r['name'] ?? '';
+            if (empty($r_name) && $resolved_id > 0) {
+                $r_name = get_the_title($resolved_id);
+            }
+            
+            $qty = intval($r['qty'] ?? 1);
+            if ($qty <= 0) $qty = 1;
+            
+            $subtotal = $r_price * $qty;
+            $rental_total += $subtotal;
+            
+            $rental_items_data[] = [
+                'item_id' => $resolved_id,
+                'name' => $r_name,
+                'qty' => $qty,
+                'price' => $r_price,
+                'subtotal' => $subtotal,
+            ];
+        }
+        update_field('field_booking_rental_items', $rental_items_data, $post_id);
+    }
+    
+    // 3. Tính lại Tổng tiền thanh toán
+    $total_amount = ($tour_price * $participants) + $services_total + $rental_total;
+    update_field('field_booking_total_amount', $total_amount, $post_id);
+
+    // Sync payment status if booking status is confirmed or completed (Confirmed = Đã xác nhận & Đã thanh toán)
+    $status = newtrip_get_field('status', $post_id) ?: 'pending';
+    if ($status === 'confirmed' || $status === 'completed') {
+        $payment_status = get_post_meta($post_id, 'payment_status', true);
+        if ($payment_status !== 'paid' && $payment_status !== 'partial') {
+            update_post_meta($post_id, 'payment_status', 'paid');
+            update_post_meta($post_id, 'paid_amount', $total_amount);
+        }
+    }
+
+    // Sync post title (only contain booking code and customer name)
+    $booking_code = get_post_meta($post_id, 'booking_code', true);
+    $full_name = newtrip_get_field('full_name', $post_id) ?: '';
+    if (!empty($booking_code) && !empty($full_name)) {
+        $new_title = sprintf('[%s] %s', $booking_code, $full_name);
+        global $wpdb;
+        $wpdb->update($wpdb->posts, ['post_title' => $new_title], ['ID' => $post_id]);
+        clean_post_cache($post_id);
+    }
+    
+    // Đăng ký lại hook sau khi hoàn tất cập nhật
+    add_action('acf/save_post', 'newtrip_calculate_booking_totals_on_save', 20);
+}
+
+// 6.10 Lấy nội dung trang tĩnh theo slug (cho trang chính sách)
+function newtrip_api_get_page_by_slug(WP_REST_Request $request) {
+    $slug = sanitize_text_field($request->get_param('slug'));
+    
+    $query = new WP_Query([
+        'post_type' => 'page',
+        'name' => $slug,
+        'posts_per_page' => 1,
+        'post_status' => 'publish',
+    ]);
+    
+    if (!$query->have_posts()) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'page_not_found', 'message' => 'Không tìm thấy trang yêu cầu']
+        ], 404);
+    }
+    
+    $post = $query->posts[0];
+    $data = [
+        'id' => $post->ID,
+        'slug' => $post->post_name,
+        'title' => $post->post_title,
+        'content' => apply_filters('the_content', $post->post_content),
+    ];
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => $data
+    ], 200);
 }
 
 

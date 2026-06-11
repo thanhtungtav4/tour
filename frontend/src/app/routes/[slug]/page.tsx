@@ -25,12 +25,35 @@ import {
   ChevronRightIcon as ChevronRightIconAlt,
   CompassIcon,
   FlameIcon,
+  MoonIcon,
+  TreeIcon,
+  SparklesIcon,
+  FlagIcon,
+  HeartIcon,
 } from "@/components/icons";
 import { cn, getTourGallery } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
+
+const ITINERARY_ICON_MAP: Record<string, React.ComponentType<any>> = {
+  "map-pin": MapPinIcon,
+  "sun": SunIcon,
+  "moon": MoonIcon,
+  "mountain": MountainIcon,
+  "tree": TreeIcon,
+  "compass": CompassIcon,
+  "flame": FlameIcon,
+  "footprints": FootprintsIcon,
+  "eye": EyeIcon,
+  "sparkles": SparklesIcon,
+  "flag": FlagIcon,
+  "clock": ClockIcon,
+  "users": UsersIcon,
+  "heart": HeartIcon,
+  "shield": ShieldCheckIcon,
+};
 
 const getItineraryIcon = (activity: string) => {
   const text = activity.toLowerCase();
@@ -493,7 +516,9 @@ export default function TourDetailPage({ params }: PageProps) {
                   <div className="space-y-6">
                     {itinerary.length > 0 ? (
                       itinerary.map((item, index) => {
-                        const IconComponent = getItineraryIcon(item.activity);
+                        const IconComponent = item.icon && ITINERARY_ICON_MAP[item.icon]
+                          ? ITINERARY_ICON_MAP[item.icon]
+                          : getItineraryIcon(item.activity);
                         return (
                           <motion.div
                             key={index}

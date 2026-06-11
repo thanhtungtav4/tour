@@ -1,6 +1,17 @@
-import { getSettings } from "@/lib/api";
+import { getSettings, getPageBySlug } from "@/lib/api";
 
 export default async function TermsPage() {
+  const pageData = await getPageBySlug("dieu-khoan-su-dung").catch(() => null);
+
+  if (pageData) {
+    return (
+      <>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">{pageData.title}</h1>
+        <div dangerouslySetInnerHTML={{ __html: pageData.content }} className="dynamic-policy-content" />
+      </>
+    );
+  }
+
   let settings = null;
   try {
     settings = await getSettings();

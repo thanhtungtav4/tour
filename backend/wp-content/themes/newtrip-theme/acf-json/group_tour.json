@@ -213,6 +213,38 @@
           "type": "textarea",
           "required": 1,
           "rows": 2
+        },
+        {
+          "key": "field_tour_itinerary_icon",
+          "label": "Biểu tượng",
+          "name": "icon",
+          "type": "select",
+          "required": 0,
+          "choices": {
+            "default": "Tự động phân tích theo nội dung",
+            "map-pin": "📍 Điểm đón / Địa điểm (MapPin)",
+            "sun": "☀️ Buổi sáng / Ăn uống (Sun)",
+            "moon": "🌙 Buổi tối / Nghỉ ngơi (Moon)",
+            "mountain": "⛰️ Leo núi / Trekking (Mountain)",
+            "tree": "🌲 Rừng / Cắm trại (Tree)",
+            "compass": "🧭 Khám phá / Định hướng (Compass)",
+            "flame": "🔥 Lửa trại / Tiệc tối (Flame)",
+            "footprints": "👣 Di chuyển / Đi bộ (Footprints)",
+            "eye": "👁️ Ngắm cảnh / Hoàng hôn (Eye)",
+            "sparkles": "✨ Trải nghiệm đặc biệt (Sparkles)",
+            "flag": "🚩 Điểm đến / Đạt đỉnh (Flag)",
+            "clock": "⏰ Thời gian / Nghỉ tự do (Clock)",
+            "users": "👥 Tập hợp / Giao lưu (Users)",
+            "heart": "❤️ Thư giãn / Sức khỏe (Heart)",
+            "shield": "🛡️ An toàn / Chuẩn bị (Shield)"
+          },
+          "default_value": "default",
+          "allow_null": 0,
+          "multiple": 0,
+          "ui": 1,
+          "ajax": 0,
+          "return_format": "value",
+          "placeholder": ""
         }
       ]
     },

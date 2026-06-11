@@ -116,7 +116,7 @@
             "tour_service"
           ],
           "return_format": "id",
-          "required": 1
+          "required": 0
         },
         {
           "key": "field_booking_service_name",
@@ -151,7 +151,7 @@
             "rental_item"
           ],
           "return_format": "id",
-          "required": 1
+          "required": 0
         },
         {
           "key": "field_booking_rental_item_name",

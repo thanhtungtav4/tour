@@ -25,6 +25,7 @@ export interface ApiError {
 // Tour types
 export interface TourService {
   id: string;
+  post_id: number;
   name: string;
   description: string;
   price: number;
@@ -75,7 +76,7 @@ export interface TourListItem {
 
 export interface TourDetail extends TourListItem {
   content: string;
-  itinerary: { time: string; activity: string }[];
+  itinerary: { time: string; activity: string; icon?: string }[];
   included: string[];
   excluded: string[];
   notes: string;
@@ -105,6 +106,7 @@ export interface TourDetail extends TourListItem {
 // Rental Item types
 export interface RentalItem {
   id: string;
+  post_id: number;
   name: string;
   description: string;
   price: number;
@@ -134,8 +136,8 @@ export interface BookingRequest {
   departure_date: string;
   pickup_point_id: number;
   participants: number;
-  services: string[];
-  rental_items: Record<string, number>;
+  services: (string | number)[];
+  rental_items: Record<string | number, number>;
   payment_method: "cash" | "transfer";
   main_contact: {
     full_name: string;
@@ -302,5 +304,13 @@ export interface GeneralSettings {
     account_no: string;
     account_name: string;
   } | null;
+}
+
+// Page types
+export interface ApiPage {
+  id: number;
+  slug: string;
+  title: string;
+  content: string;
 }
 

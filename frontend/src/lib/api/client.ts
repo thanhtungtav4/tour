@@ -10,7 +10,8 @@ import {
   BookingStatusUpdate,
   PaymentInfo,
   ApiBlogPost,
-  GeneralSettings
+  GeneralSettings,
+  ApiPage
 } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tour-api.nttung.dev/wp-json/newtrip/v1";
@@ -209,6 +210,18 @@ export async function getSettings(): Promise<GeneralSettings> {
   const json = await res.json();
   if (!res.ok || !json.success) {
     throw new Error(json.error?.message || "Không thể tải cài đặt");
+  }
+  return json.data;
+}
+
+export async function getPageBySlug(slug: string): Promise<ApiPage> {
+  const url = `${API_BASE_URL}/pages/${slug}`;
+  const res = await fetch(url, {
+    next: { revalidate: 60 }, // Cache pages for 60 seconds
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.message || "Không thể tải trang chính sách");
   }
   return json.data;
 }
