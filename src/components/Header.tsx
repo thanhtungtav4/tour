@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { MenuIcon, CloseIcon, PhoneIcon } from "@/components/icons";
 
@@ -57,8 +58,14 @@ export function Header() {
               href="/"
               className="flex items-center gap-2.5 text-xl font-bold text-[#0e1425] transition-all duration-300"
             >
-              <div className="relative w-9 h-9 rounded-full overflow-hidden bg-emerald-600 flex items-center justify-center">
-                <span className="text-white font-bold text-base">N</span>
+              <div className="relative w-9 h-9 rounded-full overflow-hidden flex items-center justify-center">
+                <Image
+                  src="/images/logo.png"
+                  alt="Đôi Dép Adventure Logo"
+                  fill
+                  sizes="36px"
+                  className="object-cover"
+                />
               </div>
               <span className="font-bold">Đôi Dép Adventure</span>
             </Link>
@@ -143,8 +150,14 @@ export function Header() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">N</span>
+                <div className="relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
+                  <Image
+                    src="/images/logo.png"
+                    alt="Đôi Dép Adventure Logo"
+                    fill
+                    sizes="32px"
+                    className="object-cover"
+                  />
                 </div>
                 <span className="font-bold text-lg">Đôi Dép Adventure</span>
               </Link>

@@ -38,8 +38,14 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-2.5 mb-4 text-[#0e1425]">
-              <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">N</span>
+              <div className="relative w-10 h-10 rounded-full overflow-hidden flex items-center justify-center">
+                <Image
+                  src="/images/logo.png"
+                  alt="Đôi Dép Adventure Logo"
+                  fill
+                  sizes="40px"
+                  className="object-cover"
+                />
               </div>
               <span className="text-xl font-bold">Đôi Dép Adventure</span>
             </Link>
