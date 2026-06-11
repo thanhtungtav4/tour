@@ -87,12 +87,14 @@ export default function BookingTourPage({ params }: PageProps) {
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
       const slots = parseInt(searchParams.get("slots") || "1", 10);
+      const paramName = searchParams.get("name") || "";
       const paramPhone = searchParams.get("phone") || "";
       const paramEmail = searchParams.get("email") || "";
 
       setFormData((prev) => ({
         ...prev,
         participants: slots > 0 ? slots : prev.participants,
+        fullName: paramName || prev.fullName,
         phone: paramPhone || prev.phone,
         email: paramEmail || prev.email,
       }));

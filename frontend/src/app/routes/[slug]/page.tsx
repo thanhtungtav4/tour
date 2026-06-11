@@ -132,6 +132,7 @@ export default function TourDetailPage({ params }: PageProps) {
   const [activeImage, setActiveImage] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   
@@ -765,6 +766,13 @@ export default function TourDetailPage({ params }: PageProps) {
 
                 <div className="space-y-3">
                   <input
+                    type="text"
+                    placeholder="Họ và tên *"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent"
+                  />
+                  <input
                     type="number"
                     placeholder="Số lượng (1-10)"
                     min="1"
@@ -789,7 +797,7 @@ export default function TourDetailPage({ params }: PageProps) {
                   />
                 </div>
 
-                <Link href={`/booking/${slug}?slots=${quantity}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}`}>
+                <Link href={`/booking/${slug}?slots=${quantity}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(fullName)}`}>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
