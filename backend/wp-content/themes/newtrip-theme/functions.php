@@ -1057,7 +1057,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     // Lưu booking mới vào database
     $booking_id = wp_insert_post([
         'post_type' => 'booking',
-        'post_title' => sprintf('Đặt tour %s - %s [%s]', $tour_post->post_title, $full_name, $booking_code),
+        'post_title' => sprintf('[%s] %s - Đi: %s - Khách: %s', $booking_code, $tour_post->post_title, date('d/m/Y', strtotime($departure_date)), $full_name),
         'post_status' => 'publish',
     ]);
 
@@ -1262,11 +1262,75 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
     $rental_items = [];
     if (is_array($rental_items_raw)) {
         foreach ($rental_items_raw as $r) {
+            $item_id_raw = $r['item_id'] ?? '';
+            $r_id = '';
+            $r_name = $r['name'] ?? '';
+            $r_price = isset($r['price']) && $r['price'] !== '' ? floatval($r['price']) : 0;
+            $qty = intval($r['qty'] ?? 0);
+            
+            $post_obj = null;
+            if (is_object($item_id_raw)) {
+                $post_obj = $item_id_raw;
+            } elseif (is_numeric($item_id_raw)) {
+                $post_obj = get_post(intval($item_id_raw));
+            }
+            
+            if ($post_obj && $post_obj->post_type === 'rental_item') {
+                $r_id = $post_obj->post_name; // Lấy slug để đồng bộ FE
+                if (empty($r_name)) {
+                    $r_name = $post_obj->post_title;
+                }
+                if ($r_price <= 0) {
+                    $r_price = floatval(newtrip_get_field('price', $post_obj->ID));
+                }
+            } else {
+                $r_id = (string) $item_id_raw;
+            }
+            
+            $subtotal = isset($r['subtotal']) && $r['subtotal'] !== '' ? floatval($r['subtotal']) : ($r_price * $qty);
+            
             $rental_items[] = [
-                'id' => $r['item_id'] ?? '',
-                'name' => $r['name'] ?? '',
-                'qty' => intval($r['qty'] ?? 0),
-                'subtotal' => floatval($r['subtotal'] ?? 0),
+                'id' => $r_id,
+                'name' => $r_name,
+                'qty' => $qty,
+                'subtotal' => $subtotal,
+            ];
+        }
+    }
+
+    // Lấy thông tin dịch vụ (Services)
+    $services_raw = newtrip_get_field('services', $b_id);
+    $services = [];
+    if (is_array($services_raw)) {
+        foreach ($services_raw as $s) {
+            $service_id_raw = $s['service_id'] ?? '';
+            $s_id = '';
+            $s_name = $s['name'] ?? '';
+            $s_price = isset($s['price']) && $s['price'] !== '' ? floatval($s['price']) : 0;
+            
+            $post_obj = null;
+            if (is_object($service_id_raw)) {
+                $post_obj = $service_id_raw;
+            } elseif (is_numeric($service_id_raw)) {
+                $post_obj = get_post(intval($service_id_raw));
+            }
+            
+            if ($post_obj && $post_obj->post_type === 'tour_service') {
+                $s_id = (string) $post_obj->ID;
+                if (empty($s_name)) {
+                    $s_name = $post_obj->post_title;
+                }
+                if ($s_price <= 0) {
+                    $s_price = floatval(newtrip_get_field('price', $post_obj->ID));
+                }
+            } else {
+                $s_id = (string) $service_id_raw;
+            }
+            
+            $services[] = [
+                'id' => $s_id,
+                'name' => $s_name,
+                'price' => $s_price,
             ];
         }
     }
@@ -1328,6 +1392,7 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'email' => newtrip_get_field('email', $b_id),
             ],
             'passengers' => $passengers,
+            'services' => $services,
             'rental_items' => $rental_items,
             'payment' => [
                 'method' => $method,
@@ -1537,8 +1602,8 @@ function newtrip_api_get_general_settings(WP_REST_Request $request) {
     
     $settings = [
         'default_tour_image' => get_field('default_tour_image', 'option') ?: '/images/default-tour.jpg',
-        'hotline'            => get_field('hotline', 'option') ?: '0928 382 087',
-        'zalo_link'          => get_field('zalo_link', 'option') ?: 'https://zalo.me/0928382087',
+        'hotline'            => get_field('hotline', 'option') ?: '096 180 43 59',
+        'zalo_link'          => get_field('zalo_link', 'option') ?: 'https://zalo.me/0961804359',
         'contact_email'      => get_field('contact_email', 'option') ?: 'doidepadventure@gmail.com',
         'company_address'    => get_field('company_address', 'option') ?: 'TP. Hồ Chí Minh',
         'facebook_link'      => get_field('facebook_link', 'option') ?: '',
@@ -1901,4 +1966,95 @@ function newtrip_get_mock_posts() {
         ]
     ];
 }
+
+// 7. Cấu hình các cột hiển thị trong danh sách Đơn đặt tour (WP Admin)
+add_filter('manage_booking_posts_columns', 'newtrip_set_booking_columns');
+function newtrip_set_booking_columns($columns) {
+    $new_columns = [];
+    $new_columns['cb'] = $columns['cb']; // checkbox
+    $new_columns['booking_code'] = 'Mã đặt tour';
+    $new_columns['title'] = 'Tiêu đề';
+    $new_columns['tour'] = 'Tour đã đặt';
+    $new_columns['departure_date'] = 'Ngày khởi hành';
+    $new_columns['participants'] = 'Số người';
+    $new_columns['total_amount'] = 'Tổng tiền';
+    $new_columns['status'] = 'Trạng thái đơn';
+    $new_columns['payment_status'] = 'Thanh toán';
+    $new_columns['date'] = $columns['date']; // Ngày đặt
+    return $new_columns;
+}
+
+add_action('manage_booking_posts_custom_column', 'newtrip_booking_custom_column_content', 10, 2);
+function newtrip_booking_custom_column_content($column, $post_id) {
+    switch ($column) {
+        case 'booking_code':
+            $code = get_post_meta($post_id, 'booking_code', true);
+            echo '<strong>' . esc_html($code ? $code : 'NTR-XXXXXX') . '</strong>';
+            break;
+            
+        case 'tour':
+            $tour_id = get_post_meta($post_id, 'tour_id', true);
+            if ($tour_id) {
+                echo '<a href="' . get_edit_post_link($tour_id) . '">' . esc_html(get_the_title($tour_id)) . '</a>';
+            } else {
+                echo '<span class="description">—</span>';
+            }
+            break;
+            
+        case 'departure_date':
+            $date = get_post_meta($post_id, 'departure_date', true);
+            if ($date) {
+                echo esc_html(date('d/m/Y', strtotime($date)));
+            } else {
+                echo '<span class="description">—</span>';
+            }
+            break;
+            
+        case 'participants':
+            $slots = get_post_meta($post_id, 'participants', true);
+            echo esc_html($slots ? $slots . ' người' : '1 người');
+            break;
+            
+        case 'total_amount':
+            $total = get_post_meta($post_id, 'total_amount', true);
+            if ($total) {
+                echo '<strong>' . number_format(floatval($total), 0, ',', '.') . 'đ</strong>';
+            } else {
+                echo '0đ';
+            }
+            break;
+            
+        case 'status':
+            $status = get_post_meta($post_id, 'status', true) ?: 'pending';
+            $labels = [
+                'pending'   => '<span class="badge" style="background:#ffb900;color:#fff;padding:3px 8px;border-radius:4px;font-weight:600;font-size:11px;">Chờ xác nhận</span>',
+                'confirmed' => '<span class="badge" style="background:#16a249;color:#fff;padding:3px 8px;border-radius:4px;font-weight:600;font-size:11px;">Đã xác nhận</span>',
+                'cancelled' => '<span class="badge" style="background:#d9381e;color:#fff;padding:3px 8px;border-radius:4px;font-weight:600;font-size:11px;">Đã hủy</span>',
+                'completed' => '<span class="badge" style="background:#0068ff;color:#fff;padding:3px 8px;border-radius:4px;font-weight:600;font-size:11px;">Đã hoàn thành</span>'
+            ];
+            echo isset($labels[$status]) ? $labels[$status] : esc_html($status);
+            break;
+            
+        case 'payment_status':
+            $pay_status = get_post_meta($post_id, 'payment_status', true) ?: 'unpaid';
+            $labels = [
+                'unpaid'   => '<span class="badge" style="border:1px solid #d9381e;color:#d9381e;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Chưa trả</span>',
+                'partial'  => '<span class="badge" style="border:1px solid #ffb900;color:#ffb900;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Trả một phần</span>',
+                'paid'     => '<span class="badge" style="border:1px solid #16a249;color:#16a249;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Đã thanh toán</span>',
+                'refunded' => '<span class="badge" style="border:1px solid #727272;color:#727272;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Đã hoàn tiền</span>'
+            ];
+            echo isset($labels[$pay_status]) ? $labels[$pay_status] : esc_html($pay_status);
+            break;
+    }
+}
+
+// Cho phép sắp xếp theo các cột
+add_filter('manage_edit-booking_sortable_columns', 'newtrip_booking_sortable_columns');
+function newtrip_booking_sortable_columns($columns) {
+    $columns['departure_date'] = 'departure_date';
+    $columns['total_amount'] = 'total_amount';
+    $columns['status'] = 'status';
+    return $columns;
+}
+
 

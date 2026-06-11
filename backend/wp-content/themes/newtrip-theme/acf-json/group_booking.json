@@ -109,24 +109,28 @@
       "sub_fields": [
         {
           "key": "field_booking_service_id",
-          "label": "ID Dịch vụ",
+          "label": "Chọn Dịch vụ",
           "name": "service_id",
-          "type": "text",
+          "type": "post_object",
+          "post_type": [
+            "tour_service"
+          ],
+          "return_format": "id",
           "required": 1
         },
         {
           "key": "field_booking_service_name",
-          "label": "Tên dịch vụ",
+          "label": "Tên dịch vụ (Để trống sẽ tự lấy)",
           "name": "name",
           "type": "text",
-          "required": 1
+          "required": 0
         },
         {
           "key": "field_booking_service_price",
-          "label": "Giá dịch vụ",
+          "label": "Giá dịch vụ (Để trống sẽ tự lấy)",
           "name": "price",
           "type": "number",
-          "required": 1
+          "required": 0
         }
       ]
     },
@@ -140,17 +144,21 @@
       "sub_fields": [
         {
           "key": "field_booking_rental_item_id",
-          "label": "ID Đồ thuê",
+          "label": "Chọn Đồ thuê",
           "name": "item_id",
-          "type": "text",
+          "type": "post_object",
+          "post_type": [
+            "rental_item"
+          ],
+          "return_format": "id",
           "required": 1
         },
         {
           "key": "field_booking_rental_item_name",
-          "label": "Tên đồ thuê",
+          "label": "Tên đồ thuê (Để trống sẽ tự lấy)",
           "name": "name",
           "type": "text",
-          "required": 1
+          "required": 0
         },
         {
           "key": "field_booking_rental_item_qty",
@@ -162,17 +170,17 @@
         },
         {
           "key": "field_booking_rental_item_price",
-          "label": "Đơn giá",
+          "label": "Đơn giá (Để trống sẽ tự lấy)",
           "name": "price",
           "type": "number",
-          "required": 1
+          "required": 0
         },
         {
           "key": "field_booking_rental_item_subtotal",
-          "label": "Thành tiền",
+          "label": "Thành tiền (Để trống sẽ tự tính)",
           "name": "subtotal",
           "type": "number",
-          "required": 1
+          "required": 0
         }
       ]
     },
@@ -181,7 +189,7 @@
       "label": "Danh sách thành viên tham gia (ACF Pro Repeater)",
       "name": "passengers",
       "type": "repeater",
-      "layout": "row",
+      "layout": "table",
       "button_label": "Thêm thành viên",
       "sub_fields": [
         {
