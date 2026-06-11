@@ -96,9 +96,9 @@ export function AboutSection() {
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
                   <div className="feature-text py-1">
-                    <h4 className="text-lg font-bold text-[#0e1425] mb-1 group-hover:text-[#16a249] transition-colors">
+                    <h3 className="text-lg font-bold text-[#0e1425] mb-1 group-hover:text-[#16a249] transition-colors">
                       {feature.title}
-                    </h4>
+                    </h3>
                     <p className="text-sm text-[#6b7280] leading-relaxed">
                       {feature.description}
                     </p>

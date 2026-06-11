@@ -213,6 +213,9 @@ export default function BookingTourPage({ params }: PageProps) {
       <Header />
 
       <main className="pt-[81px] pb-16">
+        {/* Page Title for SEO & Accessibility */}
+        <h1 className="sr-only">Đặt tour: {tour.name}</h1>
+
         {/* Progress Steps */}
         <div className="bg-white shadow-sm sticky top-0 z-40 mt-[81px]">
           <div className="container mx-auto px-4 py-4">

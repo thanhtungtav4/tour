@@ -52,7 +52,7 @@ export function BlogSection() {
               Blogs & Stories
             </span>
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
-              Kinh nghiệm & <span className="text-emerald-600">Chia sẻ</span>
+              Kinh nghiệm & <span className="text-emerald-700">Chia sẻ</span>
             </h2>
             <p className="text-gray-500 mt-2 max-w-xl">
               Những câu chuyện và trải nghiệm thực tế từ cộng đồng Đôi Dép Adventure
@@ -60,7 +60,7 @@ export function BlogSection() {
           </div>
           <Link
             href="/experience"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 hover:gap-3 transition-all flex-shrink-0"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800 hover:gap-3 transition-all flex-shrink-0"
           >
             Xem tất cả bài viết
             <ArrowRightIcon className="w-4 h-4" />
@@ -118,7 +118,7 @@ export function BlogSection() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-emerald-700 transition-colors">
                   {post.title}
                 </h3>
 
@@ -128,7 +128,7 @@ export function BlogSection() {
                 </p>
 
                 {/* Read More */}
-                <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600 group-hover:gap-3 transition-all">
+                <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700 group-hover:gap-3 transition-all">
                   Đọc tiếp
                   <ArrowRightIcon className="w-4 h-4" />
                 </div>

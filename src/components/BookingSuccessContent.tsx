@@ -113,7 +113,7 @@ export function BookingSuccessContent({
         transition={{ delay: 0.3 }}
         className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-6"
       >
-        <h3 className="font-bold text-gray-900 mb-4">Những bước tiếp theo</h3>
+        <h2 className="font-bold text-gray-900 mb-4">Những bước tiếp theo</h2>
         <div className="space-y-3">
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">1</div>

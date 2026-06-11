@@ -405,7 +405,7 @@ export default function BookingPage() {
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <SearchIcon className="w-10 h-10 text-gray-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Không tìm thấy tour</h3>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Không tìm thấy tour</h2>
                 <p className="text-gray-500 mb-4">Thử thay đổi bộ lọc để tìm kiếm tour phù hợp</p>
                 <button
                   onClick={clearAllFilters}

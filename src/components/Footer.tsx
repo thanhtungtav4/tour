@@ -138,7 +138,7 @@ export function Footer() {
                   <a href="tel:0928382087" className="text-sm font-medium text-white hover:text-emerald-400 transition-colors">
                     0928 382 087
                   </a>
-                  <p className="text-xs text-gray-500">T2-CN: 7:00 - 21:00</p>
+                  <p className="text-xs text-gray-400">T2-CN: 7:00 - 21:00</p>
                 </div>
               </li>
               <li className="flex items-start gap-2">
@@ -158,7 +158,7 @@ export function Footer() {
 
             {/* Payment Methods */}
             <div className="mt-6">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Thanh toán</h4>
+              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Thanh toán</h4>
               <div className="flex gap-2">
                 <div className="px-2 py-1 bg-white/10 rounded text-xs text-gray-400">VietQR</div>
                 <div className="px-2 py-1 bg-white/10 rounded text-xs text-gray-400">MB Bank</div>
@@ -173,10 +173,10 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               © {currentYear} Đôi Dép Adventure. All rights reserved.
             </p>
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-4 text-xs text-gray-400">
               <Link href="/policies/privacy" className="hover:text-gray-300 transition-colors">
                 Chính sách bảo mật
               </Link>

@@ -76,7 +76,7 @@ export default function AboutPage() {
                       <UsersIcon className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-[#0e1425] mb-1">Đội ngũ chuyên nghiệp</h4>
+                      <h3 className="font-bold text-[#0e1425] mb-1">Đội ngũ chuyên nghiệp</h3>
                       <p className="text-sm text-[#6b7280]">Hướng dẫn viên giàu kinh nghiệm, được đào tạo bài bản</p>
                     </div>
                   </div>
@@ -85,7 +85,7 @@ export default function AboutPage() {
                       <ShieldCheckIcon className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-[#0e1425] mb-1">An toàn là ưu tiên số 1</h4>
+                      <h3 className="font-bold text-[#0e1425] mb-1">An toàn là ưu tiên số 1</h3>
                       <p className="text-sm text-[#6b7280]">Trang thiết bị chất lượng cao, quy trình an toàn nghiêm ngặt</p>
                     </div>
                   </div>
@@ -121,7 +121,7 @@ export default function AboutPage() {
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#16a249] to-[#10b981] flex items-center justify-center mx-auto mb-4">
                     <span className="text-white text-xl font-bold">{member.avatar}</span>
                   </div>
-                  <h4 className="font-bold text-[#0e1425]">{member.name}</h4>
+                  <h3 className="font-bold text-[#0e1425]">{member.name}</h3>
                   <p className="text-sm text-[#6b7280]">{member.role}</p>
                 </div>
               ))}

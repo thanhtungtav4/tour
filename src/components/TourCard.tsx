@@ -27,18 +27,18 @@ interface TourCardProps {
 const difficultyConfig = {
   easy: {
     label: "Dễ",
-    badgeBg: "bg-emerald-500",
-    badgeText: "text-white",
+    badgeBg: "bg-emerald-100",
+    badgeText: "text-emerald-800",
   },
   medium: {
     label: "Trung bình",
-    badgeBg: "bg-amber-500",
-    badgeText: "text-white",
+    badgeBg: "bg-amber-100",
+    badgeText: "text-amber-800",
   },
   hard: {
     label: "Khó",
-    badgeBg: "bg-red-500",
-    badgeText: "text-white",
+    badgeBg: "bg-red-100",
+    badgeText: "text-red-800",
   },
 } as const;
 
@@ -145,10 +145,10 @@ export function TourCard({ tour, className }: TourCardProps) {
           {/* Bottom Row */}
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-2xl font-bold text-emerald-600">
+              <span className="text-2xl font-bold text-emerald-700">
                 {tour.price.toLocaleString("vi-VN")}đ
               </span>
-              <span className="text-xs text-gray-400">/người</span>
+              <span className="text-xs text-gray-500">/người</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">

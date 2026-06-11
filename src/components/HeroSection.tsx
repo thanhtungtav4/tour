@@ -9,19 +9,21 @@ export function HeroSection() {
     <section className="relative">
       {/* Banner with optimized image */}
       <div className="relative h-[400px] sm:h-[480px] lg:h-[560px] overflow-hidden">
-        {/* Preload hint for LCP */}
-        <link rel="preload" href="/images/banner3.jpg" as="image" />
-        
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7)), url('/images/banner3.jpg')",
-          }}
+        {/* Background Image (optimized using Next.js Image component) */}
+        <Image
+          src="/images/banner3.jpg"
+          alt="Đôi Dép Adventure - Khám phá thiên nhiên Việt Nam"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover -z-20"
+          quality={85}
         />
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/70 -z-10" />
         
         {/* Fallback gradient if image fails */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-gray-900 to-gray-800 -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-gray-900 to-gray-800 -z-30" />
 
         {/* Content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
