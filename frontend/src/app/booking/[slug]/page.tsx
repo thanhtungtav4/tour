@@ -70,6 +70,7 @@ export default function BookingTourPage({ params }: PageProps) {
     let initialName = "";
     let initialPhone = "";
     let initialEmail = "";
+    let initialDate = "";
     if (typeof window !== "undefined") {
       const sp = new URLSearchParams(window.location.search);
       const slots = parseInt(sp.get("slots") || "1", 10);
@@ -77,9 +78,10 @@ export default function BookingTourPage({ params }: PageProps) {
       initialName = sp.get("name") || "";
       initialPhone = sp.get("phone") || "";
       initialEmail = sp.get("email") || "";
+      initialDate = sp.get("date") || "";
     }
     return {
-      departureDate: "",
+      departureDate: initialDate,
       participants: initialParticipants,
       selectedServices: [] as string[],
       rentalItems: {} as Record<string, number>,

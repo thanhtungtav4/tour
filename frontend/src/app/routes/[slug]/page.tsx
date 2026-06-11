@@ -145,9 +145,7 @@ export default function TourDetailPage({ params }: PageProps) {
   const [activeImage, setActiveImage] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
 
   const [tour, setTour] = useState<TourDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -159,6 +157,9 @@ export default function TourDetailPage({ params }: PageProps) {
       .then((tourData) => {
         if (cancelled) return;
         setTour(tourData);
+        if (tourData.departure_dates && tourData.departure_dates.length > 0) {
+          setSelectedDate(tourData.departure_dates[0].date);
+        }
       })
       .catch((err) => {
         console.error("Error loading tour details:", err);
@@ -196,6 +197,9 @@ export default function TourDetailPage({ params }: PageProps) {
       </div>
     );
   }
+
+  const selectedDep = tour.departure_dates?.find((d) => d.date === selectedDate);
+  const spotsLeft = selectedDep ? selectedDep.available_spots : tour.available_spots;
 
   const difficultyConfig = {
     easy: { label: "Dễ", color: "bg-green-100 text-green-700", desc: "Phù hợp người mới bắt đầu" },
@@ -730,7 +734,7 @@ export default function TourDetailPage({ params }: PageProps) {
                   </div>
                   <div className="flex items-center gap-3 text-gray-600">
                     <UsersIcon className="w-5 h-5 text-[#16a249]" />
-                    <span>Còn {tour.available_spots} chỗ trống</span>
+                    <span>Còn {spotsLeft} chỗ trống</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-600">
                     <ClockIcon className="w-5 h-5 text-[#16a249]" />
@@ -738,44 +742,61 @@ export default function TourDetailPage({ params }: PageProps) {
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Họ và tên *"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Số lượng (1-10)"
-                    min="1"
-                    max={Math.min(tour.available_spots || 10, 10)}
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent"
-                  />
-                  <input
-                    type="tel"
-                    placeholder="Số điện thoại *"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent"
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      Chọn ngày khởi hành *
+                    </label>
+                    {tour.departure_dates && tour.departure_dates.length > 0 ? (
+                      <select
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent text-sm text-gray-800 font-semibold cursor-pointer shadow-sm"
+                      >
+                        {tour.departure_dates.map((dep) => {
+                          const date = new Date(dep.date);
+                          const day = date.getDate();
+                          const month = date.getMonth() + 1;
+                          const year = date.getFullYear();
+                          const weekdays = ["CN", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+                          const weekday = weekdays[date.getDay()];
+                          const formattedDate = `${weekday}, ${day}/${month}/${year} (Còn ${dep.available_spots} chỗ)`;
+                          return (
+                            <option key={dep.date} value={dep.date}>
+                              {formattedDate}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    ) : (
+                      <div className="w-full px-4 py-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-semibold">
+                        Chưa có lịch khởi hành khả dụng
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      Số lượng người tham gia
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Số lượng (1-10)"
+                      min="1"
+                      max={Math.min(spotsLeft || 10, 10)}
+                      value={quantity}
+                      onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#16a249] focus:border-transparent font-semibold shadow-sm"
+                    />
+                  </div>
                 </div>
 
-                <Link href={`/booking/${slug}?slots=${quantity}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(fullName)}`}>
+                <Link href={`/booking/${slug}?date=${selectedDate}&slots=${quantity}`}>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full mt-6 py-4 bg-[#16a249] text-white font-bold rounded-xl hover:bg-[#0d7a3a] transition-colors shadow-lg shadow-[#16a249]/30"
+                    disabled={!selectedDate || spotsLeft < 1}
+                    className="w-full mt-6 py-4 bg-[#16a249] text-white font-bold rounded-xl hover:bg-[#0d7a3a] transition-colors shadow-lg shadow-[#16a249]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     Đặt tour ngay
                   </motion.button>
