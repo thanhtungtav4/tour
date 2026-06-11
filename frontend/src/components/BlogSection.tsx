@@ -96,7 +96,7 @@ export function BlogSection() {
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.onerror = null;
-                        target.src = '/images/logo.png';
+                        target.src = '/images/default-tour.jpg';
                       }}
                     />
                     {/* Category Badge */}

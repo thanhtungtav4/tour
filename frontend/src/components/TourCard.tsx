@@ -43,7 +43,7 @@ export function TourCard({ tour, className }: TourCardProps) {
   const departureLabel = tour.departure_times[0] ?? "";
   const departureKey = (Object.keys(departureConfig).find(key => departureLabel.includes(key)) || "Sáng");
   const departure = departureConfig[departureKey as keyof typeof departureConfig];
-  const imageSrc = getTourImage(tour.thumbnail || tour.gallery?.[0] || "", tour.slug);
+  const imageSrc = getTourImage(tour.thumbnail || tour.gallery?.[0] || "");
 
   return (
     <Link

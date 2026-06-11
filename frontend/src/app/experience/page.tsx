@@ -115,7 +115,7 @@ export default function ExperiencePage() {
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.onerror = null;
-                          target.src = '/images/logo.png';
+                          target.src = '/images/default-tour.jpg';
                         }}
                       />
                       <div className="absolute top-4 left-4">

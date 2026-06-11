@@ -125,6 +125,15 @@ add_action('acf/init', function () {
             'icon_url'   => 'dashicons-money-alt',
             'redirect'   => false,
         ]);
+
+        acf_add_options_page([
+            'page_title' => 'Cài đặt chung Đôi Dép',
+            'menu_title' => 'Cài đặt chung',
+            'menu_slug'  => 'newtrip-general-settings',
+            'capability' => 'manage_options',
+            'icon_url'   => 'dashicons-admin-settings',
+            'redirect'   => false,
+        ]);
     }
 });
 
@@ -218,14 +227,28 @@ function newtrip_get_field($key, $post_id) {
     return get_post_meta($post_id, $key, true);
 }
 
-// Xử lý Thư viện ảnh ACF Pro
+// Xử lý Thư viện ảnh ACF Pro. Thứ tự fallback:
+// 1. Thư viện ảnh ACF (gallery field)
+// 2. Featured Image (ảnh đại diện WP)
+// 3. Ảnh mặc định trong Options Page → "Cài đặt chung"
+// 4. Empty array (FE tự fallback)
 function newtrip_parse_gallery_pro($value, $post_id) {
     if (empty($value)) {
         $thumbnail_id = get_post_thumbnail_id($post_id);
         if ($thumbnail_id) {
-            return [wp_get_attachment_url($thumbnail_id)];
+            $url = wp_get_attachment_url($thumbnail_id);
+            if ($url) return [$url];
         }
-        return ["/images/logo.png"];
+        if (function_exists('get_field')) {
+            $default = get_field('default_tour_image', 'option');
+            if (is_string($default) && $default !== '') {
+                return [$default];
+            }
+            if (is_array($default) && !empty($default['url'])) {
+                return [$default['url']];
+            }
+        }
+        return [];
     }
     if (is_array($value)) {
         $urls = [];
@@ -1272,7 +1295,7 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'amount'       => $total,
                 'content'      => $booking_code,
                 'qr_payload'   => $qr_payload,
-                'qr_url'       => sprintf('https://chart.googleapis.com/chart?chs=350x350&cht=qr&chl=%s', urlencode($qr_payload)),
+                'qr_url'       => sprintf('https://img.vietqr.io/image/%s-%s-compact.png?amount=%d&addInfo=%s&accountName=%s', $bank_config['bank_bin'], $bank_config['account_no'], $total, urlencode($booking_code), urlencode($bank_config['account_name'])),
                 'deeplink'     => sprintf('https://link.vietqr.io/2.0/referral/vietqr?bin=%s&account=%s&amount=%d&addInfo=%s', $bank_config['bank_bin'], $bank_config['account_no'], $total, $booking_code),
             ];
         }
@@ -1532,7 +1555,7 @@ function newtrip_format_wp_post($post) {
         $image = get_post_meta($post_id, 'featured_image_url', true);
     }
     if (empty($image)) {
-        $image = '/images/logo.png';
+        $image = '/images/default-tour.jpg';
     }
 
     $author_name = get_post_meta($post_id, 'author_name', true);

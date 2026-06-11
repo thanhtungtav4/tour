@@ -201,8 +201,7 @@ export default function TourDetailPage({ params }: PageProps) {
   const difficulty = difficultyConfig[tour.difficulty as keyof typeof difficultyConfig] || difficultyConfig.easy;
 
   const galleryImages = getTourGallery(
-    tour.gallery && tour.gallery.length > 0 ? tour.gallery : [],
-    tour.slug
+    tour.gallery && tour.gallery.length > 0 ? tour.gallery : []
   );
 
   // Tour Summary data
@@ -253,7 +252,7 @@ export default function TourDetailPage({ params }: PageProps) {
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.onerror = null;
-                target.src = '/images/logo.png';
+                target.src = '/images/default-tour.jpg';
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -284,7 +283,7 @@ export default function TourDetailPage({ params }: PageProps) {
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
-                  target.src = '/images/logo.png';
+                  target.src = '/images/default-tour.jpg';
                 }}
               />
               {/* Overlay on last visible image if more than 4 */}

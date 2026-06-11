@@ -292,7 +292,7 @@ export default function BookingTourPage({ params }: PageProps) {
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 rounded-xl overflow-hidden bg-emerald-100">
                           <img
-                            src={getTourImage(tour.thumbnail || tour.gallery?.[0] || "", tour.slug)}
+                            src={getTourImage(tour.thumbnail || tour.gallery?.[0] || "")}
                             alt={tour.name}
                             className="w-full h-full object-cover"
                           />

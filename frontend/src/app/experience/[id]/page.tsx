@@ -127,7 +127,7 @@ export default function ExperienceDetailPage({ params }: PageProps) {
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.onerror = null;
-              target.src = '/images/logo.png';
+              target.src = '/images/default-tour.jpg';
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -451,7 +451,7 @@ export default function ExperienceDetailPage({ params }: PageProps) {
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.onerror = null;
-                              target.src = '/images/logo.png';
+                              target.src = '/images/default-tour.jpg';
                             }}
                           />
                           <span className="absolute top-3 left-3 px-2 py-1 bg-emerald-500 text-white text-xs font-semibold rounded-full">
