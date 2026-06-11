@@ -64,39 +64,42 @@ export default function BookingTourPage({ params }: PageProps) {
     };
   }, [slug]);
 
-  // Form state (lazy init: đọc tham số URL trên client để tránh setState sync trong useEffect)
-  const [formData, setFormData] = useState(() => {
-    let initialParticipants = 1;
-    let initialName = "";
-    let initialPhone = "";
-    let initialEmail = "";
-    let initialDate = "";
-    if (typeof window !== "undefined") {
-      const sp = new URLSearchParams(window.location.search);
-      const slots = parseInt(sp.get("slots") || "1", 10);
-      if (slots > 0) initialParticipants = slots;
-      initialName = sp.get("name") || "";
-      initialPhone = sp.get("phone") || "";
-      initialEmail = sp.get("email") || "";
-      initialDate = sp.get("date") || "";
-    }
-    return {
-      departureDate: initialDate,
-      participants: initialParticipants,
-      selectedServices: [] as string[],
-      rentalItems: {} as Record<string, number>,
-      fullName: initialName,
-      phone: initialPhone,
-      email: initialEmail,
-      idNumber: "",
-      birthDate: "",
-      healthStatus: "",
-      pickupPointId: 0,
-      notes: "",
-      fillAllInfo: false,
-      participantsInfo: [] as { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPointId: number }[],
-    };
+  // Form state
+  const [formData, setFormData] = useState({
+    departureDate: "",
+    participants: 1,
+    selectedServices: [] as string[],
+    rentalItems: {} as Record<string, number>,
+    fullName: "",
+    phone: "",
+    email: "",
+    idNumber: "",
+    birthDate: "",
+    healthStatus: "",
+    pickupPointId: 0,
+    notes: "",
+    fillAllInfo: false,
+    participantsInfo: [] as { name: string; phone: string; email: string; birthDate: string; idNumber: string; healthStatus: string; pickupPointId: number }[],
   });
+
+  // Client-side initialization of query parameters to prevent hydration mismatches
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    const slots = parseInt(sp.get("slots") || "1", 10);
+    const name = sp.get("name") || "";
+    const phone = sp.get("phone") || "";
+    const email = sp.get("email") || "";
+    const date = sp.get("date") || "";
+
+    setFormData((prev) => ({
+      ...prev,
+      departureDate: date || prev.departureDate,
+      participants: slots > 0 ? slots : prev.participants,
+      fullName: name || prev.fullName,
+      phone: phone || prev.phone,
+      email: email || prev.email,
+    }));
+  }, []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "transfer">("transfer");
