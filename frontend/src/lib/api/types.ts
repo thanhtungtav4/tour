@@ -287,3 +287,20 @@ export interface BookingStatusUpdate {
   note?: string;
 }
 
+// General Settings
+export interface GeneralSettings {
+  default_tour_image: string;
+  hotline: string;
+  zalo_link: string;
+  contact_email: string;
+  company_address: string;
+  facebook_link: string;
+  instagram_link: string;
+  payment: {
+    bank_name: string;
+    bank_bin: string;
+    account_no: string;
+    account_name: string;
+  } | null;
+}
+

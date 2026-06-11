@@ -1,4 +1,16 @@
-export default function CancelPolicyPage() {
+import { getSettings } from "@/lib/api";
+
+export default async function CancelPolicyPage() {
+  let settings = null;
+  try {
+    settings = await getSettings();
+  } catch (err) {
+    console.error("Failed to load settings in CancelPolicyPage", err);
+  }
+
+  const hotline = settings?.hotline || "096 180 43 59";
+  const email = settings?.contact_email || "doidepadventure@gmail.com";
+
   return (
     <>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Chính sách hủy vé</h1>
@@ -64,7 +76,7 @@ export default function CancelPolicyPage() {
 
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">4. Quy trình hủy tour</h2>
       <ol className="list-decimal pl-6 text-gray-600 space-y-2 mb-4">
-        <li>Gửi yêu cầu hủy qua email <strong>doidepadventure@gmail.com</strong> hoặc gọi <strong>0928 382 087</strong></li>
+        <li>Gửi yêu cầu hủy qua email <strong>{email}</strong> hoặc gọi <strong>{hotline}</strong></li>
         <li>Cung cấp mã đặt tour (booking ID) và lý do hủy</li>
         <li>Nhận xác nhận hủy trong vòng 24 giờ</li>
         <li>Tiền hoàn sẽ được chuyển vào tài khoản đã đăng ký</li>

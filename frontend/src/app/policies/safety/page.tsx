@@ -1,4 +1,15 @@
-export default function SafetyPolicyPage() {
+import { getSettings } from "@/lib/api";
+
+export default async function SafetyPolicyPage() {
+  let settings = null;
+  try {
+    settings = await getSettings();
+  } catch (err) {
+    console.error("Failed to load settings in SafetyPolicyPage", err);
+  }
+
+  const hotline = settings?.hotline || "096 180 43 59";
+
   return (
     <>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Chính sách an toàn</h1>
@@ -45,7 +56,7 @@ export default function SafetyPolicyPage() {
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">6. Xử lý tình huống khẩn cấp</h2>
       <p className="text-gray-600 leading-relaxed mb-4">
         Trong trường hợp khẩn cấp, HDV sẽ kích hoạt quy trình cứu hộ và liên hệ với cơ quan chức năng địa phương. 
-        Đôi Dép Adventure có đường dây nóng 24/7: <strong>0928 382 087</strong> để hỗ trợ khách hàng và người thân.
+        Đôi Dép Adventure có đường dây nóng 24/7: <strong>{hotline}</strong> để hỗ trợ khách hàng và người thân.
       </p>
 
       <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">

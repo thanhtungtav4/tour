@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronRightIcon } from "@/components/icons";
+import { getSettings } from "@/lib/api";
 
 const policies = [
   {
@@ -40,7 +41,18 @@ const policies = [
   },
 ];
 
-export default function PoliciesIndexPage() {
+export default async function PoliciesIndexPage() {
+  let settings = null;
+  try {
+    settings = await getSettings();
+  } catch (err) {
+    console.error("Failed to load settings in PoliciesIndexPage", err);
+  }
+
+  const hotline = settings?.hotline || "096 180 43 59";
+  const hotlineClean = hotline.replace(/\s+/g, "");
+  const email = settings?.contact_email || "doidepadventure@gmail.com";
+
   return (
     <>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Chính sách & Điều khoản</h1>
@@ -74,11 +86,11 @@ export default function PoliciesIndexPage() {
           Nếu bạn có thắc mắc về bất kỳ chính sách nào, đừng ngần ngại liên hệ với chúng tôi.
         </p>
         <div className="flex flex-wrap gap-4 text-sm">
-          <a href="tel:0928382087" className="font-medium text-emerald-700 hover:text-emerald-900">
-            📞 0928 382 087
+          <a href={`tel:${hotlineClean}`} className="font-medium text-emerald-700 hover:text-emerald-900">
+            📞 {hotline}
           </a>
-          <a href="mailto:doidepadventure@gmail.com" className="font-medium text-emerald-700 hover:text-emerald-900">
-            ✉️ doidepadventure@gmail.com
+          <a href={`mailto:${email}`} className="font-medium text-emerald-700 hover:text-emerald-900">
+            ✉️ {email}
           </a>
         </div>
       </div>

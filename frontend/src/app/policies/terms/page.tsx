@@ -1,4 +1,17 @@
-export default function TermsPage() {
+import { getSettings } from "@/lib/api";
+
+export default async function TermsPage() {
+  let settings = null;
+  try {
+    settings = await getSettings();
+  } catch (err) {
+    console.error("Failed to load settings in TermsPage", err);
+  }
+
+  const hotline = settings?.hotline || "096 180 43 59";
+  const email = settings?.contact_email || "doidepadventure@gmail.com";
+  const address = settings?.company_address || "TP. Hồ Chí Minh";
+
   return (
     <>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Điều khoản sử dụng</h1>
@@ -65,12 +78,12 @@ export default function TermsPage() {
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">8. Giải quyết tranh chấp</h2>
       <p className="text-gray-600 leading-relaxed mb-4">
         Mọi tranh chấp sẽ được giải quyết qua thương lượng. Nếu không đạt được thỏa thuận, 
-        tranh chấp sẽ được đưa ra Tòa án nhân dân TP. Hồ Chí Minh để giải quyết.
+        tranh chấp sẽ được đưa ra Tòa án nhân dân {address} để giải quyết.
       </p>
 
       <div className="mt-8 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
         <p className="text-sm text-emerald-800">
-          <strong>Liên hệ:</strong> 0928 382 087 | doidepadventure@gmail.com | TP. Hồ Chí Minh
+          <strong>Liên hệ:</strong> {hotline} | {email} | {address}
         </p>
       </div>
     </>

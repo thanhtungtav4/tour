@@ -1,4 +1,17 @@
-export default function PrivacyPolicyPage() {
+import { getSettings } from "@/lib/api";
+
+export default async function PrivacyPolicyPage() {
+  let settings = null;
+  try {
+    settings = await getSettings();
+  } catch (err) {
+    console.error("Failed to load settings in PrivacyPolicyPage", err);
+  }
+
+  const hotline = settings?.hotline || "096 180 43 59";
+  const email = settings?.contact_email || "doidepadventure@gmail.com";
+  const address = settings?.company_address || "TP. Hồ Chí Minh";
+
   return (
     <>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Chính sách bảo mật</h1>
@@ -58,9 +71,9 @@ export default function PrivacyPolicyPage() {
         Mọi thắc mắc về chính sách bảo mật, vui lòng liên hệ:
       </p>
       <ul className="list-none text-gray-600 space-y-1 mb-4">
-        <li><strong>Email:</strong> doidepadventure@gmail.com</li>
-        <li><strong>Hotline:</strong> 0928 382 087</li>
-        <li><strong>Địa chỉ:</strong> TP. Hồ Chí Minh, Việt Nam</li>
+        <li><strong>Email:</strong> {email}</li>
+        <li><strong>Hotline:</strong> {hotline}</li>
+        <li><strong>Địa chỉ:</strong> {address}</li>
       </ul>
 
       <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-xl">

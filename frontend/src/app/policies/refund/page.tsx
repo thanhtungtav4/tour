@@ -1,4 +1,16 @@
-export default function RefundPolicyPage() {
+import { getSettings } from "@/lib/api";
+
+export default async function RefundPolicyPage() {
+  let settings = null;
+  try {
+    settings = await getSettings();
+  } catch (err) {
+    console.error("Failed to load settings in RefundPolicyPage", err);
+  }
+
+  const hotline = settings?.hotline || "096 180 43 59";
+  const email = settings?.contact_email || "doidepadventure@gmail.com";
+
   return (
     <>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Chính sách hoàn tiền</h1>
@@ -60,7 +72,7 @@ export default function RefundPolicyPage() {
 
       <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
         <p className="text-sm text-amber-800">
-          <strong>Liên hệ:</strong> Nếu có thắc mắc về hoàn tiền, vui lòng gọi <strong>0928 382 087</strong> hoặc email <strong>doidepadventure@gmail.com</strong>
+          <strong>Liên hệ:</strong> Nếu có thắc mắc về hoàn tiền, vui lòng gọi <strong>{hotline}</strong> hoặc email <strong>{email}</strong>
         </p>
       </div>
     </>

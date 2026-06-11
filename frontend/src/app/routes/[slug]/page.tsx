@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getTourBySlug, TourDetail } from "@/lib/api";
+import { useSettings } from "@/hooks/useSettings";
 import { 
   ClockIcon, 
   MapPinIcon, 
@@ -137,6 +138,7 @@ function ImageGalleryModal({
 
 export default function TourDetailPage({ params }: PageProps) {
   const { slug } = use(params);
+  const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState<"lich-trinh" | "chi-tiet" | "bao-gom">("lich-trinh");
   const [activeImage, setActiveImage] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -788,15 +790,15 @@ export default function TourDetailPage({ params }: PageProps) {
                 <h3 className="font-bold mb-2">Cần hỗ trợ?</h3>
                 <p className="text-white/80 text-sm mb-4">Liên hệ trực tiếp với chúng tôi để được tư vấn miễn phí 24/7</p>
                 <div className="flex flex-col gap-2">
-                  <a href="tel:0928382087" className="flex items-center justify-center gap-2 py-3 bg-white text-emerald-800 font-bold rounded-xl hover:bg-emerald-50 transition-colors shadow-sm">
+                  <a href={`tel:${settings?.hotline ? settings.hotline.replace(/\s+/g, "") : "0961804359"}`} className="flex items-center justify-center gap-2 py-3 bg-white text-emerald-800 font-bold rounded-xl hover:bg-emerald-50 transition-colors shadow-sm">
                     <svg className="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    Gọi 0928 382 087
+                    Gọi {settings?.hotline || "096 180 43 59"}
                   </a>
-                  <a href="https://zalo.me/0928382087" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 py-3 bg-[#0068ff] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm">
+                  <a href={settings?.zalo_link || "https://zalo.me/0961804359"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 py-3 bg-[#0068ff] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm">
                     <span className="font-extrabold text-lg">Z</span>
-                    Nhắn Zalo: 0928 382 087
+                    Nhắn Zalo: {settings?.hotline || "096 180 43 59"}
                   </a>
                 </div>
               </motion.div>

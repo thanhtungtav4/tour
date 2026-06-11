@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { MenuIcon, CloseIcon, PhoneIcon } from "@/components/icons";
+import { useSettings } from "@/hooks/useSettings";
 
 const navLinks = [
   { href: "/", label: "Trang chủ" },
@@ -17,6 +18,7 @@ const navLinks = [
 
 export function Header() {
   const pathname = usePathname();
+  const { settings } = useSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollDir, setScrollDir] = useState<"up" | "down">("up");
@@ -95,11 +97,11 @@ export function Header() {
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-3">
               <a
-                href="tel:0928382087"
+                href={`tel:${settings?.hotline ? settings.hotline.replace(/\s+/g, "") : "0961804359"}`}
                 className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-emerald-600 transition-colors"
               >
                 <PhoneIcon className="w-4 h-4" />
-                <span className="font-medium">0928 382 087</span>
+                <span className="font-medium">{settings?.hotline || "096 180 43 59"}</span>
               </a>
               <Link
                 href="/booking"
@@ -209,22 +211,22 @@ export function Header() {
               <div className="mt-6 px-4">
                 <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Liên hệ nhanh</h4>
                 <div className="space-y-3">
-                  <a href="tel:0928382087" className="flex items-center gap-3 text-gray-700 hover:text-emerald-600">
+                  <a href={`tel:${settings?.hotline ? settings.hotline.replace(/\s+/g, "") : "0961804359"}`} className="flex items-center gap-3 text-gray-700 hover:text-emerald-600">
                     <PhoneIcon className="w-5 h-5 text-emerald-600" />
-                    <span className="font-medium">0928 382 087</span>
+                    <span className="font-medium">{settings?.hotline || "096 180 43 59"}</span>
                   </a>
-                  <a href="mailto:doidepadventure@gmail.com" className="flex items-center gap-3 text-gray-700 hover:text-emerald-600">
+                  <a href={`mailto:${settings?.contact_email || "doidepadventure@gmail.com"}`} className="flex items-center gap-3 text-gray-700 hover:text-emerald-600">
                     <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <rect width="20" height="16" x="2" y="4" rx="2" />
                       <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                     </svg>
-                    <span className="text-sm">doidepadventure@gmail.com</span>
+                    <span className="text-sm">{settings?.contact_email || "doidepadventure@gmail.com"}</span>
                   </a>
-                  <a href="https://zalo.me/0928382087" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-700 hover:text-emerald-600">
+                  <a href={settings?.zalo_link || "https://zalo.me/0961804359"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-700 hover:text-emerald-600">
                     <svg className="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
                       <circle cx="12" cy="12" r="10"/>
                     </svg>
-                    <span>Zalo: 0928 382 087</span>
+                    <span>Zalo: {settings?.hotline || "096 180 43 59"}</span>
                   </a>
                 </div>
               </div>

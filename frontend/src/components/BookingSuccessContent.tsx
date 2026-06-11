@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CheckIcon, CalendarIcon, UsersIcon, PhoneIcon, ArrowRightIcon } from "@/components/icons";
 import { getBooking, BookingDetail } from "@/lib/api";
+import { useSettings } from "@/hooks/useSettings";
 
 interface BookingSuccessContentProps {
   bookingId: string;
@@ -60,6 +61,7 @@ export function BookingSuccessContent({
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const { settings } = useSettings();
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -374,7 +376,7 @@ export function BookingSuccessContent({
         className="grid sm:grid-cols-2 gap-4 mb-8"
       >
         <a
-          href="https://zalo.me/0909123456"
+          href={settings?.zalo_link || "https://zalo.me/0961804359"}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-3 p-5 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-emerald-200 transition-all group"
@@ -384,13 +386,13 @@ export function BookingSuccessContent({
           </div>
           <div className="text-left">
             <p className="font-semibold text-gray-900">Liên hệ Zalo</p>
-            <p className="text-sm text-gray-500">0909 123 456</p>
+            <p className="text-sm text-gray-500">{settings?.hotline || "096 180 43 59"}</p>
           </div>
           <ArrowRightIcon className="w-5 h-5 text-gray-400 group-hover:text-emerald-500 transition-colors" />
         </a>
 
         <a
-          href="tel:0909123456"
+          href={`tel:${settings?.hotline ? settings.hotline.replace(/\s+/g, "") : "0961804359"}`}
           className="flex items-center justify-center gap-3 p-5 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-emerald-200 transition-all group"
         >
           <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
@@ -398,7 +400,7 @@ export function BookingSuccessContent({
           </div>
           <div className="text-left">
             <p className="font-semibold text-gray-900">Gọi trực tiếp</p>
-            <p className="text-sm text-gray-500">0909 123 456</p>
+            <p className="text-sm text-gray-500">{settings?.hotline || "096 180 43 59"}</p>
           </div>
           <ArrowRightIcon className="w-5 h-5 text-gray-400 group-hover:text-emerald-500 transition-colors" />
         </a>

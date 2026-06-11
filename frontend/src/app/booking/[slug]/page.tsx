@@ -21,6 +21,7 @@ import {
   SparklesIcon,
 } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/hooks/useSettings";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -34,6 +35,7 @@ const STEPS = [
 ];
 
 export default function BookingTourPage({ params }: PageProps) {
+  const { settings } = useSettings();
   const { slug } = use(params);
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -1205,11 +1207,11 @@ export default function BookingTourPage({ params }: PageProps) {
                   <h4 className="font-bold mb-2">Cần hỗ trợ?</h4>
                   <p className="text-emerald-100 text-sm mb-4">Liên hệ trực tiếp với chúng tôi</p>
                   <a
-                    href="tel:0928382087"
+                    href={`tel:${settings?.hotline ? settings.hotline.replace(/\s+/g, "") : "0961804359"}`}
                     className="flex items-center gap-2 text-white font-semibold hover:text-emerald-100 transition-colors"
                   >
                     <PhoneIcon className="w-5 h-5" />
-                    0928 382 087
+                    {settings?.hotline || "096 180 43 59"}
                   </a>
                 </div>
               </div>

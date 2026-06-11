@@ -7,12 +7,14 @@ import { TourCard } from "@/components/TourCard";
 import { getTours, TourListItem } from "@/lib/api";
 import { SearchIcon, StarIcon, SlidersIcon, XIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/hooks/useSettings";
 
 type SortOption = "default" | "price-asc" | "price-desc" | "rating-desc";
 type QuickFilter = "all" | "popular" | "weekend" | "best-price" | "top-rated";
 type PriceRange = "all" | "under-300" | "300-500" | "500-800" | "over-800";
 
 export default function BookingPage() {
+  const { settings } = useSettings();
   const [tours, setTours] = useState<TourListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -428,7 +430,7 @@ export default function BookingPage() {
             <h2 className="text-2xl lg:text-3xl font-bold mb-4">Cần hỗ trợ đặt tour?</h2>
             <p className="text-emerald-100 mb-6">Liên hệ trực tiếp với chúng tôi qua Zalo để được tư vấn nhanh nhất</p>
             <a
-              href="https://zalo.me/0928382087"
+              href={settings?.zalo_link || "https://zalo.me/0961804359"}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-8 py-4 bg-white text-emerald-600 font-bold rounded-xl hover:bg-emerald-50 transition-colors shadow-lg"

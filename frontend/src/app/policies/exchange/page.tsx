@@ -1,4 +1,15 @@
-export default function ExchangePolicyPage() {
+import { getSettings } from "@/lib/api";
+
+export default async function ExchangePolicyPage() {
+  let settings = null;
+  try {
+    settings = await getSettings();
+  } catch (err) {
+    console.error("Failed to load settings in ExchangePolicyPage", err);
+  }
+
+  const hotline = settings?.hotline || "096 180 43 59";
+
   return (
     <>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Chính sách đổi vé, bảo lưu</h1>
@@ -49,7 +60,7 @@ export default function ExchangePolicyPage() {
 
       <div className="mt-8 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
         <p className="text-sm text-emerald-800">
-          <strong>Hotline hỗ trợ:</strong> 0928 382 087 (T2-CN, 7:00 - 21:00)
+          <strong>Hotline hỗ trợ:</strong> {hotline} (T2-CN, 7:00 - 21:00)
         </p>
       </div>
     </>

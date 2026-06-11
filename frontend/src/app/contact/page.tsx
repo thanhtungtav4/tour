@@ -1,8 +1,20 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PhoneIcon, MailIcon, MapPinIcon, ClockIcon } from "@/components/icons";
+import { getSettings } from "@/lib/api";
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  let settings = null;
+  try {
+    settings = await getSettings();
+  } catch (err) {
+    console.error("Error fetching general settings for contact page:", err);
+  }
+
+  const hotline = settings?.hotline || "096 180 43 59";
+  const email = settings?.contact_email || "doidepadventure@gmail.com";
+  const address = settings?.company_address || "TP. Hồ Chí Minh";
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -31,8 +43,8 @@ export default function ContactPage() {
                   <PhoneIcon className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-bold text-[#0e1425] mb-2">Điện thoại</h3>
-                <a href="tel:0928382087" className="text-[#16a249] font-semibold hover:underline">
-                  0928 382 087
+                <a href={`tel:${hotline.replace(/\s+/g, "")}`} className="text-[#16a249] font-semibold hover:underline">
+                  {hotline}
                 </a>
                 <p className="text-sm text-[#6b7280] mt-1">Hỗ trợ 24/7</p>
               </div>
@@ -42,8 +54,8 @@ export default function ContactPage() {
                   <MailIcon className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-bold text-[#0e1425] mb-2">Email</h3>
-                <a href="mailto:doidepadventure@gmail.com" className="text-[#16a249] font-semibold hover:underline">
-                  doidepadventure@gmail.com
+                <a href={`mailto:${email}`} className="text-[#16a249] font-semibold hover:underline">
+                  {email}
                 </a>
                 <p className="text-sm text-[#6b7280] mt-1">Phản hồi trong 24h</p>
               </div>
@@ -53,7 +65,7 @@ export default function ContactPage() {
                   <MapPinIcon className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-bold text-[#0e1425] mb-2">Địa chỉ</h3>
-                <p className="text-[#6b7280]">TP. Hồ Chí Minh</p>
+                <p className="text-[#6b7280]">{address}</p>
                 <p className="text-sm text-[#6b7280] mt-1">Việt Nam</p>
               </div>
 

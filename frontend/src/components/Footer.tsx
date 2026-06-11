@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getTours, TourListItem } from "@/lib/api";
 import { getTourImage } from "@/lib/utils";
+import { useSettings } from "@/hooks/useSettings";
 
 const policies = [
   { href: "/booking/lookup", label: "Tra cứu đơn đặt tour" },
@@ -16,6 +17,7 @@ const policies = [
 ];
 
 export function Footer() {
+  const { settings } = useSettings();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [popularTours, setPopularTours] = useState<TourListItem[]>([]);
@@ -70,16 +72,16 @@ export function Footer() {
 
             {/* Social Links */}
             <div className="flex gap-3 mb-6">
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-blue-600 hover:text-white text-gray-600 transition-colors" aria-label="Facebook">
+              <a href={settings?.facebook_link || "#"} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-blue-600 hover:text-white text-gray-600 transition-colors" aria-label="Facebook">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v2a5 5 0 0 0 5 5h3v4h-3v8h-3v-8h-2a5 5 0 0 1-5-5v-2a5 5 0 0 1 5-5z"/></svg>
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-red-600 hover:text-white text-gray-600 transition-colors" aria-label="YouTube">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.42a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.42 8.6.42 8.6.42s6.88 0 8.6-.42a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor"/></svg>
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-500 hover:text-white text-gray-600 transition-colors" aria-label="Instagram">
+              <a href={settings?.instagram_link || "#"} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-500 hover:text-white text-gray-600 transition-colors" aria-label="Instagram">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
               </a>
-              <a href="https://zalo.me/0928382087" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-blue-500 hover:text-white text-gray-600 transition-colors" aria-label="Zalo">
+              <a href={settings?.zalo_link || "https://zalo.me/0961804359"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-blue-500 hover:text-white text-gray-600 transition-colors" aria-label="Zalo">
                 <span className="text-sm font-bold">Z</span>
               </a>
             </div>
@@ -156,16 +158,16 @@ export function Footer() {
               <li className="flex items-start gap-2">
                 <PhoneIcon className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <a href="tel:0928382087" className="text-sm font-medium text-gray-900 hover:text-emerald-700 transition-colors">
-                    0928 382 087
+                  <a href={`tel:${settings?.hotline ? settings.hotline.replace(/\s+/g, "") : "0961804359"}`} className="text-sm font-medium text-gray-900 hover:text-emerald-700 transition-colors">
+                    {settings?.hotline || "096 180 43 59"}
                   </a>
                   <p className="text-xs text-gray-500">T2-CN: 7:00 - 21:00</p>
                 </div>
               </li>
               <li className="flex items-start gap-2">
                 <MailIcon className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                <a href="mailto:doidepadventure@gmail.com" className="text-sm text-gray-600 hover:text-emerald-700 transition-colors break-all">
-                  doidepadventure@gmail.com
+                <a href={`mailto:${settings?.contact_email || "doidepadventure@gmail.com"}`} className="text-sm text-gray-600 hover:text-emerald-700 transition-colors break-all">
+                  {settings?.contact_email || "doidepadventure@gmail.com"}
                 </a>
               </li>
               <li className="flex items-start gap-2">
@@ -173,7 +175,7 @@ export function Footer() {
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
-                <span className="text-sm text-gray-600">TP. Hồ Chí Minh, Việt Nam</span>
+                <span className="text-sm text-gray-600">{settings?.company_address || "TP. Hồ Chí Minh, Việt Nam"}</span>
               </li>
             </ul>
 
