@@ -453,6 +453,29 @@ function newtrip_generate_vietqr_payload($bank_bin, $account_no, $amount, $descr
     return $emvco . $crc;
 }
 
+// Hỗ trợ trích xuất URL ảnh an toàn từ các trường dữ liệu ảnh Yoast SEO (chuỗi hoặc mảng)
+function newtrip_get_yoast_image($image_field) {
+    if (empty($image_field)) {
+        return '';
+    }
+    if (is_array($image_field)) {
+        if (isset($image_field[0]['url'])) {
+            return $image_field[0]['url'];
+        }
+        $first = reset($image_field);
+        if (is_array($first) && isset($first['url'])) {
+            return $first['url'];
+        }
+        if (is_string($first)) {
+            return $first;
+        }
+    }
+    if (is_string($image_field)) {
+        return $image_field;
+    }
+    return '';
+}
+
 // Lấy gói Yoast SEO meta cho 1 post. Trả null nếu Yoast chưa bật.
 // Yoast expose method WPSEO_Frontend / API: `the_seo_framework` không có; dùng class `WPSEO_Meta` + getter.
 function newtrip_get_yoast_seo($post_id) {
@@ -471,10 +494,10 @@ function newtrip_get_yoast_seo($post_id) {
                 'canonical'       => (string) ($meta->canonical ?? ''),
                 'og_title'        => (string) ($meta->open_graph_title ?? ''),
                 'og_description'  => (string) ($meta->open_graph_description ?? ''),
-                'og_image'        => isset($meta->open_graph_images[0]['url']) ? $meta->open_graph_images[0]['url'] : '',
+                'og_image'        => newtrip_get_yoast_image($meta->open_graph_image ?? $meta->open_graph_images ?? ''),
                 'og_type'         => (string) ($meta->open_graph_type ?? 'article'),
                 'twitter_title'   => (string) ($meta->twitter_title ?? ''),
-                'twitter_image'   => (string) ($meta->twitter_image ?? ''),
+                'twitter_image'   => newtrip_get_yoast_image($meta->twitter_image ?? $meta->twitter_images ?? ''),
                 'robots'          => is_array($meta->robots ?? null) ? implode(',', $meta->robots) : (string) ($meta->robots ?? 'index,follow'),
                 'schema'          => method_exists($meta, 'schema') ? $meta->schema : null,
             ];
