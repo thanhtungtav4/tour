@@ -28,6 +28,25 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
   }
 }
 
-export default function RouteSlugLayout({ children }: LayoutProps) {
-  return children;
+export default async function RouteSlugLayout({ children, params }: LayoutProps) {
+  const { slug } = await params;
+  let schemaData: any = null;
+  try {
+    const tour = await getTourBySlug(slug);
+    schemaData = tour.seo?.schema;
+  } catch (err) {
+    console.error("Failed to load schema for tour in layout:", err);
+  }
+
+  return (
+    <>
+      {schemaData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+        />
+      )}
+      {children}
+    </>
+  );
 }

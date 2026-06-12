@@ -51,6 +51,12 @@ export default async function ContactPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {contactData?.seo?.schema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(contactData.seo.schema) }}
+        />
+      )}
       <Header />
       <main className="flex-grow pt-[81px]">
         {/* Hero */}

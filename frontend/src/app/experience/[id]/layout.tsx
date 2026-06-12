@@ -29,6 +29,25 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
   }
 }
 
-export default function ExperienceLayout({ children }: LayoutProps) {
-  return children;
+export default async function ExperienceLayout({ children, params }: LayoutProps) {
+  const { id } = await params;
+  let schemaData: any = null;
+  try {
+    const post = await getBlogPost(id);
+    schemaData = post.seo?.schema;
+  } catch (err) {
+    console.error("Failed to load schema for post in layout:", err);
+  }
+
+  return (
+    <>
+      {schemaData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+        />
+      )}
+      {children}
+    </>
+  );
 }

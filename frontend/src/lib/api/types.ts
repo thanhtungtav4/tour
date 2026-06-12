@@ -49,7 +49,7 @@ export interface SeoMeta {
   twitter_title: string;
   twitter_image: string;
   robots: string;
-  schema?: unknown;
+  schema?: any;
 }
 
 export interface TourListItem {

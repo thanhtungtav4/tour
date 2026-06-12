@@ -433,6 +433,12 @@ export default async function DynamicPage({ params }: PageProps) {
   if (isPolicyPage) {
     return (
       <div className="min-h-screen flex flex-col">
+        {pageData?.seo?.schema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(pageData.seo.schema) }}
+          />
+        )}
         <Header />
         <main className="flex-grow pt-[81px]">
           {/* Hero Banner */}
@@ -495,6 +501,12 @@ export default async function DynamicPage({ params }: PageProps) {
   // General Dynamic Page (Full width)
   return (
     <div className="min-h-screen flex flex-col">
+      {pageData?.seo?.schema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(pageData.seo.schema) }}
+        />
+      )}
       <Header />
       <main className="flex-grow pt-[81px]">
         {/* Banner */}

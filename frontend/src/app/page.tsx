@@ -35,6 +35,12 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {homepageData?.seo?.schema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageData.seo.schema) }}
+        />
+      )}
       <Header />
       <main className="flex-grow pt-[81px]">
         {/* Hero */}
