@@ -3810,56 +3810,111 @@ function newtrip_send_birthday_wishes()
         
         $subject = '[Đôi Dép Adventure] Chúc mừng sinh nhật, ' . $full_name . '! 🎂';
         
-        $content_html = '
-              <h1 style="margin:0 0 12px; font-size:22px; line-height:1.35; color:#111827; text-align:center;">
-                Chúc mừng sinh nhật, ' . esc_html($full_name) . '! 🎂
-              </h1>
+        $html_body = '
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chúc mừng sinh nhật</title>
+</head>
+<body style="margin:0; padding:0; background:#fff7ed; font-family:Arial, Helvetica, sans-serif; color:#1f2937;">
+  <!-- Preheader -->
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
+    Đôi Dép Adventure gửi lời chúc sinh nhật đặc biệt đến ' . esc_html($full_name) . '.
+  </div>
 
-              <p style="margin:0 0 18px; font-size:15px; line-height:1.7; color:#4b5563; text-align:center;">
-                Hôm nay là một ngày đặc biệt! Đội ngũ <strong>Đôi Dép Adventure</strong> xin gửi tới bạn những lời chúc mừng ấm áp nhất. Chúc bạn một tuổi mới tràn đầy sức khỏe, hạnh phúc, may mắn và gặt hái được nhiều thành công trong cuộc sống.
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff7ed; padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px; background:#ffffff; border-radius:20px; overflow:hidden; box-shadow:0 10px 32px rgba(15, 23, 42, 0.10);">
+          <!-- Header -->
+          <tr>
+            <td style="background:#f97316; padding:34px 28px; text-align:center;">
+              <div style="font-size:42px; line-height:1; margin-bottom:14px;">
+                🎂
+              </div>
+              <div style="font-size:24px; font-weight:700; color:#ffffff; margin-bottom:8px;">
+                Chúc mừng sinh nhật!
+              </div>
+              <div style="font-size:15px; color:#ffedd5;">
+                Một ngày thật vui vẻ và nhiều kỷ niệm đẹp
+              </div>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:34px 28px 16px;">
+              <h1 style="margin:0 0 14px; font-size:22px; line-height:1.4; color:#111827;">
+                Chào ' . esc_html($full_name) . ',
+              </h1>
+              <p style="margin:0 0 18px; font-size:15px; line-height:1.8; color:#4b5563;">
+                Nhân dịp sinh nhật của bạn, <strong>Đôi Dép Adventure</strong> xin gửi đến bạn lời chúc sức khỏe, niềm vui và thật nhiều trải nghiệm đáng nhớ trong tuổi mới.
+              </p>
+              <p style="margin:0 0 24px; font-size:15px; line-height:1.8; color:#4b5563;">
+                Cảm ơn bạn đã đồng hành và tin tưởng chúng tôi trong thời gian qua. Hy vọng sắp tới, Đôi Dép Adventure sẽ tiếp tục được cùng bạn tạo nên những hành trình thật ý nghĩa.
               </p>
 
-              <!-- Birthday Gift Banner -->
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0; background:#fffbeb; border:1px solid #fde68a; border-radius:14px;">
+              <!-- Gift Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0; background:#fff7ed; border:1px solid #fed7aa; border-radius:16px;">
                 <tr>
-                  <td style="padding:24px 20px; text-align:center;">
-                    <div style="font-size:40px; margin-bottom:10px;">🎁</div>
-                    <h3 style="margin:0 0 8px 0; font-size:16px; font-weight:700; color:#92400e;">QUÀ TẶNG SINH NHẬT DÀNH CHO BẠN</h3>
-                    <p style="margin:0 0 15px 0; font-size:13.5px; color:#92400e; line-height:1.5;">
-                      Để nhân đôi niềm vui trong ngày sinh nhật, Đôi Dép Adventure gửi tặng bạn mã giảm giá <strong>10%</strong> cho lần đặt tour tiếp theo của bạn và gia đình:
-                    </p>
-                    <div style="display:inline-block; background:#f59e0b; color:#ffffff; padding:10px 20px; font-size:18px; font-weight:800; border-radius:6px; letter-spacing:1px; margin-bottom:10px;">
+                  <td style="padding:24px 22px; text-align:center;">
+                    <div style="font-size:32px; margin-bottom:10px;">
+                      🎁
+                    </div>
+                    <div style="font-size:17px; font-weight:700; color:#9a3412; margin-bottom:8px;">
+                      Món quà sinh nhật dành riêng cho bạn
+                    </div>
+                    <div style="font-size:15px; line-height:1.7; color:#7c2d12; margin-bottom:16px;">
+                      Đôi Dép Adventure gửi tặng bạn mã giảm giá <strong>10%</strong> cho lần đặt tour tiếp theo của bạn và gia đình:
+                    </div>
+                    <div style="display:inline-block; padding:10px 18px; background:#ffffff; border:1px dashed #fb923c; border-radius:12px; font-size:20px; font-weight:700; letter-spacing:1px; color:#ea580c;">
                       DOIDEPBIRTHDAY
                     </div>
-                    <p style="margin:0; font-size:11px; color:#b45309;">
-                      *Áp dụng cho mọi hành trình trekking & camping khởi hành trong năm 2026.
-                    </p>
+                    <div style="font-size:12px; color:#9a3412; margin-top:12px;">
+                      Hiệu lực đến: 31/12/2026
+                    </div>
                   </td>
                 </tr>
               </table>
 
-              <!-- CTA Button -->
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 20px;">
+              <!-- CTA -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 18px;">
                 <tr>
-                  <td style="text-align:center;">
+                  <td align="center">
                     <a href="https://doi-dep.vercel.app/"
-                       style="display:inline-block; background:#15803d; color:#ffffff; text-decoration:none; font-size:15px; font-weight:700; padding:14px 24px; border-radius:999px;">
-                      Khám phá các cung đường ngay
+                       style="display:inline-block; background:#f97316; color:#ffffff; text-decoration:none; font-size:15px; font-weight:700; padding:14px 28px; border-radius:999px;">
+                      Xem ưu đãi sinh nhật
                     </a>
                   </td>
                 </tr>
               </table>
 
-              <p style="font-size:14px; color:#64748b; line-height:1.6; text-align:center; margin-bottom:0;">
-                Cảm ơn bạn đã luôn tin tưởng và đồng hành cùng Đôi Dép Adventure trên những cung đường khám phá thiên nhiên kỳ thú!
-              </p>';
-        
-        $html_body = newtrip_get_email_html_wrapper(
-            'Chúc Mừng Sinh Nhật!',
-            $content_html,
-            'Happy Birthday!',
-            'Chúc mừng sinh nhật, ' . $full_name . '! Nhận quà tặng đặc biệt từ Đôi Dép Adventure.'
-        );
+              <p style="margin:20px 0 0; font-size:13px; line-height:1.7; color:#6b7280; text-align:center;">
+                Nếu bạn cần hỗ trợ, vui lòng liên hệ 096 180 43 59 hoặc phản hồi email này.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 28px; background:#f9fafb; border-top:1px solid #e5e7eb; text-align:center;">
+              <div style="font-size:14px; font-weight:700; color:#111827; margin-bottom:6px;">
+                Đôi Dép Adventure
+              </div>
+              <div style="font-size:12px; line-height:1.6; color:#6b7280;">
+                Email này được gửi tự động nhân dịp sinh nhật của bạn.<br>
+                Chúc bạn có một ngày thật nhiều niềm vui.
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>';
         
         $headers = [
             'Content-Type: text/html; charset=UTF-8',
