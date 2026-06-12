@@ -118,6 +118,22 @@ function newtrip_register_post_types() {
         'supports' => ['title', 'editor', 'thumbnail', 'custom-fields'],
         'menu_icon' => 'dashicons-plus-alt',
     ]);
+
+    // 1.6 CPT Customer (Khách hàng - Remarketing)
+    register_post_type('customer', [
+        'labels' => [
+            'name' => __('Khách Hàng', 'newtrip-theme'),
+            'singular_name' => __('Khách Hàng', 'newtrip-theme'),
+            'add_new_item' => __('Thêm Khách hàng mới', 'newtrip-theme'),
+            'edit_item' => __('Chỉnh sửa Khách hàng', 'newtrip-theme'),
+            'all_items' => __('Tất cả Khách hàng', 'newtrip-theme'),
+        ],
+        'public' => false,
+        'show_ui' => true,
+        'show_in_rest' => true,
+        'supports' => ['title', 'custom-fields'],
+        'menu_icon' => 'dashicons-admin-users',
+    ]);
 }
 add_action('init', 'newtrip_register_post_types');
 
@@ -2483,6 +2499,9 @@ function newtrip_calculate_booking_totals_on_save($post_id) {
         $wpdb->update($wpdb->posts, ['post_title' => $new_title], ['ID' => $post_id]);
         clean_post_cache($post_id);
     }
+
+    // Tự động đồng bộ thông tin khách hàng sang bảng Khách hàng (customer) cho mục đích remarketing
+    newtrip_sync_booking_to_customer($post_id);
     
     // Đăng ký lại hook sau khi hoàn tất cập nhật
     add_action('acf/save_post', 'newtrip_calculate_booking_totals_on_save', 20);
@@ -3216,6 +3235,210 @@ function newtrip_api_toggle_checkin(WP_REST_Request $request) {
             'value' => $value ? true : false
         ]
     ], 200);
+}
+
+// Tự động đồng bộ khách hàng và hành khách sang CPT customer để quản lý dữ liệu và remarketing
+function newtrip_sync_booking_to_customer($booking_id) {
+    // Chỉ đồng bộ khi đơn đặt tour Đã xác nhận/Đã thanh toán (confirmed) hoặc Đã hoàn thành (completed) hoặc trạng thái thanh toán là paid
+    $booking_status = newtrip_get_field('status', $booking_id) ?: 'pending';
+    $payment_status = get_post_meta($booking_id, 'payment_status', true) ?: 'unpaid';
+    
+    if ($booking_status !== 'confirmed' && $booking_status !== 'completed' && $payment_status !== 'paid') {
+        return; // Chưa đủ điều kiện đồng bộ
+    }
+    
+    $people = [];
+    
+    // 1. Trích xuất thông tin người đại diện (người đặt tour)
+    $rep_name = newtrip_get_field('full_name', $booking_id) ?: '';
+    $rep_phone = newtrip_get_field('phone', $booking_id) ?: '';
+    $rep_email = newtrip_get_field('email', $booking_id) ?: '';
+    $rep_birth_date = newtrip_get_field('birth_date', $booking_id) ?: (newtrip_get_field('birth_year', $booking_id) ?: '');
+    
+    if (!empty($rep_phone) && !empty($rep_name)) {
+        $people[] = [
+            'full_name' => $rep_name,
+            'phone' => $rep_phone,
+            'email' => $rep_email,
+            'birth_date' => $rep_birth_date,
+            'is_representative' => true
+        ];
+    }
+    
+    // 2. Trích xuất thông tin hành khách đi cùng
+    $passengers = newtrip_get_field('passengers', $booking_id);
+    if (is_array($passengers)) {
+        foreach ($passengers as $p) {
+            $p_name = $p['full_name'] ?? '';
+            $p_phone = $p['phone'] ?? '';
+            $p_email = $p['email'] ?? '';
+            $p_birth_date = $p['birth_date'] ?? ($p['birth_year'] ?? '');
+            
+            if (!empty($p_phone) && !empty($p_name)) {
+                $people[] = [
+                    'full_name' => $p_name,
+                    'phone' => $p_phone,
+                    'email' => $p_email,
+                    'birth_date' => $p_birth_date,
+                    'is_representative' => false
+                ];
+            }
+        }
+    }
+    
+    if (empty($people)) {
+        return;
+    }
+    
+    // Thu thập thông tin tour của Booking
+    $booking_code = get_post_meta($booking_id, 'booking_code', true) ?: '';
+    $tour_id_raw = newtrip_get_field('tour_id', $booking_id);
+    $tour_id = 0;
+    if (is_object($tour_id_raw)) {
+        $tour_id = $tour_id_raw->ID;
+    } elseif (is_array($tour_id_raw)) {
+        $tour_id = $tour_id_raw['ID'] ?? 0;
+    } else {
+        $tour_id = intval($tour_id_raw);
+    }
+    if (empty($tour_id)) {
+        $tour_id = intval(get_post_meta($booking_id, 'tour_id', true));
+    }
+    
+    $tour_post = get_post($tour_id);
+    $tour_name = $tour_post ? $tour_post->post_title : 'Chuyến đi';
+    $departure_date = newtrip_get_field('departure_date', $booking_id) ?: '';
+    
+    foreach ($people as $person) {
+        $phone = sanitize_text_field($person['phone']);
+        $full_name = sanitize_text_field($person['full_name']);
+        $email = sanitize_email($person['email']);
+        $birth_date = sanitize_text_field($person['birth_date']);
+        
+        // Truy vấn xem số điện thoại này đã tồn tại trong danh sách Khách hàng chưa
+        $customer_query = new WP_Query([
+            'post_type' => 'customer',
+            'meta_query' => [
+                [
+                    'key' => 'phone',
+                    'value' => $phone,
+                    'compare' => '='
+                ]
+            ],
+            'posts_per_page' => 1,
+            'post_status' => 'any'
+        ]);
+        
+        $customer_id = 0;
+        if ($customer_query->have_posts()) {
+            $customer_id = $customer_query->posts[0]->ID;
+        } else {
+            // Chưa có -> Tạo khách hàng mới
+            $customer_id = wp_insert_post([
+                'post_type' => 'customer',
+                'post_title' => sprintf('%s - %s', $full_name, $phone),
+                'post_status' => 'publish'
+            ]);
+            
+            update_post_meta($customer_id, 'phone', $phone);
+            update_post_meta($customer_id, 'full_name', $full_name);
+        }
+        
+        if (!$customer_id) continue;
+        
+        // Cập nhật thông tin profile nếu trống hoặc có cập nhật mới
+        if (!empty($email)) {
+            update_post_meta($customer_id, 'email', $email);
+        }
+        if (!empty($birth_date)) {
+            update_post_meta($customer_id, 'birth_date', $birth_date);
+        }
+        
+        // Xử lý Lịch sử mua hàng (bookings_history)
+        $history_raw = get_post_meta($customer_id, 'bookings_history', true);
+        $history = [];
+        if (!empty($history_raw)) {
+            $history = is_array($history_raw) ? $history_raw : json_decode($history_raw, true);
+        }
+        if (!is_array($history)) $history = [];
+        
+        // Kiểm tra xem đơn hàng này đã được đồng bộ trong lịch sử của họ chưa
+        $exists_in_history = false;
+        foreach ($history as $h) {
+            if (($h['booking_code'] ?? '') === $booking_code || ($h['booking_id'] ?? 0) == $booking_id) {
+                $exists_in_history = true;
+                break;
+            }
+        }
+        
+        if (!$exists_in_history) {
+            // Thêm booking này vào lịch sử
+            $history[] = [
+                'booking_id' => $booking_id,
+                'booking_code' => $booking_code,
+                'tour_id' => $tour_id,
+                'tour_name' => $tour_name,
+                'departure_date' => $departure_date,
+                'booking_date' => get_the_date('Y-m-d', $booking_id),
+                'status' => $booking_status,
+                'payment_status' => $payment_status,
+                'is_representative' => $person['is_representative']
+            ];
+            
+            // Tính toán lại Tổng chi tiêu
+            $total_spent = floatval(get_post_meta($customer_id, 'total_spent', true) ?: 0);
+            if ($person['is_representative']) {
+                // Nếu là người đặt tour thì cộng toàn bộ tiền đơn hàng vào chi tiêu
+                $total_spent += floatval(newtrip_get_field('total_amount', $booking_id));
+            }
+            
+            update_post_meta($customer_id, 'total_spent', $total_spent);
+            update_post_meta($customer_id, 'bookings_history', $history);
+            update_post_meta($customer_id, 'total_bookings', count($history));
+            update_post_meta($customer_id, 'last_booking_date', date('Y-m-d H:i:s'));
+        }
+    }
+}
+
+// Đăng ký các cột hiển thị trong Admin Table cho Customer CPT
+add_filter('manage_customer_posts_columns', 'newtrip_customer_table_columns');
+function newtrip_customer_table_columns($columns) {
+    return [
+        'cb' => $columns['cb'],
+        'title' => __('Họ tên', 'newtrip-theme'),
+        'phone' => __('Số điện thoại', 'newtrip-theme'),
+        'email' => __('Email', 'newtrip-theme'),
+        'birth_date' => __('Ngày sinh', 'newtrip-theme'),
+        'total_bookings' => __('Số chuyến đi', 'newtrip-theme'),
+        'total_spent' => __('Tổng chi tiêu', 'newtrip-theme'),
+        'last_booking_date' => __('Ngày đặt gần nhất', 'newtrip-theme'),
+    ];
+}
+
+add_action('manage_customer_posts_custom_column', 'newtrip_customer_table_column_content', 10, 2);
+function newtrip_customer_table_column_content($column, $post_id) {
+    switch ($column) {
+        case 'phone':
+            echo esc_html(get_post_meta($post_id, 'phone', true) ?: '—');
+            break;
+        case 'email':
+            echo esc_html(get_post_meta($post_id, 'email', true) ?: '—');
+            break;
+        case 'birth_date':
+            echo esc_html(get_post_meta($post_id, 'birth_date', true) ?: '—');
+            break;
+        case 'total_bookings':
+            echo esc_html(get_post_meta($post_id, 'total_bookings', true) ?: '0');
+            break;
+        case 'total_spent':
+            $spent = floatval(get_post_meta($post_id, 'total_spent', true) ?: 0);
+            echo esc_html(number_format($spent) . ' đ');
+            break;
+        case 'last_booking_date':
+            $date = get_post_meta($post_id, 'last_booking_date', true);
+            echo esc_html($date ? date('d/m/Y H:i', strtotime($date)) : '—');
+            break;
+    }
 }
 
 
