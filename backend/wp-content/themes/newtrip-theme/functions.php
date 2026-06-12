@@ -4291,6 +4291,7 @@ function newtrip_render_customers_admin_page() {
     
     // Tham số tìm kiếm / sắp xếp / phân trang
     $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+    $birth_month = isset($_GET['birth_month']) ? intval($_GET['birth_month']) : 0;
     $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
     $per_page = 20;
     $offset = ($paged - 1) * $per_page;
@@ -4309,12 +4310,17 @@ function newtrip_render_customers_admin_page() {
     $where = "1=1";
     $params = [];
     if (!empty($search)) {
-        $where .= " AND (full_name LIKE %s OR phone LIKE %s OR email LIKE %s OR id_number LIKE %s)";
+        $where .= " AND (full_name LIKE %s OR phone LIKE %s OR email LIKE %s OR id_number LIKE %s OR bookings_history LIKE %s)";
         $like = '%' . $wpdb->esc_like($search) . '%';
         $params[] = $like;
         $params[] = $like;
         $params[] = $like;
         $params[] = $like;
+        $params[] = $like;
+    }
+    if ($birth_month > 0 && $birth_month <= 12) {
+        $where .= " AND MONTH(birth_date) = %d";
+        $params[] = $birth_month;
     }
     
     if (!empty($params)) {
@@ -4343,24 +4349,54 @@ function newtrip_render_customers_admin_page() {
             : '<span class="dashicons dashicons-arrow-down-alt2" style="font-size:14px; width:14px; height:14px; color:#f97316; margin-left:4px; vertical-align:middle;"></span>';
     };
 
-    $get_sort_url = function($col_name) use ($orderby, $order, $search) {
+    $get_sort_url = function($col_name) use ($orderby, $order, $search, $birth_month) {
         $next_order = ($orderby === $col_name && $order === 'ASC') ? 'DESC' : 'ASC';
         return add_query_arg([
             'page' => 'newtrip-customers',
             'orderby' => $col_name,
             'order' => $next_order,
-            's' => $search
+            's' => $search,
+            'birth_month' => $birth_month
         ], admin_url('admin.php'));
     };
     
-    $get_page_url = function($p) use ($orderby, $order, $search) {
+    $get_page_url = function($p) use ($orderby, $order, $search, $birth_month) {
         return add_query_arg([
             'page' => 'newtrip-customers',
             'orderby' => $orderby,
             'order' => $order,
             's' => $search,
+            'birth_month' => $birth_month,
             'paged' => $p
         ], admin_url('admin.php'));
+    };
+    
+    // Phân hạng hội viên dựa trên doanh thu chi tiêu hoặc số chuyến đi
+    $get_customer_tier = function($total_spent, $total_bookings) {
+        $spent = floatval($total_spent);
+        $bookings = intval($total_bookings);
+        
+        if ($spent >= 15000000 || $bookings >= 5) {
+            return [
+                'label' => 'Kim Cương',
+                'style' => 'background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; font-weight: 600;'
+            ];
+        } elseif ($spent >= 7000000 || $bookings >= 3) {
+            return [
+                'label' => 'Vàng',
+                'style' => 'background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: white; font-weight: 600;'
+            ];
+        } elseif ($spent >= 3000000 || $bookings >= 1) {
+            return [
+                'label' => 'Bạc',
+                'style' => 'background: linear-gradient(135deg, #94a3b8 0%, #475569 100%); color: white; font-weight: 600;'
+            ];
+        } else {
+            return [
+                'label' => 'Mới',
+                'style' => 'background: #f1f5f9; color: #475569;'
+            ];
+        }
     };
     
     ?>
@@ -4476,7 +4512,8 @@ function newtrip_render_customers_admin_page() {
                 display: flex;
                 gap: 10px;
                 flex-grow: 1;
-                max-width: 480px;
+                max-width: 680px;
+                align-items: center;
             }
             .newtrip-search-input {
                 flex-grow: 1;
@@ -4484,15 +4521,18 @@ function newtrip_render_customers_admin_page() {
                 border-radius: 8px;
                 border: 1px solid #cbd5e1;
                 font-size: 14px;
+                height: 40px;
+                box-sizing: border-box;
             }
             .newtrip-search-btn {
                 background: #0f172a;
                 color: white;
                 border: none;
-                padding: 8px 18px;
+                padding: 0 20px;
                 border-radius: 8px;
                 font-weight: 600;
                 cursor: pointer;
+                height: 40px;
                 transition: background 0.2s;
             }
             .newtrip-search-btn:hover {
@@ -4584,7 +4624,93 @@ function newtrip_render_customers_admin_page() {
                 color: white;
                 border-color: #f97316;
             }
+            
+            /* Custom Modal Styles */
+            .newtrip-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 99999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .newtrip-modal-backdrop {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(4px);
+            }
+            .newtrip-modal-content {
+                position: relative;
+                background: white;
+                border-radius: 16px;
+                width: 90%;
+                max-width: 800px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                overflow: hidden;
+                z-index: 2;
+                animation: newtripModalFadeIn 0.2s ease-out;
+            }
+            @keyframes newtripModalFadeIn {
+                from { opacity: 0; transform: scale(0.95); }
+                to { opacity: 1; transform: scale(1); }
+            }
+            .newtrip-modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 16px 24px;
+                border-bottom: 1px solid #e2e8f0;
+                background: #f8fafc;
+            }
+            .newtrip-modal-header h3 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 700;
+                color: #0f172a;
+            }
+            .newtrip-modal-close {
+                font-size: 28px;
+                font-weight: bold;
+                color: #94a3b8;
+                cursor: pointer;
+                transition: color 0.2s;
+                line-height: 1;
+            }
+            .newtrip-modal-close:hover {
+                color: #0f172a;
+            }
+            .newtrip-modal-body {
+                padding: 24px;
+                max-height: 480px;
+                overflow-y: auto;
+            }
+            .newtrip-modal-table {
+                width: 100%;
+                border-collapse: collapse;
+                text-align: left;
+                font-size: 13px;
+            }
+            .newtrip-modal-table th {
+                background: #f1f5f9;
+                padding: 12px 14px;
+                font-weight: 600;
+                color: #475569;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .newtrip-modal-table td {
+                padding: 12px 14px;
+                border-bottom: 1px solid #f1f5f9;
+                color: #334155;
+            }
         </style>
+        
         <div class="newtrip-admin-wrap">
             <div class="newtrip-header">
                 <div class="newtrip-title-area">
@@ -4636,14 +4762,22 @@ function newtrip_render_customers_admin_page() {
             <div class="newtrip-filter-bar">
                 <form method="GET" action="<?php echo esc_url(admin_url('admin.php')); ?>" class="newtrip-search-form">
                     <input type="hidden" name="page" value="newtrip-customers" />
-                    <input type="text" name="s" class="newtrip-search-input" placeholder="<?php _e('Tìm kiếm theo tên, SĐT, email, CCCD...', 'newtrip-theme'); ?>" value="<?php echo esc_attr($search); ?>" />
-                    <button type="submit" class="newtrip-search-btn"><?php _e('Tìm kiếm', 'newtrip-theme'); ?></button>
-                    <?php if (!empty($search)) : ?>
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=newtrip-customers')); ?>" class="button button-secondary" style="height: auto; display: flex; align-items: center; border-radius: 8px; font-weight: 500;"><?php _e('Xóa tìm kiếm', 'newtrip-theme'); ?></a>
+                    <input type="text" name="s" class="newtrip-search-input" placeholder="<?php _e('Tìm tên, SĐT, email, CCCD, Mã Booking...', 'newtrip-theme'); ?>" value="<?php echo esc_attr($search); ?>" />
+                    
+                    <select name="birth_month" class="newtrip-search-input" style="max-width: 140px; height: 40px; line-height: 28px;">
+                        <option value="0"><?php _e('Tháng sinh...', 'newtrip-theme'); ?></option>
+                        <?php for ($m = 1; $m <= 12; $m++) : ?>
+                            <option value="<?php echo $m; ?>" <?php selected($birth_month, $m); ?>><?php printf(__('Tháng %d', 'newtrip-theme'), $m); ?></option>
+                        <?php endfor; ?>
+                    </select>
+
+                    <button type="submit" class="newtrip-search-btn"><?php _e('Lọc & Tìm', 'newtrip-theme'); ?></button>
+                    <?php if (!empty($search) || $birth_month > 0) : ?>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=newtrip-customers')); ?>" class="button button-secondary" style="height: 40px; display: flex; align-items: center; border-radius: 8px; font-weight: 500;"><?php _e('Xóa lọc', 'newtrip-theme'); ?></a>
                     <?php endif; ?>
                 </form>
                 <div style="font-size: 14px; color: #64748b;">
-                    <?php if (!empty($search)) : ?>
+                    <?php if (!empty($search) || $birth_month > 0) : ?>
                         Tìm thấy <strong><?php echo number_format($total_filtered); ?></strong> kết quả
                     <?php endif; ?>
                 </div>
@@ -4656,19 +4790,21 @@ function newtrip_render_customers_admin_page() {
                         <tr>
                             <th><a href="<?php echo esc_url($get_sort_url('id')); ?>" class="newtrip-sort-link"><?php _e('ID', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('id'); ?></a></th>
                             <th><a href="<?php echo esc_url($get_sort_url('full_name')); ?>" class="newtrip-sort-link"><?php _e('Họ tên', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('full_name'); ?></a></th>
+                            <th><?php _e('Hạng', 'newtrip-theme'); ?></th>
                             <th><?php _e('Số điện thoại', 'newtrip-theme'); ?></th>
                             <th><?php _e('Email', 'newtrip-theme'); ?></th>
                             <th><a href="<?php echo esc_url($get_sort_url('birth_date')); ?>" class="newtrip-sort-link"><?php _e('Ngày sinh', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('birth_date'); ?></a></th>
                             <th><a href="<?php echo esc_url($get_sort_url('id_number')); ?>" class="newtrip-sort-link"><?php _e('Số CCCD', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('id_number'); ?></a></th>
-                            <th style="text-align: center;"><a href="<?php echo esc_url($get_sort_url('total_bookings')); ?>" class="newtrip-sort-link"><?php _e('Số chuyến đi', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('total_bookings'); ?></a></th>
+                            <th style="text-align: center;"><a href="<?php echo esc_url($get_sort_url('total_bookings')); ?>" class="newtrip-sort-link"><?php _e('Số chuyến', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('total_bookings'); ?></a></th>
                             <th><a href="<?php echo esc_url($get_sort_url('total_spent')); ?>" class="newtrip-sort-link"><?php _e('Tổng chi tiêu', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('total_spent'); ?></a></th>
                             <th><?php _e('Chuyến đi gần đây', 'newtrip-theme'); ?></th>
+                            <th><?php _e('Thao tác', 'newtrip-theme'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($rows)) : ?>
                             <tr>
-                                <td colspan="9" style="text-align: center; padding: 40px; color: #94a3b8;">
+                                <td colspan="11" style="text-align: center; padding: 40px; color: #94a3b8;">
                                     <?php _e('Không tìm thấy khách hàng nào', 'newtrip-theme'); ?>
                                 </td>
                             </tr>
@@ -4689,10 +4825,17 @@ function newtrip_render_customers_admin_page() {
                                 if (!is_array($history)) {
                                     $history = [];
                                 }
+                                
+                                $tier = $get_customer_tier($row->total_spent, $row->total_bookings);
                                 ?>
                                 <tr>
                                     <td style="font-weight: 500; color: #64748b;">#<?php echo esc_html($row->id); ?></td>
                                     <td style="font-weight: 600; color: #0f172a;"><?php echo esc_html($row->full_name); ?></td>
+                                    <td>
+                                        <span class="newtrip-badge" style="<?php echo esc_attr($tier['style']); ?>">
+                                            <?php echo esc_html($tier['label']); ?>
+                                        </span>
+                                    </td>
                                     <td style="font-family: monospace; font-size: 13px;"><?php echo esc_html($row->phone); ?></td>
                                     <td><?php echo esc_html($row->email ?: '—'); ?></td>
                                     <td><?php echo esc_html($birth_date ?: '—'); ?></td>
@@ -4723,6 +4866,14 @@ function newtrip_render_customers_admin_page() {
                                             echo '<span style="color:#94a3b8; font-style: italic; font-size: 12px;">Chưa đi chuyến nào</span>';
                                         }
                                         ?>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="button button-small newtrip-view-history-btn" 
+                                                data-name="<?php echo esc_attr($row->full_name); ?>" 
+                                                data-history="<?php echo esc_attr(json_encode($history)); ?>"
+                                                style="border-radius: 6px; font-weight: 600; border-color: #cbd5e1; background: white;">
+                                            <?php _e('Chi tiết', 'newtrip-theme'); ?>
+                                        </button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -4759,6 +4910,116 @@ function newtrip_render_customers_admin_page() {
             </div>
         </div>
     </div>
+
+    <!-- Modal xem chi tiết lịch sử đặt tour -->
+    <div id="newtrip-history-modal" class="newtrip-modal" style="display: none;">
+        <div class="newtrip-modal-backdrop" onclick="closeNewTripModal()"></div>
+        <div class="newtrip-modal-content">
+            <div class="newtrip-modal-header">
+                <h3 id="newtrip-modal-title">Lịch sử đặt tour</h3>
+                <span class="newtrip-modal-close" onclick="closeNewTripModal()">&times;</span>
+            </div>
+            <div class="newtrip-modal-body">
+                <table class="newtrip-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Booking</th>
+                            <th>Tên Tour</th>
+                            <th>Ngày Đi</th>
+                            <th>Vai Trò</th>
+                            <th>Trạng Thái</th>
+                            <th>Thanh Toán</th>
+                        </tr>
+                    </thead>
+                    <tbody id="newtrip-modal-tbody">
+                        <!-- Nội dung được điền qua JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeNewTripModal() {
+            document.getElementById('newtrip-history-modal').style.display = 'none';
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            var buttons = document.querySelectorAll('.newtrip-view-history-btn');
+            var modal = document.getElementById('newtrip-history-modal');
+            var title = document.getElementById('newtrip-modal-title');
+            var tbody = document.getElementById('newtrip-modal-tbody');
+            
+            buttons.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var name = btn.getAttribute('data-name');
+                    var historyData = [];
+                    try {
+                        historyData = JSON.parse(btn.getAttribute('data-history') || '[]');
+                    } catch(e) {
+                        console.error('Error parsing booking history', e);
+                    }
+                    
+                    title.innerText = 'Lịch sử đặt tour - ' + name;
+                    tbody.innerHTML = '';
+                    
+                    if (historyData.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">Chưa có lịch sử chuyến đi nào.</td></tr>';
+                    } else {
+                        historyData.forEach(function(b) {
+                            var row = document.createElement('tr');
+                            
+                            var code = b.booking_code || ('#' + b.booking_id) || '—';
+                            var tour = b.tour_name || 'Chuyến đi';
+                            var depDate = b.departure_date || '—';
+                            if (depDate && depDate !== '—') {
+                                var parts = depDate.split('-');
+                                if (parts.length === 3) {
+                                    depDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+                                }
+                            }
+                            
+                            var isRep = b.is_representative ? 'Trưởng đoàn' : 'Thành viên';
+                            var isRepClass = b.is_representative ? 'newtrip-badge representative' : 'newtrip-badge';
+                            
+                            var statusLabel = b.status || 'pending';
+                            var statusStyle = '';
+                            var statusText = statusLabel;
+                            if (statusLabel === 'confirmed') { statusStyle = 'background-color:#dcfce7; color:#15803d;'; statusText = 'Đã xác nhận'; }
+                            else if (statusLabel === 'completed') { statusStyle = 'background-color:#dbeafe; color:#1d4ed8;'; statusText = 'Hoàn thành'; }
+                            else if (statusLabel === 'cancelled') { statusStyle = 'background-color:#fee2e2; color:#b91c1c;'; statusText = 'Đã hủy'; }
+                            else if (statusLabel === 'pending') { statusStyle = 'background-color:#fef9c3; color:#a16207;'; statusText = 'Chờ xử lý'; }
+                            
+                            var payStatus = b.payment_status || 'unpaid';
+                            var payStyle = '';
+                            var payText = payStatus;
+                            if (payStatus === 'paid') { payStyle = 'background-color:#ecfdf5; color:#059669; font-weight:600;'; payText = 'Đã thanh toán'; }
+                            else { payStyle = 'background-color:#fff1f2; color:#e11d48;'; payText = 'Chưa thanh toán'; }
+                            
+                            row.innerHTML = 
+                                '<td style="font-family:monospace; font-weight:600;">' + code + '</td>' +
+                                '<td style="font-weight:500;">' + tour + '</td>' +
+                                '<td>' + depDate + '</td>' +
+                                '<td><span class="' + isRepClass + '" style="font-size:11px;">' + isRep + '</span></td>' +
+                                '<td><span class="newtrip-badge" style="' + statusStyle + ' font-size:11px;">' + statusText + '</span></td>' +
+                                '<td><span class="newtrip-badge" style="' + payStyle + ' font-size:11px;">' + payText + '</span></td>';
+                            
+                            tbody.appendChild(row);
+                        });
+                    }
+                    
+                    modal.style.display = 'flex';
+                });
+            });
+            
+            // Đóng modal bằng phím ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeNewTripModal();
+                }
+            });
+        });
+    </script>
     <?php
 }
 

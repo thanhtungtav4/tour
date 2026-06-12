@@ -299,8 +299,9 @@ function newtrip_api_get_customers(WP_REST_Request $request) {
     $params = [];
     
     if (!empty($search)) {
-        $where .= " AND (full_name LIKE %s OR phone LIKE %s OR email LIKE %s OR id_number LIKE %s)";
+        $where .= " AND (full_name LIKE %s OR phone LIKE %s OR email LIKE %s OR id_number LIKE %s OR bookings_history LIKE %s)";
         $like = '%' . $wpdb->esc_like($search) . '%';
+        $params[] = $like;
         $params[] = $like;
         $params[] = $like;
         $params[] = $like;
