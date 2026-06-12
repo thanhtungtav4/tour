@@ -15,7 +15,8 @@ import {
   ApiMenus,
   ApiHomepageData,
   ApiAboutPageData,
-  ApiContactPageData
+  ApiContactPageData,
+  CheckinPassenger
 } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tour-api.nttung.dev/wp-json/newtrip/v1";
@@ -339,6 +340,50 @@ export async function getContactPageData(): Promise<ApiContactPageData> {
   const json = await res.json();
   if (!res.ok || !json.success) {
     throw new Error(json.error?.message || "Không thể tải cấu hình trang liên hệ");
+  }
+  return json.data;
+}
+
+export async function getCheckinPassengers(tourId?: number): Promise<CheckinPassenger[]> {
+  const url = new URL(`${API_BASE_URL}/checkin/passengers`);
+  if (tourId) {
+    url.searchParams.append("tour_id", tourId.toString());
+  }
+
+  const res = await fetch(url.toString(), {
+    cache: "no-store", // Check-in data must be fresh
+  });
+
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.message || "Không thể tải danh sách check-in");
+  }
+  return json.data;
+}
+
+export async function toggleCheckin(
+  bookingId: number,
+  passengerIndex: number,
+  type: "boarding" | "gathering",
+  value: boolean
+): Promise<{ booking_id: number; passenger_index: number; type: string; value: boolean }> {
+  const url = `${API_BASE_URL}/checkin/toggle`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      booking_id: bookingId,
+      passenger_index: passengerIndex,
+      type,
+      value,
+    }),
+  });
+
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.message || "Cập nhật check-in thất bại");
   }
   return json.data;
 }

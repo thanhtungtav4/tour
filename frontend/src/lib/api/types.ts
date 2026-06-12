@@ -227,6 +227,24 @@ export interface BookingDetail {
   };
 }
 
+export interface CheckinPassenger {
+  id: string;
+  booking_id: number;
+  booking_code: string;
+  passenger_index: number;
+  full_name: string;
+  phone: string;
+  birth_date: string;
+  health_status: string;
+  seat: string;
+  pickup_point: string;
+  checked_in: boolean;
+  checked_in_gathering: boolean;
+  tour_id: number;
+  tour_name: string;
+  departure_date: string;
+}
+
 // Payment types
 export interface PaymentInfo {
   booking_id: string;

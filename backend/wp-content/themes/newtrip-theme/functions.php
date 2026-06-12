@@ -791,6 +791,20 @@ add_action('rest_api_init', function () {
         'callback' => 'newtrip_api_get_contact_data',
         'permission_callback' => '__return_true',
     ]);
+
+    // 5.15 GET /wp-json/newtrip/v1/checkin/passengers - Lấy danh sách thành viên check-in
+    register_rest_route('newtrip/v1', '/checkin/passengers', [
+        'methods' => 'GET',
+        'callback' => 'newtrip_api_get_checkin_passengers',
+        'permission_callback' => '__return_true',
+    ]);
+
+    // 5.16 POST /wp-json/newtrip/v1/checkin/toggle - Cập nhật trạng thái check-in (lên xe hoặc tập trung)
+    register_rest_route('newtrip/v1', '/checkin/toggle', [
+        'methods' => 'POST',
+        'callback' => 'newtrip_api_toggle_checkin',
+        'permission_callback' => '__return_true',
+    ]);
 });
 
 // 6. Định nghĩa callbacks cho các API Endpoints
@@ -3060,6 +3074,149 @@ add_filter('acf/load_field_group', function($group) {
     }
     return $group;
 });
+
+// Callback API lấy danh sách thành viên check-in
+function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
+    $tour_id = intval($request->get_param('tour_id'));
+    
+    $args = [
+        'post_type' => 'booking',
+        'post_status' => 'any',
+        'posts_per_page' => -1,
+    ];
+    
+    if ($tour_id > 0) {
+        $args['meta_query'] = [
+            [
+                'key' => 'tour_id',
+                'value' => $tour_id,
+                'compare' => '='
+            ]
+        ];
+    }
+    
+    $query = new WP_Query($args);
+    $results = [];
+    
+    if ($query->have_posts()) {
+        foreach ($query->posts as $post) {
+            $b_id = $post->ID;
+            $booking_code = get_post_meta($b_id, 'booking_code', true) ?: '';
+            
+            $t_id_raw = newtrip_get_field('tour_id', $b_id);
+            $t_id = 0;
+            if (is_object($t_id_raw)) {
+                $t_id = $t_id_raw->ID;
+            } elseif (is_array($t_id_raw)) {
+                $t_id = $t_id_raw['ID'] ?? 0;
+            } else {
+                $t_id = intval($t_id_raw);
+            }
+            if (empty($t_id)) {
+                $t_id = intval(get_post_meta($b_id, 'tour_id', true));
+            }
+            
+            $tour_post = get_post($t_id);
+            $tour_name = $tour_post ? $tour_post->post_title : 'Chuyến đi';
+            
+            $departure_date = newtrip_get_field('departure_date', $b_id) ?: '';
+            
+            $passengers = newtrip_get_field('passengers', $b_id);
+            if (is_array($passengers)) {
+                foreach ($passengers as $idx => $p) {
+                    $p_pickup_point_id = 0;
+                    if (isset($p['pickup_point_id'])) {
+                        if (is_object($p['pickup_point_id'])) {
+                            $p_pickup_point_id = $p['pickup_point_id']->ID;
+                        } elseif (is_array($p['pickup_point_id']) && isset($p['pickup_point_id']['ID'])) {
+                            $p_pickup_point_id = $p['pickup_point_id']['ID'];
+                        } else {
+                            $p_pickup_point_id = intval($p['pickup_point_id']);
+                        }
+                    }
+                    $pickup_name = '';
+                    if ($p_pickup_point_id) {
+                        $pickup_post = get_post($p_pickup_point_id);
+                        if ($pickup_post) {
+                            $pickup_name = $pickup_post->post_title;
+                        }
+                    }
+                    
+                    $results[] = [
+                        'id' => $b_id . '_' . $idx,
+                        'booking_id' => $b_id,
+                        'booking_code' => $booking_code,
+                        'passenger_index' => $idx,
+                        'full_name' => $p['full_name'] ?? '',
+                        'phone' => $p['phone'] ?? '',
+                        'birth_date' => $p['birth_date'] ?? ($p['birth_year'] ?? ''),
+                        'health_status' => $p['health_status'] ?? '',
+                        'seat' => $p['seat'] ?? '',
+                        'pickup_point' => $pickup_name,
+                        'checked_in' => !empty($p['checked_in']) ? true : false,
+                        'checked_in_gathering' => !empty($p['checked_in_gathering']) ? true : false,
+                        'tour_id' => $t_id,
+                        'tour_name' => $tour_name,
+                        'departure_date' => $departure_date,
+                    ];
+                }
+            }
+        }
+    }
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => $results
+    ], 200);
+}
+
+// Callback API toggle check-in
+function newtrip_api_toggle_checkin(WP_REST_Request $request) {
+    $params = $request->get_json_params();
+    if (!is_array($params)) $params = [];
+    
+    $booking_id = intval($params['booking_id'] ?? 0);
+    $passenger_index = isset($params['passenger_index']) ? intval($params['passenger_index']) : -1;
+    $type = sanitize_text_field($params['type'] ?? '');
+    $value = !empty($params['value']) ? 1 : 0;
+    
+    if (!$booking_id || $passenger_index < 0 || !in_array($type, ['boarding', 'gathering'])) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'invalid_params', 'message' => 'Tham số không hợp lệ']
+        ], 400);
+    }
+    
+    $passengers = newtrip_get_field('passengers', $booking_id);
+    if (!is_array($passengers) || !isset($passengers[$passenger_index])) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'passenger_not_found', 'message' => 'Không tìm thấy hành khách tương ứng']
+        ], 404);
+    }
+    
+    if ($type === 'boarding') {
+        $passengers[$passenger_index]['checked_in'] = $value;
+    } else {
+        $passengers[$passenger_index]['checked_in_gathering'] = $value;
+    }
+    
+    $updated = update_field('field_booking_passengers', $passengers, $booking_id);
+    if (!$updated) {
+        $updated = update_field('passengers', $passengers, $booking_id);
+    }
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'message' => 'Cập nhật trạng thái check-in thành công',
+        'data' => [
+            'booking_id' => $booking_id,
+            'passenger_index' => $passenger_index,
+            'type' => $type,
+            'value' => $value ? true : false
+        ]
+    ], 200);
+}
 
 
 

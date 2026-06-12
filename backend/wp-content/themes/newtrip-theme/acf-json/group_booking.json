@@ -261,7 +261,7 @@
         },
         {
           "key": "field_booking_passenger_checked_in",
-          "label": "Đã check-in",
+          "label": "Đã lên xe",
           "name": "checked_in",
           "type": "true_false",
           "default_value": 0,
@@ -271,12 +271,23 @@
           }
         },
         {
+          "key": "field_booking_passenger_checked_in_gathering",
+          "label": "Đã đến điểm tập trung",
+          "name": "checked_in_gathering",
+          "type": "true_false",
+          "default_value": 0,
+          "ui": 1,
+          "wrapper": {
+            "width": "20"
+          }
+        },
+        {
           "key": "field_booking_passenger_health_status",
           "label": "Tình trạng sức khỏe / Bệnh lý",
           "name": "health_status",
           "type": "text",
           "wrapper": {
-            "width": "85"
+            "width": "65"
           }
         }
       ]
