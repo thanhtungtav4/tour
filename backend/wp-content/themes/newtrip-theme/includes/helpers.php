@@ -178,15 +178,30 @@ function newtrip_register_customer_tag_taxonomy() {
 // REST API - Customer endpoints
 // =============================================================================
 
+// Permission check for staff endpoints
+function newtrip_checkin_permission_check(WP_REST_Request $request) {
+    $token = $request->get_header('x_staff_token');
+    if (empty($token)) {
+        $token = $request->get_header('x-staff-token');
+    }
+    if (empty($token)) {
+        return new WP_Error('checkin_unauthorized', 'Thiếu token xác thực nhân viên', ['status' => 401]);
+    }
+    $stored = get_transient('newtrip_checkin_token_' . $token);
+    if (!$stored) {
+        return new WP_Error('checkin_unauthorized', 'Token hết hạn hoặc không hợp lệ', ['status' => 401]);
+    }
+    return true;
+}
+
+// Register routes
 add_action('rest_api_init', function () {
-    // 5.17 GET /wp-json/newtrip/v1/customers - Danh sách khách hàng (cho remarketing)
     register_rest_route('newtrip/v1', '/customers', [
         'methods' => 'GET',
         'callback' => 'newtrip_api_get_customers',
         'permission_callback' => 'newtrip_checkin_permission_check',
     ]);
 
-    // 5.18 GET /wp-json/newtrip/v1/customers/export - Export CSV khách hàng
     register_rest_route('newtrip/v1', '/customers/export', [
         'methods' => 'GET',
         'callback' => 'newtrip_api_export_customers',
