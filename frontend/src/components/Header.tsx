@@ -7,6 +7,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { MenuIcon, CloseIcon, PhoneIcon } from "@/components/icons";
 import { useSettings } from "@/hooks/useSettings";
+import { useMenus } from "@/hooks/useMenus";
 
 const navLinks = [
   { href: "/", label: "Trang chủ" },
@@ -19,6 +20,11 @@ const navLinks = [
 export function Header() {
   const pathname = usePathname();
   const { settings } = useSettings();
+  const { menus } = useMenus();
+
+  const resolvedLinks = (menus?.primary && menus.primary.length > 0)
+    ? menus.primary.map((item) => ({ href: item.url, label: item.title }))
+    : navLinks;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollDir, setScrollDir] = useState<"up" | "down">("up");
@@ -74,7 +80,7 @@ export function Header() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
-              {navLinks.map((link) => {
+              {resolvedLinks.map((link) => {
                 const isActive = pathname === link.href ||
                   (link.href !== "/" && pathname?.startsWith(link.href));
                 return (
@@ -175,7 +181,7 @@ export function Header() {
             {/* Nav Links */}
             <nav className="flex-1 overflow-y-auto py-4">
               <div className="px-4 space-y-1">
-                {navLinks.map((link) => {
+                {resolvedLinks.map((link) => {
                   const isActive = pathname === link.href ||
                     (link.href !== "/" && pathname?.startsWith(link.href));
                   return (

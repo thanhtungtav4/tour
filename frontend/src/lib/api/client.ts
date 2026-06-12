@@ -11,7 +11,8 @@ import {
   PaymentInfo,
   ApiBlogPost,
   GeneralSettings,
-  ApiPage
+  ApiPage,
+  ApiMenus
 } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tour-api.nttung.dev/wp-json/newtrip/v1";
@@ -277,3 +278,16 @@ export async function updateBookingPassengers(
   }
   return json;
 }
+
+export async function getMenus(): Promise<ApiMenus> {
+  const url = `${API_BASE_URL}/menus`;
+  const res = await fetch(url, {
+    next: { revalidate: 60 }, // Cache menus for 60 seconds
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.message || "Không thể tải danh sách menu");
+  }
+  return json.data;
+}
+

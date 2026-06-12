@@ -995,6 +995,189 @@ const FootprintsIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
 );
 FootprintsIcon.displayName = "FootprintsIcon";
 
+// Camera Icon
+const CameraIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ className, ...props }, ref) => (
+    <svg
+      ref={ref}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("w-5 h-5", className)}
+      {...props}
+    >
+      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+      <circle cx="12" cy="13" r="3" />
+    </svg>
+  )
+);
+CameraIcon.displayName = "CameraIcon";
+
+// Utensils Icon
+const UtensilsIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ className, ...props }, ref) => (
+    <svg
+      ref={ref}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("w-5 h-5", className)}
+      {...props}
+    >
+      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+      <path d="M7 2v20" />
+      <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+    </svg>
+  )
+);
+UtensilsIcon.displayName = "UtensilsIcon";
+
+// Tent Icon
+const TentIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ className, ...props }, ref) => (
+    <svg
+      ref={ref}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("w-5 h-5", className)}
+      {...props}
+    >
+      <path d="M19 21 12 3 5 21" />
+      <path d="M12 3v18" />
+      <path d="m12 14 3 7H9l3-7Z" />
+      <path d="M5 21H2" />
+      <path d="M19 21h3" />
+    </svg>
+  )
+);
+TentIcon.displayName = "TentIcon";
+
+// Bus Icon
+const BusIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ className, ...props }, ref) => (
+    <svg
+      ref={ref}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("w-5 h-5", className)}
+      {...props}
+    >
+      <path d="M8 6v6" />
+      <path d="M15 6v6" />
+      <rect width="16" height="12" x="4" y="3" rx="2" />
+      <path d="M4 15h16" />
+      <path d="M10 19v2" />
+      <path d="M14 19v2" />
+      <circle cx="8" cy="19" r="2" />
+      <circle cx="16" cy="19" r="2" />
+    </svg>
+  )
+);
+BusIcon.displayName = "BusIcon";
+
+// Map Icon
+const MapIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ className, ...props }, ref) => (
+    <svg
+      ref={ref}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("w-5 h-5", className)}
+      {...props}
+    >
+      <path d="M14.106 5.553a2 2 0 0 0-1.788 0l-3.63 1.814a2 2 0 0 1-1.788 0L3 5.362V19.36a1 1 0 0 0 1.447.894l3.659-1.83a2 2 0 0 1 1.788 0l3.63 1.814a2 2 0 0 0 1.788 0l3.864-1.932A1 1 0 0 0 21 17.414V3.416a1 1 0 0 0-1.447-.894l-5.447 2.723z" />
+      <path d="M8 6.5v11.5" />
+      <path d="M16 5.5v11.5" />
+    </svg>
+  )
+);
+MapIcon.displayName = "MapIcon";
+
+// Coffee Icon
+const CoffeeIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ className, ...props }, ref) => (
+    <svg
+      ref={ref}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("w-5 h-5", className)}
+      {...props}
+    >
+      <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+      <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+      <line x1="6" x2="6" y1="2" y2="4" />
+      <line x1="10" x2="10" y1="2" y2="4" />
+      <line x1="14" x2="14" y1="2" y2="4" />
+    </svg>
+  )
+);
+CoffeeIcon.displayName = "CoffeeIcon";
+
+// Info Icon
+const InfoIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ className, ...props }, ref) => (
+    <svg
+      ref={ref}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("w-5 h-5", className)}
+      {...props}
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </svg>
+  )
+);
+InfoIcon.displayName = "InfoIcon";
+
 export {
   MenuIcon,
   CloseIcon,
@@ -1042,4 +1225,11 @@ export {
   TwitterIcon,
   LinkedinIcon,
   LinkIcon,
+  CameraIcon,
+  UtensilsIcon,
+  TentIcon,
+  BusIcon,
+  MapIcon,
+  CoffeeIcon,
+  InfoIcon,
 };

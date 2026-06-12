@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { getTours, TourListItem } from "@/lib/api";
 import { getTourImage } from "@/lib/utils";
 import { useSettings } from "@/hooks/useSettings";
+import { useMenus } from "@/hooks/useMenus";
 
 const policies = [
   { href: "/booking/lookup", label: "Tra cứu đơn đặt tour" },
@@ -18,6 +19,12 @@ const policies = [
 
 export function Footer() {
   const { settings } = useSettings();
+  const { menus } = useMenus();
+
+  const resolvedPolicies = (menus?.footer && menus.footer.length > 0)
+    ? menus.footer.map((item) => ({ href: item.url, label: item.title }))
+    : policies;
+
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [popularTours, setPopularTours] = useState<TourListItem[]>([]);
@@ -141,7 +148,7 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold text-[#0e1425] mb-4">Chính sách</h4>
             <ul className="space-y-2">
-              {policies.map((policy) => (
+              {resolvedPolicies.map((policy) => (
                 <li key={policy.href}>
                   <Link href={policy.href} className="text-sm text-gray-600 hover:text-emerald-700 transition-colors">
                     {policy.label}

@@ -30,6 +30,17 @@ import {
   SparklesIcon,
   FlagIcon,
   HeartIcon,
+  CameraIcon,
+  UtensilsIcon,
+  TentIcon,
+  BusIcon,
+  MapIcon,
+  CoffeeIcon,
+  InfoIcon,
+  AwardIcon,
+  CheckCircleIcon,
+  WalletIcon,
+  PhoneIcon,
 } from "@/components/icons";
 import { cn, getTourGallery } from "@/lib/utils";
 
@@ -53,6 +64,18 @@ const ITINERARY_ICON_MAP: Record<string, React.ComponentType<any>> = {
   "users": UsersIcon,
   "heart": HeartIcon,
   "shield": ShieldCheckIcon,
+  "camera": CameraIcon,
+  "utensils": UtensilsIcon,
+  "tent": TentIcon,
+  "bus": BusIcon,
+  "map": MapIcon,
+  "coffee": CoffeeIcon,
+  "info": InfoIcon,
+  "award": AwardIcon,
+  "calendar": CalendarIcon,
+  "check-circle": CheckCircleIcon,
+  "wallet": WalletIcon,
+  "phone": PhoneIcon,
 };
 
 const getItineraryIcon = (activity: string) => {

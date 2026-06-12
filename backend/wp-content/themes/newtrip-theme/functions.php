@@ -671,6 +671,13 @@ add_action('rest_api_init', function () {
         'callback' => 'newtrip_api_get_page_by_slug',
         'permission_callback' => '__return_true',
     ]);
+
+    // 5.11 GET /wp-json/newtrip/v1/menus - Lấy danh sách menu (primary & footer)
+    register_rest_route('newtrip/v1', '/menus', [
+        'methods' => 'GET',
+        'callback' => 'newtrip_api_get_menus',
+        'permission_callback' => '__return_true',
+    ]);
 });
 
 // 6. Định nghĩa callbacks cho các API Endpoints
@@ -2627,5 +2634,96 @@ function newtrip_verify_booking_token($booking_code, $email, $expires, $token) {
     
     return true;
 }
+
+// 6.15 Lấy danh sách menu (primary & footer) cho Frontend
+function newtrip_api_get_menus(WP_REST_Request $request) {
+    $primary = newtrip_get_menu_items_by_location('primary-menu');
+    $footer = newtrip_get_menu_items_by_location('footer-menu');
+
+    // Fallback if menus are empty in backend
+    if (empty($primary)) {
+        $primary = [
+            ['id' => 1, 'title' => 'Trang chủ', 'url' => '/', 'parent' => 0, 'order' => 1],
+            ['id' => 2, 'title' => 'Tuyến đường', 'url' => '/booking', 'parent' => 0, 'order' => 2],
+            ['id' => 3, 'title' => 'Trải nghiệm', 'url' => '/experience', 'parent' => 0, 'order' => 3],
+            ['id' => 4, 'title' => 'Về chúng tôi', 'url' => '/about', 'parent' => 0, 'order' => 4],
+            ['id' => 5, 'title' => 'Liên hệ', 'url' => '/contact', 'parent' => 0, 'order' => 5],
+        ];
+    }
+
+    if (empty($footer)) {
+        $footer = [
+            ['id' => 10, 'title' => 'Tra cứu đơn đặt tour', 'url' => '/booking/lookup', 'parent' => 0, 'order' => 1],
+            ['id' => 11, 'title' => 'Chính sách an toàn', 'url' => '/policies/safety', 'parent' => 0, 'order' => 2],
+            ['id' => 12, 'title' => 'Chính sách hủy vé', 'url' => '/policies/cancel', 'parent' => 0, 'order' => 3],
+            ['id' => 13, 'title' => 'Chính sách đổi vé, bảo lưu', 'url' => '/policies/exchange', 'parent' => 0, 'order' => 4],
+            ['id' => 14, 'title' => 'Chính sách hoàn tiền', 'url' => '/policies/refund', 'parent' => 0, 'order' => 5],
+        ];
+    }
+
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => [
+            'primary' => $primary,
+            'footer' => $footer,
+        ]
+    ], 200);
+}
+
+// Helper lấy menu items theo location
+function newtrip_get_menu_items_by_location($location) {
+    $locations = get_nav_menu_locations();
+    if (!isset($locations[$location])) {
+        return [];
+    }
+    
+    $menu = wp_get_nav_menu_object($locations[$location]);
+    if (!$menu) {
+        return [];
+    }
+    
+    $menu_items = wp_get_nav_menu_items($menu->term_id);
+    if (!$menu_items) {
+        return [];
+    }
+    
+    $items = [];
+    foreach ($menu_items as $item) {
+        $url = $item->url;
+        $site_url = get_site_url();
+        
+        // Trích xuất path tương đối cho liên kết trong cùng hệ thống
+        $parsed_url = parse_url($url);
+        $path = $parsed_url['path'] ?? '/';
+        $query = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
+        $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
+        $relative_url = $path . $query . $fragment;
+        
+        $host = $parsed_url['host'] ?? '';
+        $backend_host = parse_url($site_url, PHP_URL_HOST);
+        
+        if (!empty($host) && $host !== $backend_host && !str_contains($host, 'vercel.app') && !str_contains($host, 'localhost') && !str_contains($host, 'newtrip.com.vn')) {
+            $final_url = $url;
+        } else {
+            $final_url = $relative_url;
+        }
+
+        $items[] = [
+            'id' => $item->ID,
+            'title' => $item->title,
+            'url' => $final_url,
+            'parent' => intval($item->menu_item_parent),
+            'order' => $item->menu_order,
+        ];
+    }
+    
+    // Sắp xếp theo thứ tự menu_order
+    usort($items, function($a, $b) {
+        return $a['order'] - $b['order'];
+    });
+    
+    return $items;
+}
+
 
 

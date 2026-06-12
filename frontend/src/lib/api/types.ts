@@ -317,3 +317,17 @@ export interface ApiPage {
   content: string;
 }
 
+export interface ApiMenuItem {
+  id: number;
+  title: string;
+  url: string;
+  parent: number;
+  order: number;
+}
+
+export interface ApiMenus {
+  primary: ApiMenuItem[];
+  footer: ApiMenuItem[];
+}
+
+
