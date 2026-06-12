@@ -40,7 +40,7 @@ function newtrip_normalize_phone($phone) {
 
 /**
  * Register ACF field group for Customer CPT
- * Chạy 1 lần duy nhất khi activate theme hoặc khi cần tạo fields
+ * Compatible with both ACF Free and Pro
  */
 add_action('acf/init', 'newtrip_register_customer_acf_fields');
 function newtrip_register_customer_acf_fields() {
@@ -65,7 +65,7 @@ function newtrip_register_customer_acf_fields() {
         'instruction_placement' => 'label',
         'hide_on_screen' => ['the_content', 'featured_image'],
         'fields' => [
-            // Phone - dùng làm unique identifier
+            // Row 1: Contact Info
             [
                 'key' => 'field_customer_phone',
                 'label' => 'Số điện thoại',
@@ -74,7 +74,6 @@ function newtrip_register_customer_acf_fields() {
                 'required' => 1,
                 'wrapper' => ['width' => '50'],
             ],
-            // Email
             [
                 'key' => 'field_customer_email',
                 'label' => 'Email',
@@ -82,74 +81,66 @@ function newtrip_register_customer_acf_fields() {
                 'type' => 'email',
                 'wrapper' => ['width' => '50'],
             ],
-            // Birth date
+            // Row 2: Personal Info
             [
                 'key' => 'field_customer_birth_date',
                 'label' => 'Ngày sinh',
                 'name' => 'birth_date',
-                'type' => 'date_picker',
-                'display_format' => 'd/m/Y',
-                'return_format' => 'Y-m-d',
+                'type' => 'text',
+                'placeholder' => 'VD: 15/03/1990',
                 'wrapper' => ['width' => '33'],
             ],
-            // Notes
+            [
+                'key' => 'field_customer_tags',
+                'label' => 'Phân loại',
+                'name' => 'tags',
+                'type' => 'text',
+                'placeholder' => 'VD: VIP, Tiềm năng, Khách quen',
+                'wrapper' => ['width' => '67'],
+            ],
+            // Row 3: Stats (readonly)
+            [
+                'key' => 'field_customer_total_bookings',
+                'label' => 'Số chuyến đi',
+                'name' => 'total_bookings',
+                'type' => 'number',
+                'disabled' => 1,
+                'wrapper' => ['width' => '25'],
+            ],
+            [
+                'key' => 'field_customer_total_spent',
+                'label' => 'Tổng chi tiêu',
+                'name' => 'total_spent',
+                'type' => 'number',
+                'disabled' => 1,
+                'wrapper' => ['width' => '25'],
+            ],
+            [
+                'key' => 'field_customer_last_booking',
+                'label' => 'Đặt gần nhất',
+                'name' => 'last_booking_date',
+                'type' => 'text',
+                'disabled' => 1,
+                'wrapper' => ['width' => '50'],
+            ],
+            // Row 4: Notes
             [
                 'key' => 'field_customer_notes',
                 'label' => 'Ghi chú',
                 'name' => 'notes',
                 'type' => 'textarea',
                 'rows' => 3,
-                'wrapper' => ['width' => '67'],
+                'placeholder' => 'Thông tin thêm về khách hàng...',
             ],
-            // Tags
-            [
-                'key' => 'field_customer_tags',
-                'label' => 'Tags / Phân loại',
-                'name' => 'tags',
-                'type' => 'taxonomy',
-                'taxonomy' => 'customer_tag',
-                'field_type' => 'checkbox',
-                'add_term' => 1,
-                'save_terms' => 1,
-                'load_terms' => 1,
-                'return_format' => 'id',
-                'wrapper' => ['width' => '50'],
-            ],
-            // Total bookings (readonly)
-            [
-                'key' => 'field_customer_total_bookings',
-                'label' => 'Số chuyến đi',
-                'name' => 'total_bookings',
-                'type' => 'number',
-                'readonly' => 1,
-                'wrapper' => ['width' => '25'],
-            ],
-            // Total spent (readonly)
-            [
-                'key' => 'field_customer_total_spent',
-                'label' => 'Tổng chi tiêu',
-                'name' => 'total_spent',
-                'type' => 'number',
-                'readonly' => 1,
-                'wrapper' => ['width' => '25'],
-            ],
-            // Last booking date (readonly)
-            [
-                'key' => 'field_customer_last_booking',
-                'label' => 'Ngày đặt gần nhất',
-                'name' => 'last_booking_date',
-                'type' => 'text',
-                'readonly' => 1,
-                'wrapper' => ['width' => '50'],
-            ],
-            // Bookings history (readonly, JSON)
+            // Row 5: Bookings History (readonly)
             [
                 'key' => 'field_customer_bookings_history',
                 'label' => 'Lịch sử đặt tour',
                 'name' => 'bookings_history',
                 'type' => 'textarea',
-                'readonly' => 1,
-                'rows' => 5,
+                'disabled' => 1,
+                'rows' => 4,
+                'placeholder' => 'Lịch sử tự động cập nhật khi có booking mới',
             ],
         ],
     ]);
