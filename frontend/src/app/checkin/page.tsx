@@ -7,6 +7,20 @@ import { getCheckinPassengers, toggleCheckin, getTours, checkinAuthenticate } fr
 import { CheckinPassenger, TourListItem } from "@/lib/api/types";
 import { SearchIcon, CloseIcon } from "@/components/icons";
 
+const getGatherEmailLink = (p: CheckinPassenger) => {
+  const subject = encodeURIComponent(`[Đôi Dép Adventure] Nhắc nhở tập trung - Tour ${p.tour_name}`);
+  const body = encodeURIComponent(
+    `Xin chào ${p.full_name},\n\n` +
+    `Đây là thông báo nhắc nhở từ Đôi Dép Adventure dành cho hành trình tour "${p.tour_name}" khởi hành ngày ${p.departure_date}.\n\n` +
+    `Vui lòng có mặt tại điểm tập trung "${p.pickup_point || "Điểm hẹn"}" đúng giờ để chúng ta chuẩn bị xuất phát.\n\n` +
+    `Nếu gặp bất kỳ khó khăn hoặc cần hỗ trợ gấp trên đường đi, anh/chị vui lòng liên hệ trực tiếp với Hướng dẫn viên qua số hotline.\n\n` +
+    `Chúc anh/chị có một chuyến hành trình trải nghiệm thật tuyệt vời!\n\n` +
+    `Trân trọng,\n` +
+    `Đội ngũ Đôi Dép Adventure`
+  );
+  return `mailto:${p.email || ""}?subject=${subject}&body=${body}`;
+};
+
 export default function CheckinPage() {
   const [passengers, setPassengers] = useState<CheckinPassenger[]>([]);
   const [tours, setTours] = useState<TourListItem[]>([]);
@@ -421,7 +435,15 @@ export default function CheckinPage() {
                       <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 pt-1 border-t border-slate-50">
                         <div>
                           <span className="block text-[10px] text-slate-400 font-semibold uppercase">Số điện thoại</span>
-                          <span className="font-medium">{p.phone || "Không có"}</span>
+                          <span className="font-medium">
+                            {p.phone ? (
+                              <a href={`tel:${p.phone}`} className="font-bold text-emerald-600 hover:text-emerald-700 underline decoration-dotted">
+                                {p.phone}
+                              </a>
+                            ) : (
+                              <span className="text-slate-400">Không có</span>
+                            )}
+                          </span>
                         </div>
                         <div>
                           <span className="block text-[10px] text-slate-400 font-semibold uppercase">Điểm đón</span>
@@ -429,6 +451,30 @@ export default function CheckinPage() {
                             {p.pickup_point || "Tự túc"}
                           </span>
                         </div>
+                      </div>
+
+                      {/* Quick Contact & Remind Row */}
+                      <div className="flex gap-2">
+                        {p.phone && (
+                          <a
+                            href={`tel:${p.phone}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                            Gọi điện
+                          </a>
+                        )}
+                        <a
+                          href={getGatherEmailLink(p)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-semibold transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          Nhắc tập trung
+                        </a>
                       </div>
 
                       {p.health_status && (
@@ -540,8 +586,31 @@ export default function CheckinPage() {
                             <div className="text-xs text-slate-400 mt-0.5">Ngày đi: {p.departure_date}</div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-slate-700">{p.phone || "Không có SĐT"}</div>
-                            <div className="text-xs text-slate-400 mt-0.5 truncate max-w-[180px]" title={p.pickup_point}>
+                            <div className="text-sm flex flex-col gap-1.5">
+                              {p.phone ? (
+                                <a
+                                  href={`tel:${p.phone}`}
+                                  className="inline-flex items-center gap-1 font-semibold text-emerald-600 hover:text-emerald-700 transition-colors w-fit"
+                                >
+                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                  </svg>
+                                  {p.phone}
+                                </a>
+                              ) : (
+                                <span className="text-slate-400 text-xs">Không có SĐT</span>
+                              )}
+                              <a
+                                href={getGatherEmailLink(p)}
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors w-fit"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                Nhắc tập trung
+                              </a>
+                            </div>
+                            <div className="text-xs text-slate-400 mt-1.5 truncate max-w-[180px]" title={p.pickup_point}>
                               Đón: {p.pickup_point || "Tự túc"}
                             </div>
                           </td>

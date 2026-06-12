@@ -3271,6 +3271,7 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request)
         foreach ($query->posts as $post) {
             $b_id = $post->ID;
             $booking_code = get_post_meta($b_id, 'booking_code', true) ?: '';
+            $booking_email = get_post_meta($b_id, 'email', true) ?: '';
 
             $t_id_raw = newtrip_get_field('tour_id', $b_id);
             $t_id = 0;
@@ -3314,6 +3315,8 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request)
                         }
                     }
 
+                    $passenger_email = !empty($p['email']) ? $p['email'] : $booking_email;
+
                     $results[] = [
                         'id' => $b_id . '_' . $idx,
                         'booking_id' => $b_id,
@@ -3321,6 +3324,7 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request)
                         'passenger_index' => $idx,
                         'full_name' => $p['full_name'] ?? '',
                         'phone' => $p['phone'] ?? '',
+                        'email' => $passenger_email,
                         'birth_date' => $p['birth_date'] ?? ($p['birth_year'] ?? ''),
                         'health_status' => $p['health_status'] ?? '',
                         'seat' => $p['seat'] ?? '',

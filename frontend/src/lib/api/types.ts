@@ -234,6 +234,7 @@ export interface CheckinPassenger {
   passenger_index: number;
   full_name: string;
   phone: string;
+  email?: string;
   birth_date: string;
   health_status: string;
   seat: string;
