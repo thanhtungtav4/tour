@@ -233,15 +233,33 @@ export default function ExperienceDetailPage({ params }: PageProps) {
                       animate={{ opacity: 1, scale: 1 }}
                       className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-lg border border-gray-100 p-2 min-w-[160px] z-10"
                     >
-                      <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
+                      <button 
+                        onClick={() => {
+                          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, "_blank", "width=600,height=400");
+                          setShowShareMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                      >
                         <FacebookIcon className="w-4 h-4 text-blue-600" />
                         Facebook
                       </button>
-                      <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
+                      <button 
+                        onClick={() => {
+                          window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(post?.title || "")}`, "_blank", "width=600,height=400");
+                          setShowShareMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                      >
                         <TwitterIcon className="w-4 h-4 text-sky-500" />
                         Twitter
                       </button>
-                      <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
+                      <button 
+                        onClick={() => {
+                          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, "_blank", "width=600,height=400");
+                          setShowShareMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                      >
                         <LinkedinIcon className="w-4 h-4 text-blue-700" />
                         LinkedIn
                       </button>
