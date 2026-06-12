@@ -295,20 +295,6 @@ function mapMenuUrl(url: string): string {
     cleanUrl = "/" + cleanUrl;
   }
 
-  // Define static policy mappings
-  const policyMappings: Record<string, string> = {
-    "/chinh-sach-an-toan": "/policies/safety",
-    "/chinh-sach-huy-ve": "/policies/cancel",
-    "/chinh-sach-doi-ve-bao-luu": "/policies/exchange",
-    "/chinh-sach-hoan-tien": "/policies/refund",
-    "/chinh-sach-bao-mat": "/policies/privacy",
-    "/dieu-khoan-su-dung": "/policies/terms",
-  };
-
-  if (policyMappings[cleanUrl]) {
-    return policyMappings[cleanUrl];
-  }
-
   return cleanUrl || "/";
 }
 

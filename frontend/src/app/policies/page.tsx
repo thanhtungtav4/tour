@@ -4,37 +4,37 @@ import { getSettings } from "@/lib/api";
 
 const policies = [
   {
-    href: "/policies/safety",
+    href: "/chinh-sach-an-toan",
     title: "Chính sách an toàn",
     description: "Cam kết an toàn, trang thiết bị, bảo hiểm du lịch và quy định cho khách hàng.",
     icon: "🛡️",
   },
   {
-    href: "/policies/cancel",
+    href: "/chinh-sach-huy-ve",
     title: "Chính sách hủy vé",
     description: "Quy định hủy tour, mức phí và quy trình hoàn tiền chi tiết.",
     icon: "❌",
   },
   {
-    href: "/policies/exchange",
+    href: "/chinh-sach-doi-ve-bao-luu",
     title: "Chính sách đổi vé, bảo lưu",
     description: "Đổi ngày khởi hành, bảo lưu tour và chuyển nhượng vé.",
     icon: "🔄",
   },
   {
-    href: "/policies/refund",
+    href: "/chinh-sach-hoan-tien",
     title: "Chính sách hoàn tiền",
     description: "Điều kiện, thời gian và quy trình hoàn tiền cho khách hàng.",
     icon: "💰",
   },
   {
-    href: "/policies/privacy",
+    href: "/chinh-sach-bao-mat",
     title: "Chính sách bảo mật",
     description: "Thu thập, sử dụng và bảo vệ thông tin cá nhân của khách hàng.",
     icon: "🔒",
   },
   {
-    href: "/policies/terms",
+    href: "/dieu-khoan-su-dung",
     title: "Điều khoản sử dụng",
     description: "Quy định chung về đăng ký, thanh toán, trách nhiệm và giải quyết tranh chấp.",
     icon: "📋",
