@@ -3301,7 +3301,7 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request)
                         if (is_object($p['pickup_point_id'])) {
                             $p_pickup_point_id = $p['pickup_point_id']->ID;
                         } elseif (is_array($p['pickup_point_id']) && isset($p['pickup_point_id']['ID'])) {
-                            $p_pickup_point_id = $p['pickup_point_id']->ID;
+                            $p_pickup_point_id = $p['pickup_point_id']['ID'];
                         } else {
                             $p_pickup_point_id = intval($p['pickup_point_id']);
                         }
