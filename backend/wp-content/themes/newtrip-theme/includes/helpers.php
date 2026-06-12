@@ -39,8 +39,7 @@ function newtrip_normalize_phone($phone) {
 // =============================================================================
 
 /**
- * Register ACF field group for Customer CPT
- * Compatible with both ACF Free and Pro
+ * Register ACF field group for Customer CPT (ACF Pro)
  */
 add_action('acf/init', 'newtrip_register_customer_acf_fields');
 function newtrip_register_customer_acf_fields() {
@@ -63,9 +62,15 @@ function newtrip_register_customer_acf_fields() {
         'style' => 'default',
         'label_placement' => 'top',
         'instruction_placement' => 'label',
-        'hide_on_screen' => ['the_content', 'featured_image'],
+        'hide_on_screen' => [],
         'fields' => [
-            // Row 1: Contact Info
+            // Tab: Thông tin liên hệ
+            [
+                'key' => 'field_customer_tab_contact',
+                'label' => 'Thông tin liên hệ',
+                'name' => 'tab_contact',
+                'type' => 'tab',
+            ],
             [
                 'key' => 'field_customer_phone',
                 'label' => 'Số điện thoại',
@@ -81,31 +86,29 @@ function newtrip_register_customer_acf_fields() {
                 'type' => 'email',
                 'wrapper' => ['width' => '50'],
             ],
-            // Row 2: Personal Info
             [
                 'key' => 'field_customer_birth_date',
                 'label' => 'Ngày sinh',
                 'name' => 'birth_date',
-                'type' => 'text',
-                'placeholder' => 'VD: 15/03/1990',
+                'type' => 'date_picker',
+                'display_format' => 'd/m/Y',
+                'return_format' => 'd/m/Y',
                 'wrapper' => ['width' => '33'],
             ],
+            // Tab: Thông tin kinh doanh
             [
-                'key' => 'field_customer_tags',
-                'label' => 'Phân loại',
-                'name' => 'tags',
-                'type' => 'text',
-                'placeholder' => 'VD: VIP, Tiềm năng, Khách quen',
-                'wrapper' => ['width' => '67'],
+                'key' => 'field_customer_tab_stats',
+                'label' => 'Thông tin kinh doanh',
+                'name' => 'tab_stats',
+                'type' => 'tab',
             ],
-            // Row 3: Stats (readonly)
             [
                 'key' => 'field_customer_total_bookings',
                 'label' => 'Số chuyến đi',
                 'name' => 'total_bookings',
                 'type' => 'number',
                 'disabled' => 1,
-                'wrapper' => ['width' => '25'],
+                'wrapper' => ['width' => '33'],
             ],
             [
                 'key' => 'field_customer_total_spent',
@@ -113,7 +116,7 @@ function newtrip_register_customer_acf_fields() {
                 'name' => 'total_spent',
                 'type' => 'number',
                 'disabled' => 1,
-                'wrapper' => ['width' => '25'],
+                'wrapper' => ['width' => '33'],
             ],
             [
                 'key' => 'field_customer_last_booking',
@@ -121,26 +124,37 @@ function newtrip_register_customer_acf_fields() {
                 'name' => 'last_booking_date',
                 'type' => 'text',
                 'disabled' => 1,
-                'wrapper' => ['width' => '50'],
+                'wrapper' => ['width' => '34'],
             ],
-            // Row 4: Notes
-            [
-                'key' => 'field_customer_notes',
-                'label' => 'Ghi chú',
-                'name' => 'notes',
-                'type' => 'textarea',
-                'rows' => 3,
-                'placeholder' => 'Thông tin thêm về khách hàng...',
-            ],
-            // Row 5: Bookings History (readonly)
             [
                 'key' => 'field_customer_bookings_history',
                 'label' => 'Lịch sử đặt tour',
                 'name' => 'bookings_history',
                 'type' => 'textarea',
                 'disabled' => 1,
+                'rows' => 6,
+            ],
+            // Tab: Ghi chú
+            [
+                'key' => 'field_customer_tab_notes',
+                'label' => 'Ghi chú',
+                'name' => 'tab_notes',
+                'type' => 'tab',
+            ],
+            [
+                'key' => 'field_customer_tags',
+                'label' => 'Tags / Phân loại',
+                'name' => 'tags',
+                'type' => 'text',
+                'placeholder' => 'VD: VIP, Tiềm năng, Khách quen',
+            ],
+            [
+                'key' => 'field_customer_notes',
+                'label' => 'Ghi chú',
+                'name' => 'notes',
+                'type' => 'textarea',
                 'rows' => 4,
-                'placeholder' => 'Lịch sử tự động cập nhật khi có booking mới',
+                'placeholder' => 'Thông tin thêm về khách hàng...',
             ],
         ],
     ]);
