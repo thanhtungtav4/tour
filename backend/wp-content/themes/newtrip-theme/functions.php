@@ -14,6 +14,7 @@ add_action('after_setup_theme', function () {
 // Include helper functions
 require_once get_template_directory() . '/includes/helpers.php';
 require_once get_template_directory() . '/includes/rollback.php';
+require_once get_template_directory() . '/includes/settings-page.php';
 
 // Tự động tạo page Check-in khi activate theme
 add_action('init', 'newtrip_create_checkin_page');
