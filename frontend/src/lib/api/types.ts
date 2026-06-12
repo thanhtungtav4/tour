@@ -300,6 +300,7 @@ export interface BookingLookupRow {
   payment_method: "cash" | "transfer";
   total_amount: number;
   payment_status: "unpaid" | "partial" | "paid" | "refunded";
+  email: string;
 }
 
 // Admin update booking status (POST /booking/{id}/status)

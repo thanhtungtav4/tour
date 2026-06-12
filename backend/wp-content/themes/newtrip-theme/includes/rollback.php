@@ -46,29 +46,63 @@ function newtrip_subtract_from_customer($phone, $booking_id, $booking_code, $amo
     if (!$customer_query->have_posts()) return;
     $customer_id = $customer_query->posts[0]->ID;
     
-    $history_raw = get_post_meta($customer_id, 'bookings_history', true) ?: [];
-    $history = is_array($history_raw) ? $history_raw : [];
+    $history_raw = get_post_meta($customer_id, 'bookings_history', true);
+    $history = [];
+    if (!empty($history_raw)) {
+        $history = is_array($history_raw) ? $history_raw : json_decode($history_raw, true);
+    }
+    if (!is_array($history)) {
+        $history = [];
+    }
     
     $new_history = [];
     foreach ($history as $h) {
-        if (($h['booking_id'] ?? 0) != $booking_id && ($h['booking_code'] ?? '') !== $booking_code) {
+        if (($h['booking_id'] ?? 0) != $booking_id && (!empty($booking_code) && ($h['booking_code'] ?? '') !== $booking_code)) {
             $new_history[] = $h;
         }
     }
     
-    update_post_meta($customer_id, 'bookings_history', $new_history);
-    update_post_meta($customer_id, 'total_bookings', count($new_history));
+    // Tính toán lại động tổng số chuyến đi và tổng chi tiêu từ lịch sử mới để tránh sai lệch cộng dồn
+    $total_bookings = 0;
+    $total_spent = 0;
     
-    if ($amount_to_subtract > 0) {
-        $current_spent = floatval(get_post_meta($customer_id, 'total_spent', true) ?: 0);
-        $new_spent = max(0, $current_spent - $amount_to_subtract);
-        update_post_meta($customer_id, 'total_spent', $new_spent);
+    foreach ($new_history as $h) {
+        $h_id = $h['booking_id'] ?? 0;
+        if (!$h_id) continue;
+        
+        $h_status = newtrip_get_field('status', $h_id) ?: ($h['status'] ?? 'pending');
+        if (!in_array($h_status, ['cancelled', 'refunded'])) {
+            $total_bookings++;
+            if ($h['is_representative'] ?? false) {
+                $total_spent += floatval(newtrip_get_field('total_amount', $h_id) ?: 0);
+            }
+        }
+    }
+    
+    if (function_exists('update_field')) {
+        update_field('field_customer_bookings_history', $new_history, $customer_id);
+        update_field('field_customer_total_bookings', $total_bookings, $customer_id);
+        update_field('field_customer_total_spent', $total_spent, $customer_id);
+    } else {
+        update_post_meta($customer_id, 'bookings_history', $new_history);
+        update_post_meta($customer_id, 'total_bookings', $total_bookings);
+        update_post_meta($customer_id, 'total_spent', $total_spent);
     }
     
     if (!empty($new_history)) {
         $last_entry = end($new_history);
-        update_post_meta($customer_id, 'last_booking_date', $last_entry['booking_date'] ?? date('Y-m-d H:i:s'));
+        $last_date = $last_entry['booking_date'] ?? date('Y-m-d H:i:s');
+        if (function_exists('update_field')) {
+            update_field('field_customer_last_booking', $last_date, $customer_id);
+        } else {
+            update_post_meta($customer_id, 'last_booking_date', $last_date);
+        }
     } else {
-        update_post_meta($customer_id, 'last_booking_date', '');
+        if (function_exists('update_field')) {
+            update_field('field_customer_last_booking', '', $customer_id);
+        } else {
+            update_post_meta($customer_id, 'last_booking_date', '');
+        }
     }
 }
+

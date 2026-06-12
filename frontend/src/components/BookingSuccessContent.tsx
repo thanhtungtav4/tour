@@ -65,6 +65,11 @@ export function BookingSuccessContent({
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const { settings } = useSettings();
 
+  // Thêm các state xác minh email bảo mật
+  const [userEmail, setUserEmail] = useState(email || "");
+  const [emailInput, setEmailInput] = useState("");
+  const [verificationError, setVerificationError] = useState("");
+
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
@@ -72,17 +77,36 @@ export function BookingSuccessContent({
   };
 
   useEffect(() => {
-    getBooking(bookingId, email)
+    if (!userEmail) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setVerificationError("");
+
+    getBooking(bookingId, userEmail)
       .then((data) => {
         setBooking(data);
       })
       .catch((err) => {
         console.error("Error fetching booking details:", err);
+        setBooking(null);
+        setVerificationError("Email không khớp hoặc mã đơn hàng không tồn tại. Vui lòng kiểm tra lại.");
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [bookingId, email]);
+  }, [bookingId, userEmail]);
+
+  const handleVerifyEmail = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput.trim()) {
+      setVerificationError("Vui lòng nhập email.");
+      return;
+    }
+    setUserEmail(emailInput.trim());
+  };
 
   const displayTourName = (booking && booking.tour.name) ? booking.tour.name : decodeURIComponent(tourName || "Tour");
   const displayDate = (booking && booking.departure.date) ? booking.departure.date : date;
@@ -97,6 +121,73 @@ export function BookingSuccessContent({
         day: "numeric",
       })
     : "Đang cập nhật";
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-3xl text-center">
+        <div className="animate-pulse space-y-4 py-12">
+          <div className="h-24 bg-gray-200 rounded-full mx-auto w-24 animate-bounce" />
+          <div className="h-8 bg-gray-200 rounded w-64 mx-auto" />
+          <div className="h-4 bg-gray-200 rounded w-96 mx-auto" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!booking) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 border border-gray-100"
+        >
+          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Xác minh bảo mật</h2>
+          <p className="text-gray-600 text-sm text-center mb-6">
+            Đơn đặt tour <strong>{bookingId}</strong> yêu cầu xác minh email liên hệ để hiển thị thông tin chi tiết và thanh toán chuyển khoản.
+          </p>
+
+          <form onSubmit={handleVerifyEmail} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1">Email liên hệ của bạn *</label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="VD: nguyenvan@example.com"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-gray-900 transition-colors"
+              />
+            </div>
+
+            {verificationError && (
+              <p className="text-sm text-rose-600 font-medium">{verificationError}</p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl shadow-md transition-colors"
+            >
+              Xác minh đơn hàng
+            </button>
+          </form>
+
+          <div className="mt-6 pt-6 border-t text-center">
+            <Link href="/" className="text-sm text-gray-500 hover:text-emerald-600 transition-colors inline-flex items-center gap-1">
+              Quay lại trang chủ <ArrowRightIcon className="w-4 h-4 rotate-180" />
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">

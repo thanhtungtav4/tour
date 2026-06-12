@@ -128,7 +128,7 @@ export default function BookingLookupPage() {
                     return (
                       <Link
                         key={row.booking_id}
-                        href={`/booking/success?bookingId=${encodeURIComponent(row.booking_id)}`}
+                        href={`/booking/success?bookingId=${encodeURIComponent(row.booking_id)}&email=${encodeURIComponent(row.email)}`}
                         className="block bg-white rounded-2xl border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all p-6"
                       >
                         <div className="flex items-start justify-between gap-4 mb-3">

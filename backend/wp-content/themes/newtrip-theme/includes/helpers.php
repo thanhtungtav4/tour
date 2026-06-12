@@ -161,6 +161,67 @@ function newtrip_register_customer_acf_fields() {
 }
 
 /**
+ * Định dạng lịch sử đặt tour (bookings_history) của Khách hàng để hiển thị trực quan trong WordPress Admin
+ */
+add_filter('acf/load_value/name=bookings_history', 'newtrip_format_customer_bookings_history', 10, 3);
+function newtrip_format_customer_bookings_history($value, $post_id, $field) {
+    if (empty($value)) {
+        return 'Chưa có lịch sử đặt tour.';
+    }
+    
+    // Hỗ trợ cả mảng PHP (WP Post Meta tự unserialize) và JSON string
+    $history = is_array($value) ? $value : json_decode($value, true);
+    if (!is_array($history) || empty($history)) {
+        return 'Chưa có lịch sử đặt tour.';
+    }
+    
+    $lines = [];
+    foreach ($history as $h) {
+        $code = $h['booking_code'] ?? 'N/A';
+        $tour = $h['tour_name'] ?? 'Không rõ tour';
+        $dep_date = $h['departure_date'] ?? 'N/A';
+        $date = !empty($dep_date) ? date('d/m/Y', strtotime($dep_date)) : 'N/A';
+        
+        $status = $h['status'] ?? 'pending';
+        $status_label = 'Chờ xử lý';
+        if ($status === 'confirmed') $status_label = 'Đã xác nhận';
+        elseif ($status === 'completed') $status_label = 'Đã hoàn thành';
+        elseif ($status === 'cancelled') $status_label = 'Đã hủy';
+        elseif ($status === 'refunded') $status_label = 'Đã hoàn tiền';
+        
+        $payment = $h['payment_status'] ?? 'unpaid';
+        $payment_label = 'Chưa thanh toán';
+        if ($payment === 'paid') $payment_label = 'Đã thanh toán';
+        elseif ($payment === 'partial') $payment_label = 'Thanh toán một phần';
+        
+        $role = ($h['is_representative'] ?? false) ? 'Người đặt' : 'Hành khách';
+        
+        $lines[] = sprintf(
+            "- Mã: %s | Tour: %s | Ngày đi: %s | Trạng thái: %s (%s) | Vai trò: %s",
+            $code,
+            $tour,
+            $date,
+            $status_label,
+            $payment_label,
+            $role
+        );
+    }
+    
+    return implode("\n", $lines);
+}
+
+/**
+ * Định dạng ngày đặt gần nhất để hiển thị trực quan trong WordPress Admin
+ */
+add_filter('acf/load_value/name=last_booking_date', 'newtrip_format_customer_last_booking_date', 10, 3);
+function newtrip_format_customer_last_booking_date($value, $post_id, $field) {
+    if (empty($value)) {
+        return '—';
+    }
+    return date('d/m/Y H:i', strtotime($value));
+}
+
+/**
  * Register Customer Tag taxonomy
  */
 add_action('init', 'newtrip_register_customer_tag_taxonomy');
