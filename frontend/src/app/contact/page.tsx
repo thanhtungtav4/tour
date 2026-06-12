@@ -5,6 +5,9 @@ import { getSettings, getContactPageData } from "@/lib/api";
 import type { Metadata } from "next";
 import { seoToMetadata } from "@/lib/seo";
 
+// Revalidate every 1 hour
+export const revalidate = 3600;
+
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const data = await getContactPageData();
