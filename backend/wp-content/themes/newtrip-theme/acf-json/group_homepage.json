@@ -1,0 +1,493 @@
+{
+  "key": "group_homepage",
+  "title": "Cấu hình Trang chủ Đôi Dép",
+  "fields": [
+    {
+      "key": "field_homepage_tab_hero",
+      "label": "Hero Section",
+      "name": "",
+      "type": "tab",
+      "instructions": "",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_homepage_hero_banner",
+      "label": "Banner nền trang chủ",
+      "name": "hero_banner",
+      "type": "image",
+      "instructions": "Ảnh nền chính hiển thị ở đầu trang chủ.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "return_format": "url",
+      "preview_size": "medium",
+      "library": "all",
+      "min_width": "",
+      "min_height": "",
+      "min_size": "",
+      "max_width": "",
+      "max_height": "",
+      "max_size": "",
+      "mime_types": ""
+    },
+    {
+      "key": "field_homepage_hero_badge",
+      "label": "Badge text",
+      "name": "hero_badge",
+      "type": "text",
+      "instructions": "Văn bản hiển thị trong khung bo tròn nhỏ ở trên tiêu đề chính.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "Trekking & Camping Experience",
+      "placeholder": "",
+      "prepend": "",
+      "append": "",
+      "maxlength": ""
+    },
+    {
+      "key": "field_homepage_hero_title",
+      "label": "Tiêu đề chính",
+      "name": "hero_title",
+      "type": "text",
+      "instructions": "Tiêu đề lớn chính của trang chủ. (Màu chữ xanh lục sẽ được áp dụng cho phần cuối cùng).",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "Khám phá thiên nhiên Việt Nam",
+      "placeholder": "",
+      "prepend": "",
+      "append": "",
+      "maxlength": ""
+    },
+    {
+      "key": "field_homepage_hero_subtitle",
+      "label": "Mô tả ngắn",
+      "name": "hero_subtitle",
+      "type": "textarea",
+      "instructions": "Văn bản mô tả ngắn dưới tiêu đề chính.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "Trải nghiệm những chuyến đi trekking, camping tuyệt vời nhất cùng đội ngũ hướng dẫn viên chuyên nghiệp",
+      "placeholder": "",
+      "maxlength": "",
+      "rows": 3,
+      "new_lines": ""
+    },
+    {
+      "key": "field_homepage_tab_about",
+      "label": "About Section",
+      "name": "",
+      "type": "tab",
+      "instructions": "",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_homepage_about_image",
+      "label": "Ảnh giới thiệu bên trái",
+      "name": "about_image",
+      "type": "image",
+      "instructions": "Ảnh minh họa cho phần 'Tại sao chọn Đôi Dép Adventure'.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "return_format": "url",
+      "preview_size": "medium",
+      "library": "all",
+      "min_width": "",
+      "min_height": "",
+      "min_size": "",
+      "max_width": "",
+      "max_height": "",
+      "max_size": "",
+      "mime_types": ""
+    },
+    {
+      "key": "field_homepage_about_badge",
+      "label": "Badge text giới thiệu",
+      "name": "about_badge",
+      "type": "text",
+      "instructions": "Ví dụ: Tại sao chọn Đôi Dép Adventure",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "Tại sao chọn Đôi Dép Adventure",
+      "placeholder": "",
+      "prepend": "",
+      "append": "",
+      "maxlength": ""
+    },
+    {
+      "key": "field_homepage_about_title",
+      "label": "Tiêu đề chính giới thiệu",
+      "name": "about_title",
+      "type": "text",
+      "instructions": "Ví dụ: Đối tác tin cậy cho hành trình đáng nhớ",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "Đối tác tin cậy cho hành trình đáng nhớ",
+      "placeholder": "",
+      "prepend": "",
+      "append": "",
+      "maxlength": ""
+    },
+    {
+      "key": "field_homepage_about_features",
+      "label": "Danh sách đặc điểm nổi bật (tối đa 4)",
+      "name": "about_features",
+      "type": "repeater",
+      "instructions": "Thêm các đặc tính vượt trội của dịch vụ.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "collapsed": "",
+      "min": 0,
+      "max": 4,
+      "layout": "block",
+      "button_label": "Thêm đặc điểm",
+      "sub_fields": [
+        {
+          "key": "field_homepage_feature_icon",
+          "label": "Icon",
+          "name": "icon",
+          "type": "select",
+          "instructions": "",
+          "required": 1,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "25",
+            "class": "",
+            "id": ""
+          },
+          "choices": {
+            "users": "Users (Đội ngũ chuyên nghiệp)",
+            "sparkles": "Sparkles (An toàn hàng đầu)",
+            "flame": "Flame (Trải nghiệm cá nhân hóa)",
+            "wallet": "Wallet (Giá cả minh bạch)"
+          },
+          "default_value": "users",
+          "allow_null": 0,
+          "multiple": 0,
+          "ui": 0,
+          "return_format": "value",
+          "ajax": 0,
+          "placeholder": ""
+        },
+        {
+          "key": "field_homepage_feature_gradient",
+          "label": "Màu Gradient",
+          "name": "gradient",
+          "type": "select",
+          "instructions": "",
+          "required": 1,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "25",
+            "class": "",
+            "id": ""
+          },
+          "choices": {
+            "from-[#16a249] to-[#10b981]": "Green (Xanh lá)",
+            "from-[#8b5cf6] to-[#a855f7]": "Purple (Tím)",
+            "from-[#f43f5e] to-[#fb7185]": "Red (Đỏ)",
+            "from-[#f59e0b] to-[#fbbf24]": "Orange (Cam)"
+          },
+          "default_value": "from-[#16a249] to-[#10b981]",
+          "allow_null": 0,
+          "multiple": 0,
+          "ui": 0,
+          "return_format": "value",
+          "ajax": 0,
+          "placeholder": ""
+        },
+        {
+          "key": "field_homepage_feature_title",
+          "label": "Tiêu đề đặc điểm",
+          "name": "title",
+          "type": "text",
+          "instructions": "",
+          "required": 1,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "50",
+            "class": "",
+            "id": ""
+          },
+          "default_value": "",
+          "placeholder": "",
+          "prepend": "",
+          "append": "",
+          "maxlength": ""
+        },
+        {
+          "key": "field_homepage_feature_desc",
+          "label": "Mô tả đặc điểm",
+          "name": "description",
+          "type": "textarea",
+          "instructions": "",
+          "required": 1,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "",
+            "class": "",
+            "id": ""
+          },
+          "default_value": "",
+          "placeholder": "",
+          "maxlength": "",
+          "rows": 2,
+          "new_lines": ""
+        }
+      ]
+    },
+    {
+      "key": "field_homepage_tab_partners",
+      "label": "Partners Section",
+      "name": "",
+      "type": "tab",
+      "instructions": "",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_homepage_partners_badge",
+      "label": "Badge text đối tác",
+      "name": "partners_badge",
+      "type": "text",
+      "instructions": "Ví dụ: Đối tác chiến lược",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "Đối tác chiến lược",
+      "placeholder": "",
+      "prepend": "",
+      "append": "",
+      "maxlength": ""
+    },
+    {
+      "key": "field_homepage_partners_title",
+      "label": "Tiêu đề đối tác",
+      "name": "partners_title",
+      "type": "text",
+      "instructions": "Ví dụ: Hệ sinh thái Đôi Dép Adventure",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "Hệ sinh thái Đôi Dép Adventure",
+      "placeholder": "",
+      "prepend": "",
+      "append": "",
+      "maxlength": ""
+    },
+    {
+      "key": "field_homepage_partners_subtitle",
+      "label": "Mô tả phụ đối tác",
+      "name": "partners_subtitle",
+      "type": "text",
+      "instructions": "Văn bản mô tả ngắn dòng 2 dưới tiêu đề.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "Kết nối đa dạng dịch vụ để mang đến trải nghiệm trekking trọn vẹn nhất",
+      "placeholder": "",
+      "prepend": "",
+      "append": "",
+      "maxlength": ""
+    },
+    {
+      "key": "field_homepage_partners_items",
+      "label": "Danh sách dịch vụ hệ sinh thái",
+      "name": "partners_items",
+      "type": "repeater",
+      "instructions": "Thêm các đối tác hoặc thành phần dịch vụ trong hệ sinh thái.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "collapsed": "",
+      "min": 0,
+      "max": "",
+      "layout": "block",
+      "button_label": "Thêm dịch vụ",
+      "sub_fields": [
+        {
+          "key": "field_homepage_partner_icon",
+          "label": "Biểu tượng (Emoji)",
+          "name": "icon",
+          "type": "text",
+          "instructions": "Nhập 1 ký tự emoji đại diện (Ví dụ: 🛡️, 🚗, 🏨, 🎒).",
+          "required": 1,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "20",
+            "class": "",
+            "id": ""
+          },
+          "default_value": "🛡️",
+          "placeholder": "",
+          "prepend": "",
+          "append": "",
+          "maxlength": ""
+        },
+        {
+          "key": "field_homepage_partner_name",
+          "label": "Tên dịch vụ",
+          "name": "name",
+          "type": "text",
+          "instructions": "Ví dụ: Bảo hiểm du lịch",
+          "required": 1,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "40",
+            "class": "",
+            "id": ""
+          },
+          "default_value": "",
+          "placeholder": "",
+          "prepend": "",
+          "append": "",
+          "maxlength": ""
+        },
+        {
+          "key": "field_homepage_partner_color",
+          "label": "Màu Gradient",
+          "name": "color",
+          "type": "select",
+          "instructions": "",
+          "required": 1,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "40",
+            "class": "",
+            "id": ""
+          },
+          "choices": {
+            "from-blue-500 to-blue-600": "Blue (Xanh dương)",
+            "from-emerald-500 to-emerald-600": "Emerald (Xanh lục)",
+            "from-purple-500 to-purple-600": "Purple (Tím)",
+            "from-orange-500 to-orange-600": "Orange (Cam)",
+            "from-pink-500 to-pink-600": "Pink (Hồng)",
+            "from-red-500 to-red-600": "Red (Đỏ)",
+            "from-amber-500 to-amber-600": "Amber (Vàng hổ phách)",
+            "from-cyan-500 to-cyan-600": "Cyan (Xanh ngọc)"
+          },
+          "default_value": "from-blue-500 to-blue-600",
+          "allow_null": 0,
+          "multiple": 0,
+          "ui": 0,
+          "return_format": "value",
+          "ajax": 0,
+          "placeholder": ""
+        },
+        {
+          "key": "field_homepage_partner_desc",
+          "label": "Mô tả ngắn dịch vụ",
+          "name": "desc",
+          "type": "textarea",
+          "instructions": "",
+          "required": 1,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "",
+            "class": "",
+            "id": ""
+          },
+          "default_value": "",
+          "placeholder": "",
+          "maxlength": "",
+          "rows": 2,
+          "new_lines": ""
+        }
+      ]
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "page_type",
+        "operator": "==",
+        "value": "front_page"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": ""
+}

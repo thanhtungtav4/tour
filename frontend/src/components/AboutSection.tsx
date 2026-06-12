@@ -32,7 +32,43 @@ const features = [
   },
 ];
 
-export function AboutSection() {
+const iconMap: Record<string, React.ComponentType<any>> = {
+  users: UsersIcon,
+  sparkles: SparklesIcon,
+  flame: FlameIcon,
+  wallet: WalletIcon,
+};
+
+interface AboutSectionProps {
+  data?: {
+    image?: string;
+    badge?: string;
+    title?: string;
+    features?: {
+      icon: string;
+      gradient: string;
+      title: string;
+      description: string;
+    }[] | null;
+  };
+}
+
+export function AboutSection({ data }: AboutSectionProps) {
+  const image = data?.image || "/images/about-adventure.jpg";
+  const badge = data?.badge || "Tại sao chọn Đôi Dép Adventure";
+  
+  const rawTitle = data?.title || "Đối tác tin cậy cho| hành trình đáng nhớ";
+  const titleParts = rawTitle.split("|");
+
+  const resolvedFeatures = (data?.features && data.features.length > 0)
+    ? data.features.map((f) => ({
+        icon: iconMap[f.icon] || UsersIcon,
+        gradient: f.gradient || "from-[#16a249] to-[#10b981]",
+        title: f.title,
+        description: f.description,
+      }))
+    : features;
+
   return (
     <section className="py-16 lg:py-24 overflow-hidden bg-gradient-to-b from-[#f8fafc] to-white">
       <div className="container mx-auto px-4">
@@ -46,7 +82,7 @@ export function AboutSection() {
             transition={{ duration: 0.8 }}
           >
             <Image
-              src="/images/about-adventure.jpg"
+              src={image}
               alt="Đôi Dép Adventure adventure team"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -68,16 +104,18 @@ export function AboutSection() {
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
               </svg>
-              Tại sao chọn Đôi Dép Adventure
+              {badge}
             </span>
 
             <h2 className="text-3xl lg:text-4xl font-extrabold text-[#0e1425] mb-8 leading-tight">
-              Đối tác tin cậy cho
-              <span className="text-[#16a249]"> hành trình đáng nhớ</span>
+              {titleParts[0]}
+              {titleParts[1] && (
+                <span className="text-[#16a249]">{titleParts[1]}</span>
+              )}
             </h2>
 
             <div className="features-list space-y-4">
-              {features.map((feature, index) => (
+              {resolvedFeatures.map((feature, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}

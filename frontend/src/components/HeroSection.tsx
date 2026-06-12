@@ -4,14 +4,30 @@ import Link from "next/link";
 import Image from "next/image";
 import { MapPinIcon, UsersIcon, CalendarIcon, MountainIcon, ChevronRightIcon } from "@/components/icons";
 
-export function HeroSection() {
+interface HeroSectionProps {
+  data?: {
+    banner?: string;
+    badge?: string;
+    title?: string;
+    subtitle?: string;
+  };
+}
+
+export function HeroSection({ data }: HeroSectionProps) {
+  const banner = data?.banner || "/images/banner3.jpg";
+  const badge = data?.badge || "Trekking & Camping Experience";
+  const subtitle = data?.subtitle || "Trải nghiệm những chuyến đi trekking, camping tuyệt vời nhất cùng đội ngũ hướng dẫn viên chuyên nghiệp";
+  
+  const rawTitle = data?.title || "Khám phá|thiên nhiên Việt Nam";
+  const titleParts = rawTitle.split("|");
+
   return (
     <section className="relative">
       {/* Banner with optimized image */}
       <div className="relative h-[400px] sm:h-[480px] lg:h-[560px] overflow-hidden">
         {/* Background Image (optimized using Next.js Image component) */}
         <Image
-          src="/images/banner3.jpg"
+          src={banner}
           alt="Đôi Dép Adventure - Khám phá thiên nhiên Việt Nam"
           fill
           priority
@@ -30,16 +46,18 @@ export function HeroSection() {
           <div className="mb-4">
             <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white text-sm font-medium">
               <MountainIcon className="w-4 h-4" />
-              Trekking & Camping Experience
+              {badge}
             </span>
           </div>
           <h1 className="sr-only">Đôi Dép Adventure - Khám phá thiên nhiên Việt Nam</h1>
           <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight max-w-4xl">
-            Khám phá
-            <span className="block text-emerald-400">thiên nhiên Việt Nam</span>
+            {titleParts[0]}
+            {titleParts[1] && (
+              <span className="block text-emerald-400">{titleParts[1]}</span>
+            )}
           </h2>
           <p className="text-lg sm:text-xl text-white/80 max-w-2xl mb-8 leading-relaxed">
-            Trải nghiệm những chuyến đi trekking, camping tuyệt vời nhất cùng đội ngũ hướng dẫn viên chuyên nghiệp
+            {subtitle}
           </p>
 
           {/* CTA Buttons */}

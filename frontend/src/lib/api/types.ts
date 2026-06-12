@@ -330,4 +330,36 @@ export interface ApiMenus {
   footer: ApiMenuItem[];
 }
 
+// Homepage static dynamic sections
+export interface ApiHomepageData {
+  hero: {
+    banner: string;
+    badge: string;
+    title: string;
+    subtitle: string;
+  };
+  about: {
+    image: string;
+    badge: string;
+    title: string;
+    features: {
+      icon: string;
+      gradient: string;
+      title: string;
+      description: string;
+    }[] | null;
+  };
+  ecosystem: {
+    badge: string;
+    title: string;
+    subtitle: string;
+    items: {
+      icon: string;
+      name: string;
+      desc: string;
+      color: string;
+    }[] | null;
+  };
+}
+
 

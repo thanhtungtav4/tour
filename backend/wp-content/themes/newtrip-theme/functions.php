@@ -678,6 +678,13 @@ add_action('rest_api_init', function () {
         'callback' => 'newtrip_api_get_menus',
         'permission_callback' => '__return_true',
     ]);
+
+    // 5.12 GET /wp-json/newtrip/v1/homepage - Lấy dữ liệu tĩnh của Trang chủ
+    register_rest_route('newtrip/v1', '/homepage', [
+        'methods' => 'GET',
+        'callback' => 'newtrip_api_get_homepage_data',
+        'permission_callback' => '__return_true',
+    ]);
 });
 
 // 6. Định nghĩa callbacks cho các API Endpoints
@@ -2723,6 +2730,87 @@ function newtrip_get_menu_items_by_location($location) {
     });
     
     return $items;
+}
+
+// 6.16 Lấy dữ liệu tĩnh của Trang chủ cho Frontend
+function newtrip_api_get_homepage_data(WP_REST_Request $request) {
+    // Tìm trang chủ tĩnh
+    $homepage_id = null;
+    $front_page_id = get_option('page_on_front');
+    if ($front_page_id) {
+        $homepage_id = intval($front_page_id);
+    } else {
+        // Dự phòng: tìm kiếm theo path 'trang-chu'
+        $homepage = get_page_by_path('trang-chu');
+        if ($homepage) {
+            $homepage_id = $homepage->ID;
+        }
+    }
+
+    $hero_banner = $homepage_id ? get_field('hero_banner', $homepage_id) : '';
+    $hero_badge = $homepage_id ? get_field('hero_badge', $homepage_id) : '';
+    $hero_title = $homepage_id ? get_field('hero_title', $homepage_id) : '';
+    $hero_subtitle = $homepage_id ? get_field('hero_subtitle', $homepage_id) : '';
+
+    $about_image = $homepage_id ? get_field('about_image', $homepage_id) : '';
+    $about_badge = $homepage_id ? get_field('about_badge', $homepage_id) : '';
+    $about_title = $homepage_id ? get_field('about_title', $homepage_id) : '';
+    $about_features = $homepage_id ? get_field('about_features', $homepage_id) : null;
+
+    $partners_badge = $homepage_id ? get_field('partners_badge', $homepage_id) : '';
+    $partners_title = $homepage_id ? get_field('partners_title', $homepage_id) : '';
+    $partners_subtitle = $homepage_id ? get_field('partners_subtitle', $homepage_id) : '';
+    $partners_items = $homepage_id ? get_field('partners_items', $homepage_id) : null;
+
+    // Định dạng features của About Section
+    $formatted_features = [];
+    if (!empty($about_features) && is_array($about_features)) {
+        foreach ($about_features as $feature) {
+            $formatted_features[] = [
+                'icon' => $feature['icon'] ?? 'users',
+                'gradient' => $feature['gradient'] ?? 'from-[#16a249] to-[#10b981]',
+                'title' => $feature['title'] ?? '',
+                'description' => $feature['description'] ?? '',
+            ];
+        }
+    }
+
+    // Định dạng items của Partners Section
+    $formatted_partners = [];
+    if (!empty($partners_items) && is_array($partners_items)) {
+        foreach ($partners_items as $item) {
+            $formatted_partners[] = [
+                'icon' => $item['icon'] ?? '🛡️',
+                'name' => $item['name'] ?? '',
+                'desc' => $item['desc'] ?? '',
+                'color' => $item['color'] ?? 'from-blue-500 to-blue-600',
+            ];
+        }
+    }
+
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => [
+            'hero' => [
+                'banner' => $hero_banner ?: '/images/banner3.jpg',
+                'badge' => $hero_badge ?: 'Trekking & Camping Experience',
+                'title' => $hero_title ?: 'Khám phá thiên nhiên Việt Nam',
+                'subtitle' => $hero_subtitle ?: 'Trải nghiệm những chuyến đi trekking, camping tuyệt vời nhất cùng đội ngũ hướng dẫn viên chuyên nghiệp',
+            ],
+            'about' => [
+                'image' => $about_image ?: '/images/about-adventure.jpg',
+                'badge' => $about_badge ?: 'Tại sao chọn Đôi Dép Adventure',
+                'title' => $about_title ?: 'Đối tác tin cậy cho hành trình đáng nhớ',
+                'features' => !empty($formatted_features) ? $formatted_features : null,
+            ],
+            'ecosystem' => [
+                'badge' => $partners_badge ?: 'Đối tác chiến lược',
+                'title' => $partners_title ?: 'Hệ sinh thái Đôi Dép Adventure',
+                'subtitle' => $partners_subtitle ?: 'Kết nối đa dạng dịch vụ để mang đến trải nghiệm trekking trọn vẹn nhất',
+                'items' => !empty($formatted_partners) ? $formatted_partners : null,
+            ]
+        ]
+    ], 200);
 }
 
 

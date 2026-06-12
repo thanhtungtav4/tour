@@ -12,7 +12,8 @@ import {
   ApiBlogPost,
   GeneralSettings,
   ApiPage,
-  ApiMenus
+  ApiMenus,
+  ApiHomepageData
 } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tour-api.nttung.dev/wp-json/newtrip/v1";
@@ -319,5 +320,17 @@ export async function getMenus(): Promise<ApiMenus> {
       url: mapMenuUrl(item.url),
     })),
   };
+}
+
+export async function getHomepageData(): Promise<ApiHomepageData> {
+  const url = `${API_BASE_URL}/homepage`;
+  const res = await fetch(url, {
+    next: { revalidate: 60 }, // Cache homepage data for 60 seconds
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.message || "Không thể tải cấu hình trang chủ");
+  }
+  return json.data;
 }
 

@@ -5,23 +5,31 @@ import { AboutSection } from "@/components/AboutSection";
 import { PartnersSection } from "@/components/PartnersSection";
 import { BlogSection } from "@/components/BlogSection";
 import { Footer } from "@/components/Footer";
+import { getHomepageData } from "@/lib/api";
 
-export default function Home() {
+export default async function Home() {
+  let homepageData = null;
+  try {
+    homepageData = await getHomepageData();
+  } catch (err) {
+    console.error("Failed to load homepage data in Server Component:", err);
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow pt-[81px]">
         {/* Hero */}
-        <HeroSection />
+        <HeroSection data={homepageData?.hero} />
 
         {/* FeaturedTours (Upcoming schedule with stats, filters and dynamic grid) */}
         <FeaturedTours />
 
         {/* Partners Section */}
-        <PartnersSection />
+        <PartnersSection data={homepageData?.ecosystem} />
 
         {/* About Section */}
-        <AboutSection />
+        <AboutSection data={homepageData?.about} />
 
         {/* Blog Section */}
         <BlogSection />
