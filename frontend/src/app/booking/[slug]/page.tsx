@@ -1053,8 +1053,8 @@ export default function BookingTourPage({ params }: PageProps) {
                     <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
                       <p className="text-sm text-amber-800">
                         Bằng việc xác nhận, bạn đồng ý với{" "}
-                        <a href="/policies/terms" className="underline font-medium">điều khoản dịch vụ</a> và{" "}
-                        <a href="/policies/cancel" className="underline font-medium">chính sách hủy tour</a> của Đôi Dép Adventure.
+                        <a href="/dieu-khoan-su-dung" className="underline font-medium">điều khoản dịch vụ</a> và{" "}
+                        <a href="/chinh-sach-huy-ve" className="underline font-medium">chính sách hủy tour</a> của Đôi Dép Adventure.
                       </p>
                     </div>
 

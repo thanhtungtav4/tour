@@ -3,12 +3,12 @@ import { Footer } from "@/components/Footer";
 import Link from "next/link";
 
 const policyLinks = [
-  { href: "/policies/safety", label: "Chính sách an toàn" },
-  { href: "/policies/cancel", label: "Chính sách hủy vé" },
-  { href: "/policies/exchange", label: "Chính sách đổi vé, bảo lưu" },
-  { href: "/policies/refund", label: "Chính sách hoàn tiền" },
-  { href: "/policies/privacy", label: "Chính sách bảo mật" },
-  { href: "/policies/terms", label: "Điều khoản sử dụng" },
+  { href: "/chinh-sach-an-toan", label: "Chính sách an toàn" },
+  { href: "/chinh-sach-huy-ve", label: "Chính sách hủy vé" },
+  { href: "/chinh-sach-doi-ve-bao-luu", label: "Chính sách đổi vé, bảo lưu" },
+  { href: "/chinh-sach-hoan-tien", label: "Chính sách hoàn tiền" },
+  { href: "/chinh-sach-bao-mat", label: "Chính sách bảo mật" },
+  { href: "/dieu-khoan-su-dung", label: "Điều khoản sử dụng" },
 ];
 
 export default function PoliciesLayout({ children }: { children: React.ReactNode }) {

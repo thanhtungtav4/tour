@@ -207,10 +207,10 @@ export function Footer() {
               © {currentYear} Đôi Dép Adventure. All rights reserved.
             </p>
             <div className="flex items-center gap-4 text-xs text-gray-500">
-              <Link href="/policies/privacy" className="hover:text-gray-900 transition-colors">
+              <Link href="/chinh-sach-bao-mat" className="hover:text-gray-900 transition-colors">
                 Chính sách bảo mật
               </Link>
-              <Link href="/policies/terms" className="hover:text-gray-900 transition-colors">
+              <Link href="/dieu-khoan-su-dung" className="hover:text-gray-900 transition-colors">
                 Điều khoản sử dụng
               </Link>
             </div>
