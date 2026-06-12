@@ -46,7 +46,7 @@ add_action('rest_api_init', function () {
             header('Access-Control-Allow-Origin: ' . $origin);
             header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, OPTIONS');
             header('Access-Control-Allow-Credentials: true');
-            header('Access-Control-Allow-Headers: Authorization, X-WP-Nonce, Content-Type');
+            header('Access-Control-Allow-Headers: Authorization, X-WP-Nonce, Content-Type, X-Staff-Token');
             header('Vary: Origin');
         }
         return $value;
