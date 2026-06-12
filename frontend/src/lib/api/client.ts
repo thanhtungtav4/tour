@@ -279,6 +279,39 @@ export async function updateBookingPassengers(
   return json;
 }
 
+function mapMenuUrl(url: string): string {
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("tel:") || url.startsWith("mailto:")) {
+    return url;
+  }
+  
+  // Normalize url by stripping trailing slash (except for home page '/')
+  let cleanUrl = url.trim();
+  if (cleanUrl !== "/" && cleanUrl.endsWith("/")) {
+    cleanUrl = cleanUrl.slice(0, -1);
+  }
+
+  // Ensure it starts with a '/' if it doesn't already (and is not empty)
+  if (cleanUrl && !cleanUrl.startsWith("/")) {
+    cleanUrl = "/" + cleanUrl;
+  }
+
+  // Define static policy mappings
+  const policyMappings: Record<string, string> = {
+    "/chinh-sach-an-toan": "/policies/safety",
+    "/chinh-sach-huy-ve": "/policies/cancel",
+    "/chinh-sach-doi-ve-bao-luu": "/policies/exchange",
+    "/chinh-sach-hoan-tien": "/policies/refund",
+    "/chinh-sach-bao-mat": "/policies/privacy",
+    "/dieu-khoan-su-dung": "/policies/terms",
+  };
+
+  if (policyMappings[cleanUrl]) {
+    return policyMappings[cleanUrl];
+  }
+
+  return cleanUrl || "/";
+}
+
 export async function getMenus(): Promise<ApiMenus> {
   const url = `${API_BASE_URL}/menus`;
   const res = await fetch(url, {
@@ -288,6 +321,17 @@ export async function getMenus(): Promise<ApiMenus> {
   if (!res.ok || !json.success) {
     throw new Error(json.error?.message || "Không thể tải danh sách menu");
   }
-  return json.data;
+  
+  const rawMenus = json.data as ApiMenus;
+  return {
+    primary: (rawMenus.primary || []).map((item) => ({
+      ...item,
+      url: mapMenuUrl(item.url),
+    })),
+    footer: (rawMenus.footer || []).map((item) => ({
+      ...item,
+      url: mapMenuUrl(item.url),
+    })),
+  };
 }
 
