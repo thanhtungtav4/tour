@@ -344,34 +344,66 @@ export async function getContactPageData(): Promise<ApiContactPageData> {
   return json.data;
 }
 
-export async function getCheckinPassengers(tourId?: number): Promise<CheckinPassenger[]> {
-  const url = new URL(`${API_BASE_URL}/checkin/passengers`);
-  if (tourId) {
-    url.searchParams.append("tour_id", tourId.toString());
-  }
-
-  const res = await fetch(url.toString(), {
-    cache: "no-store", // Check-in data must be fresh
+export async function checkinAuthenticate(pin: string): Promise<{ token: string; expires_in: number }> {
+  const res = await fetch(`${API_BASE_URL}/checkin/auth`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin }),
   });
 
   const json = await res.json();
   if (!res.ok || !json.success) {
-    throw new Error(json.error?.message || "Không thể tải danh sách check-in");
+    throw new Error(json.error?.message || "Xác thực thất bại");
   }
   return json.data;
 }
 
+export interface CheckinPassengersResponse {
+  passengers: CheckinPassenger[];
+  departureDates: string[];
+}
+
+export async function getCheckinPassengers(
+  token: string,
+  filters: { tourId?: number; departureDate?: string } = {}
+): Promise<CheckinPassengersResponse> {
+  const url = new URL(`${API_BASE_URL}/checkin/passengers`);
+  if (filters.tourId) {
+    url.searchParams.append("tour_id", filters.tourId.toString());
+  }
+  if (filters.departureDate) {
+    url.searchParams.append("departure_date", filters.departureDate);
+  }
+
+  const res = await fetch(url.toString(), {
+    cache: "no-store",
+    headers: { "X-Staff-Token": token },
+  });
+
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    const err = new Error(json.error?.message || "Không thể tải danh sách check-in") as Error & { status?: number };
+    err.status = res.status;
+    throw err;
+  }
+  return {
+    passengers: json.data ?? [],
+    departureDates: json.meta?.departure_dates ?? [],
+  };
+}
+
 export async function toggleCheckin(
+  token: string,
   bookingId: number,
   passengerIndex: number,
   type: "boarding" | "gathering",
   value: boolean
 ): Promise<{ booking_id: number; passenger_index: number; type: string; value: boolean }> {
-  const url = `${API_BASE_URL}/checkin/toggle`;
-  const res = await fetch(url, {
+  const res = await fetch(`${API_BASE_URL}/checkin/toggle`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "X-Staff-Token": token,
     },
     body: JSON.stringify({
       booking_id: bookingId,
@@ -383,7 +415,9 @@ export async function toggleCheckin(
 
   const json = await res.json();
   if (!res.ok || !json.success) {
-    throw new Error(json.error?.message || "Cập nhật check-in thất bại");
+    const err = new Error(json.error?.message || "Cập nhật check-in thất bại") as Error & { status?: number };
+    err.status = res.status;
+    throw err;
   }
   return json.data;
 }

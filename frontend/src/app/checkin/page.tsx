@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { getCheckinPassengers, toggleCheckin, getTours, CheckinPassenger, TourListItem } from "@/lib/api";
+import { getCheckinPassengers, toggleCheckin, getTours, CheckinPassenger, TourListItem } from "@/lib/api/client";
 import { SearchIcon, CloseIcon } from "@/components/icons";
 
 export default function CheckinPage() {
@@ -11,83 +11,105 @@ export default function CheckinPage() {
   const [tours, setTours] = useState<TourListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [updatingIds, setUpdatingIds] = useState<Record<string, boolean>>({});
 
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authToken, setAuthToken] = useState("");
   const [pinCode, setPinCode] = useState("");
   const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
 
   // Filters State
   const [selectedTourId, setSelectedTourId] = useState<number | "">("");
+  const [selectedDepartureDate, setSelectedDepartureDate] = useState<string>("");
+  const [availableDepartureDates, setAvailableDepartureDates] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [boardingFilter, setBoardingFilter] = useState<"all" | "checked" | "unchecked">("all");
   const [gatheringFilter, setGatheringFilter] = useState<"all" | "checked" | "unchecked">("all");
 
   // Load configuration and data
   useEffect(() => {
-    // Check localStorage for saved PIN authentication
-    const savedAuth = localStorage.getItem("staff_checkin_auth");
-    if (savedAuth === "true") {
+    // Check localStorage for saved token authentication
+    const savedToken = localStorage.getItem("staff_checkin_token");
+    if (savedToken) {
+      setAuthToken(savedToken);
       setIsAuthenticated(true);
     }
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !authToken) return;
 
     async function fetchData() {
       try {
         setLoading(true);
         setError("");
         const [passengersData, toursData] = await Promise.all([
-          getCheckinPassengers(selectedTourId ? Number(selectedTourId) : undefined),
-          getTours({ per_page: 100 }), // Load all active tours
+          getCheckinPassengers(authToken, {
+            tourId: selectedTourId ? Number(selectedTourId) : undefined,
+            departureDate: selectedDepartureDate || undefined,
+          }),
+          getTours({ per_page: 100 }),
         ]);
-        setPassengers(passengersData);
+        setPassengers(passengersData.passengers);
         setTours(toursData.data);
+        setAvailableDepartureDates(passengersData.departureDates);
       } catch (err: any) {
         console.error(err);
-        setError("Không thể tải danh sách dữ liệu. Vui lòng thử lại sau.");
+        if (err.status === 401) {
+          handleLogout();
+          setError("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        } else {
+          setError("Không thể tải danh sách dữ liệu. Vui lòng thử lại sau.");
+        }
       } finally {
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [isAuthenticated, selectedTourId]);
+  }, [isAuthenticated, authToken, selectedTourId, selectedDepartureDate]);
 
-  // Handle PIN code validation
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  // Handle PIN code validation via API
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinCode === "123456") {
+    setAuthLoading(true);
+    setAuthError("");
+
+    try {
+      const result = await checkinAuthenticate(pinCode);
+      setAuthToken(result.token);
       setIsAuthenticated(true);
-      setAuthError("");
-      localStorage.setItem("staff_checkin_auth", "true");
-    } else {
-      setAuthError("Mã PIN không chính xác. Vui lòng thử lại.");
+      localStorage.setItem("staff_checkin_token", result.token);
+    } catch (err: any) {
+      setAuthError(err.message || "Mã PIN không chính xác. Vui lòng thử lại.");
+    } finally {
+      setAuthLoading(false);
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setAuthToken("");
     setPinCode("");
-    localStorage.removeItem("staff_checkin_auth");
+    localStorage.removeItem("staff_checkin_token");
   };
 
-  // Toggle check-in status (boarding or gathering)
+  // Toggle check-in status (boarding or gathering) - per-row disable
   const handleToggleCheckin = async (
     passenger: CheckinPassenger,
     type: "boarding" | "gathering"
   ) => {
-    const uniqueId = `${passenger.booking_id}_${passenger.passenger_index}`;
-    setUpdatingId(`${uniqueId}_${type}`);
+    const uniqueId = `${passenger.booking_id}_${passenger.passenger_index}_${type}`;
+    setUpdatingIds((prev) => ({ ...prev, [uniqueId]: true }));
 
     try {
       const currentValue = type === "boarding" ? passenger.checked_in : passenger.checked_in_gathering;
       const targetValue = !currentValue;
 
       await toggleCheckin(
+        authToken,
         passenger.booking_id,
         passenger.passenger_index,
         type,
@@ -110,7 +132,11 @@ export default function CheckinPage() {
     } catch (err: any) {
       alert(err.message || "Cập nhật check-in thất bại");
     } finally {
-      setUpdatingId(null);
+      setUpdatingIds((prev) => {
+        const next = { ...prev };
+        delete next[uniqueId];
+        return next;
+      });
     }
   };
 
@@ -186,9 +212,20 @@ export default function CheckinPage() {
 
               <button
                 type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-4 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+                disabled={authLoading}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-3.5 px-4 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                Đăng nhập hệ thống
+                {authLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Đang xác thực...
+                  </>
+                ) : (
+                  "Đăng nhập hệ thống"
+                )}
               </button>
             </form>
           </div>
@@ -239,11 +276,14 @@ export default function CheckinPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-8 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
               {/* Tour select filter */}
-              <div className="md:col-span-4">
+              <div className="md:col-span-3">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Chọn Tour</label>
                 <select
                   value={selectedTourId}
-                  onChange={(e) => setSelectedTourId(e.target.value ? Number(e.target.value) : "")}
+                  onChange={(e) => {
+                    setSelectedTourId(e.target.value ? Number(e.target.value) : "");
+                    setSelectedDepartureDate(""); // Reset departure date when tour changes
+                  }}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
                 >
                   <option value="">Tất cả các tour</option>
@@ -255,8 +295,25 @@ export default function CheckinPage() {
                 </select>
               </div>
 
+              {/* Departure date filter */}
+              <div className="md:col-span-3">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Ngày khởi hành</label>
+                <select
+                  value={selectedDepartureDate}
+                  onChange={(e) => setSelectedDepartureDate(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                >
+                  <option value="">Tất cả ngày</option>
+                  {availableDepartureDates.map((date) => (
+                    <option key={date} value={date}>
+                      {new Date(date).toLocaleDateString("vi-VN", { weekday: "short", day: "numeric", month: "numeric" })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Text search filter */}
-              <div className="md:col-span-4 relative">
+              <div className="md:col-span-3 relative">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Tìm kiếm hành khách</label>
                 <div className="relative">
                   <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -279,8 +336,8 @@ export default function CheckinPage() {
               </div>
 
               {/* Boarding state filter */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Lên xe (Bus)</label>
+              <div className="md:col-span-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Lên xe</label>
                 <select
                   value={boardingFilter}
                   onChange={(e) => setBoardingFilter(e.target.value as any)}
@@ -383,14 +440,14 @@ export default function CheckinPage() {
                       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-50">
                         <button
                           onClick={() => handleToggleCheckin(p, "boarding")}
-                          disabled={updatingId !== null}
-                          className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] ${
+                          disabled={updatingIds[`${uniqueId}_boarding`]}
+                          className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] disabled:opacity-50 ${
                             p.checked_in
                               ? "bg-emerald-600 text-white hover:bg-emerald-700"
                               : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                           }`}
                         >
-                          {updatingId === `${uniqueId}_boarding` ? (
+                          {updatingIds[`${uniqueId}_boarding`] ? (
                             <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -409,14 +466,14 @@ export default function CheckinPage() {
 
                         <button
                           onClick={() => handleToggleCheckin(p, "gathering")}
-                          disabled={updatingId !== null}
-                          className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] ${
+                          disabled={updatingIds[`${uniqueId}_gathering`]}
+                          className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] disabled:opacity-50 ${
                             p.checked_in_gathering
                               ? "bg-indigo-600 text-white hover:bg-indigo-700"
                               : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                           }`}
                         >
-                          {updatingId === `${uniqueId}_gathering` ? (
+                          {updatingIds[`${uniqueId}_gathering`] ? (
                             <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -490,14 +547,14 @@ export default function CheckinPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-center">
                             <button
                               onClick={() => handleToggleCheckin(p, "boarding")}
-                              disabled={updatingId !== null}
-                              className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-[0.98] w-36 ${
+                              disabled={updatingIds[`${uniqueId}_boarding`]}
+                              className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-[0.98] w-36 disabled:opacity-50 ${
                                 p.checked_in
                                   ? "bg-emerald-600 text-white hover:bg-emerald-700"
                                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                               }`}
                             >
-                              {updatingId === `${uniqueId}_boarding` ? (
+                              {updatingIds[`${uniqueId}_boarding`] ? (
                                 <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -517,14 +574,14 @@ export default function CheckinPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-center">
                             <button
                               onClick={() => handleToggleCheckin(p, "gathering")}
-                              disabled={updatingId !== null}
-                              className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-[0.98] w-36 ${
+                              disabled={updatingIds[`${uniqueId}_gathering`]}
+                              className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-[0.98] w-36 disabled:opacity-50 ${
                                 p.checked_in_gathering
                                   ? "bg-indigo-600 text-white hover:bg-indigo-700"
                                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                               }`}
                             >
-                              {updatingId === `${uniqueId}_gathering` ? (
+                              {updatingIds[`${uniqueId}_gathering`] ? (
                                 <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />

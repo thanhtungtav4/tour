@@ -11,6 +11,10 @@ add_action('after_setup_theme', function () {
     add_theme_support('automatic-feed-links');
 });
 
+// Include helper functions
+require_once get_template_directory() . '/includes/helpers.php';
+require_once get_template_directory() . '/includes/rollback.php';
+
 // CORS cho Frontend (Vercel + dev local)
 add_action('rest_api_init', function () {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
@@ -2503,6 +2507,11 @@ function newtrip_calculate_booking_totals_on_save($post_id) {
     // Tự động đồng bộ thông tin khách hàng sang bảng Khách hàng (customer) cho mục đích remarketing
     newtrip_sync_booking_to_customer($post_id);
     
+    // Rollback customer stats khi booking bi huy hoac refund
+    if ($status === 'cancelled' || $status === 'refunded') {
+        newtrip_rollback_customer_for_booking($post_id);
+    }
+    
     // Đăng ký lại hook sau khi hoàn tất cập nhật
     add_action('acf/save_post', 'newtrip_calculate_booking_totals_on_save', 20);
 }
@@ -3097,25 +3106,43 @@ add_filter('acf/load_field_group', function($group) {
 // Callback API lấy danh sách thành viên check-in
 function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
     $tour_id = intval($request->get_param('tour_id'));
+    $departure_date = sanitize_text_field((string) $request->get_param('departure_date'));
     
     $args = [
         'post_type' => 'booking',
         'post_status' => 'any',
-        'posts_per_page' => -1,
+        'posts_per_page' => 500,
+    ];
+    
+    // Loại bỏ các booking đã huỷ / chờ duyệt khỏi danh sách check-in
+    $excluded_statuses = ['cancelled', 'pending', 'refunded'];
+    $args['meta_query'] = [
+        [
+            'key' => 'status',
+            'value' => $excluded_statuses,
+            'compare' => 'NOT IN'
+        ]
     ];
     
     if ($tour_id > 0) {
-        $args['meta_query'] = [
-            [
-                'key' => 'tour_id',
-                'value' => $tour_id,
-                'compare' => '='
-            ]
+        $args['meta_query'][] = [
+            'key' => 'tour_id',
+            'value' => $tour_id,
+            'compare' => '='
+        ];
+    }
+    
+    if ($departure_date !== '') {
+        $args['meta_query'][] = [
+            'key' => 'departure_date',
+            'value' => $departure_date,
+            'compare' => '='
         ];
     }
     
     $query = new WP_Query($args);
     $results = [];
+    $departures = [];
     
     if ($query->have_posts()) {
         foreach ($query->posts as $post) {
@@ -3139,6 +3166,9 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
             $tour_name = $tour_post ? $tour_post->post_title : 'Chuyến đi';
             
             $departure_date = newtrip_get_field('departure_date', $b_id) ?: '';
+            if (!empty($departure_date)) {
+                $departures[$departure_date] = true;
+            }
             
             $passengers = newtrip_get_field('passengers', $b_id);
             if (is_array($passengers)) {
@@ -3148,7 +3178,7 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
                         if (is_object($p['pickup_point_id'])) {
                             $p_pickup_point_id = $p['pickup_point_id']->ID;
                         } elseif (is_array($p['pickup_point_id']) && isset($p['pickup_point_id']['ID'])) {
-                            $p_pickup_point_id = $p['pickup_point_id']['ID'];
+                            $p_pickup_point_id = $p['pickup_point_id']->ID;
                         } else {
                             $p_pickup_point_id = intval($p['pickup_point_id']);
                         }
@@ -3183,9 +3213,15 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
         }
     }
     
+    $departure_dates = array_keys($departures);
+    sort($departure_dates);
+    
     return new WP_REST_Response([
         'success' => true,
-        'data' => $results
+        'data' => $results,
+        'meta' => [
+            'departure_dates' => $departure_dates,
+        ]
     ], 200);
 }
 
@@ -3310,7 +3346,7 @@ function newtrip_sync_booking_to_customer($booking_id) {
     $departure_date = newtrip_get_field('departure_date', $booking_id) ?: '';
     
     foreach ($people as $person) {
-        $phone = sanitize_text_field($person['phone']);
+        $phone = newtrip_normalize_phone(sanitize_text_field($person['phone']));
         $full_name = sanitize_text_field($person['full_name']);
         $email = sanitize_email($person['email']);
         $birth_date = sanitize_text_field($person['birth_date']);

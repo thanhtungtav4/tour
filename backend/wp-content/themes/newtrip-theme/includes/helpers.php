@@ -1,0 +1,290 @@
+<?php
+/**
+ * Helper functions for NewTrip Theme
+ * 
+ * Các hàm tiện ích dùng chung trong theme
+ */
+
+// =============================================================================
+// PHONE NORMALIZATION
+// =============================================================================
+
+/**
+ * Normalize Vietnamese phone number to standard format 0xxxxxxxxxx
+ * Handles: +84, 84, 0 prefixes
+ * 
+ * @param string $phone Raw phone number
+ * @return string Normalized phone number or empty string
+ */
+function newtrip_normalize_phone($phone) {
+    if (empty($phone)) return '';
+    
+    // Remove all non-digit characters
+    $clean = preg_replace('/[^0-9]/', '', $phone);
+    
+    // Handle +84 prefix
+    if (substr($clean, 0, 3) === '840') {
+        $clean = '0' . substr($clean, 3);
+    }
+    // Handle 84 prefix (without +)
+    elseif (substr($clean, 0, 2) === '84') {
+        $clean = '0' . substr($clean, 2);
+    }
+    
+    return $clean;
+}
+
+// =============================================================================
+// ACF FIELD GROUPS - Customer CPT
+// =============================================================================
+
+/**
+ * Register ACF field group for Customer CPT
+ * Chạy 1 lần duy nhất khi activate theme hoặc khi cần tạo fields
+ */
+add_action('acf/init', 'newtrip_register_customer_acf_fields');
+function newtrip_register_customer_acf_fields() {
+    if (!function_exists('acf_add_local_field_group')) return;
+    
+    acf_add_local_field_group([
+        'key' => 'group_customer_fields',
+        'title' => 'Thông tin Khách hàng',
+        'location' => [
+            [
+                [
+                    'param' => 'post_type',
+                    'operator' => '==',
+                    'value' => 'customer',
+                ],
+            ],
+        ],
+        'menu_order' => 0,
+        'position' => 'normal',
+        'style' => 'default',
+        'label_placement' => 'top',
+        'instruction_placement' => 'label',
+        'hide_on_screen' => ['the_content', 'featured_image'],
+        'fields' => [
+            // Phone - dùng làm unique identifier
+            [
+                'key' => 'field_customer_phone',
+                'label' => 'Số điện thoại',
+                'name' => 'phone',
+                'type' => 'text',
+                'required' => 1,
+                'wrapper' => ['width' => '50'],
+            ],
+            // Email
+            [
+                'key' => 'field_customer_email',
+                'label' => 'Email',
+                'name' => 'email',
+                'type' => 'email',
+                'wrapper' => ['width' => '50'],
+            ],
+            // Birth date
+            [
+                'key' => 'field_customer_birth_date',
+                'label' => 'Ngày sinh',
+                'name' => 'birth_date',
+                'type' => 'date_picker',
+                'display_format' => 'd/m/Y',
+                'return_format' => 'Y-m-d',
+                'wrapper' => ['width' => '33'],
+            ],
+            // Notes
+            [
+                'key' => 'field_customer_notes',
+                'label' => 'Ghi chú',
+                'name' => 'notes',
+                'type' => 'textarea',
+                'rows' => 3,
+                'wrapper' => ['width' => '67'],
+            ],
+            // Tags
+            [
+                'key' => 'field_customer_tags',
+                'label' => 'Tags / Phân loại',
+                'name' => 'tags',
+                'type' => 'taxonomy',
+                'taxonomy' => 'customer_tag',
+                'field_type' => 'checkbox',
+                'add_term' => 1,
+                'save_terms' => 1,
+                'load_terms' => 1,
+                'return_format' => 'id',
+                'wrapper' => ['width' => '50'],
+            ],
+            // Total bookings (readonly)
+            [
+                'key' => 'field_customer_total_bookings',
+                'label' => 'Số chuyến đi',
+                'name' => 'total_bookings',
+                'type' => 'number',
+                'readonly' => 1,
+                'wrapper' => ['width' => '25'],
+            ],
+            // Total spent (readonly)
+            [
+                'key' => 'field_customer_total_spent',
+                'label' => 'Tổng chi tiêu',
+                'name' => 'total_spent',
+                'type' => 'number',
+                'readonly' => 1,
+                'wrapper' => ['width' => '25'],
+            ],
+            // Last booking date (readonly)
+            [
+                'key' => 'field_customer_last_booking',
+                'label' => 'Ngày đặt gần nhất',
+                'name' => 'last_booking_date',
+                'type' => 'text',
+                'readonly' => 1,
+                'wrapper' => ['width' => '50'],
+            ],
+            // Bookings history (readonly, JSON)
+            [
+                'key' => 'field_customer_bookings_history',
+                'label' => 'Lịch sử đặt tour',
+                'name' => 'bookings_history',
+                'type' => 'textarea',
+                'readonly' => 1,
+                'rows' => 5,
+            ],
+        ],
+    ]);
+}
+
+/**
+ * Register Customer Tag taxonomy
+ */
+add_action('init', 'newtrip_register_customer_tag_taxonomy');
+function newtrip_register_customer_tag_taxonomy() {
+    register_taxonomy('customer_tag', 'customer', [
+        'labels' => [
+            'name' => __('Tags Khách hàng', 'newtrip-theme'),
+            'singular_name' => __('Tag', 'newtrip-theme'),
+            'add_new_item' => __('Thêm Tag mới', 'newtrip-theme'),
+        ],
+        'public' => false,
+        'show_ui' => true,
+        'hierarchical' => false,
+        'show_admin_column' => true,
+        'query_var' => true,
+    ]);
+}
+
+// =============================================================================
+// REST API - Customer endpoints
+// =============================================================================
+
+add_action('rest_api_init', function () {
+    // 5.17 GET /wp-json/newtrip/v1/customers - Danh sách khách hàng (cho remarketing)
+    register_rest_route('newtrip/v1', '/customers', [
+        'methods' => 'GET',
+        'callback' => 'newtrip_api_get_customers',
+        'permission_callback' => 'newtrip_checkin_permission_check',
+    ]);
+
+    // 5.18 GET /wp-json/newtrip/v1/customers/export - Export CSV khách hàng
+    register_rest_route('newtrip/v1', '/customers/export', [
+        'methods' => 'GET',
+        'callback' => 'newtrip_api_export_customers',
+        'permission_callback' => 'newtrip_checkin_permission_check',
+    ]);
+});
+
+function newtrip_api_get_customers(WP_REST_Request $request) {
+    $search = sanitize_text_field((string) $request->get_param('search'));
+    $page = max(1, intval($request->get_param('page') ?: 1));
+    $per_page = min(100, max(10, intval($request->get_param('per_page') ?: 20)));
+    
+    $args = [
+        'post_type' => 'customer',
+        'post_status' => 'publish',
+        'posts_per_page' => $per_page,
+        'paged' => $page,
+    ];
+    
+    if (!empty($search)) {
+        $args['s'] = $search;
+    }
+    
+    $query = new WP_Query($args);
+    $results = [];
+    
+    if ($query->have_posts()) {
+        foreach ($query->posts as $post) {
+            $customer_id = $post->ID;
+            $phone = get_post_meta($customer_id, 'phone', true) ?: '';
+            $email = get_post_meta($customer_id, 'email', true) ?: '';
+            $birth_date = get_post_meta($customer_id, 'birth_date', true) ?: '';
+            $total_bookings = intval(get_post_meta($customer_id, 'total_bookings', true) ?: 0);
+            $total_spent = floatval(get_post_meta($customer_id, 'total_spent', true) ?: 0);
+            $last_booking = get_post_meta($customer_id, 'last_booking_date', true) ?: '';
+            $history_raw = get_post_meta($customer_id, 'bookings_history', true) ?: [];
+            $history = is_array($history_raw) ? $history_raw : [];
+            
+            $results[] = [
+                'id' => $customer_id,
+                'name' => $post->post_title,
+                'phone' => $phone,
+                'email' => $email,
+                'birth_date' => $birth_date,
+                'total_bookings' => $total_bookings,
+                'total_spent' => $total_spent,
+                'last_booking_date' => $last_booking,
+                'recent_tours' => array_slice($history, -3, 3),
+            ];
+        }
+    }
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => $results,
+        'meta' => [
+            'total' => $query->found_posts,
+            'page' => $page,
+            'per_page' => $per_page,
+            'total_pages' => $query->max_num_pages,
+        ]
+    ], 200);
+}
+
+function newtrip_api_export_customers(WP_REST_Request $request) {
+    $args = [
+        'post_type' => 'customer',
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+    ];
+    
+    $query = new WP_Query($args);
+    $csv_rows = [];
+    $csv_rows[] = ['ID', 'Họ tên', 'SĐT', 'Email', 'Ngày sinh', 'Số chuyến', 'Tổng chi tiêu', 'Ngày đặt gần nhất'];
+    
+    if ($query->have_posts()) {
+        foreach ($query->posts as $post) {
+            $customer_id = $post->ID;
+            $csv_rows[] = [
+                $customer_id,
+                $post->post_title,
+                get_post_meta($customer_id, 'phone', true) ?: '',
+                get_post_meta($customer_id, 'email', true) ?: '',
+                get_post_meta($customer_id, 'birth_date', true) ?: '',
+                get_post_meta($customer_id, 'total_bookings', true) ?: '0',
+                get_post_meta($customer_id, 'total_spent', true) ?: '0',
+                get_post_meta($customer_id, 'last_booking_date', true) ?: '',
+            ];
+        }
+    }
+    
+    $output = fopen('php://output', 'w');
+    foreach ($csv_rows as $row) {
+        fputcsv($output, $row);
+    }
+    fclose($output);
+    
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=customers_export_' . date('Y-m-d') . '.csv');
+    exit;
+}
