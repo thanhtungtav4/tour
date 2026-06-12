@@ -276,17 +276,7 @@
           "name": "health_status",
           "type": "text",
           "wrapper": {
-            "width": "50"
-          }
-        },
-        {
-          "key": "field_booking_passenger_id_card_image",
-          "label": "Ảnh CCCD",
-          "name": "id_card_image",
-          "type": "image",
-          "return_format": "url",
-          "wrapper": {
-            "width": "35"
+            "width": "85"
           }
         }
       ]

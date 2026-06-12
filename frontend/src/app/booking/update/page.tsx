@@ -58,8 +58,6 @@ function BookingUpdateContent() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [uploadErrors, setUploadErrors] = useState<Record<number, string>>({});
-  const [uploadingState, setUploadingState] = useState<Record<number, boolean>>({});
   const [maxDate, setMaxDate] = useState("");
 
   // Local state for passengers
@@ -107,7 +105,6 @@ function BookingUpdateContent() {
           birth_date: p.birth_date || "",
           pickup_point_id: p.pickup_point_id || 0,
           health_status: p.health_status || "",
-          id_card_image: p.id_card_image || "",
           seat: p.seat || "",
           checked_in: p.checked_in || false,
         }));
@@ -143,28 +140,6 @@ function BookingUpdateContent() {
     setPassengers(updated);
   };
 
-  const handleUploadFile = async (index: number, file: File) => {
-    try {
-      setUploadErrors((prev) => ({ ...prev, [index]: "" }));
-      setUploadingState((prev) => ({ ...prev, [index]: true }));
-
-      // Temporary placeholder UI while uploading
-      handlePassengerChange(index, "id_card_image", "UPLOADING");
-
-      const res = await uploadFile(file);
-
-      handlePassengerChange(index, "id_card_image", res.url);
-    } catch (err: any) {
-      console.error(err);
-      setUploadErrors((prev) => ({
-        ...prev,
-        [index]: err.message || "Tải ảnh thất bại, vui lòng thử lại.",
-      }));
-      handlePassengerChange(index, "id_card_image", "");
-    } finally {
-      setUploadingState((prev) => ({ ...prev, [index]: false }));
-    }
-  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -430,66 +405,6 @@ function BookingUpdateContent() {
                             placeholder="Mắc bệnh tim, hen suyễn... hoặc ghi 'Không'"
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                           />
-                        </div>
-
-                        {/* CCCD Image Upload */}
-                        <div className="md:col-span-2 mt-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Ảnh CCCD / Passport (Mặt trước) <span className="text-gray-400 font-normal">(tùy chọn)</span>
-                          </label>
-
-                          {passenger.id_card_image === "UPLOADING" ? (
-                            <div className="flex items-center justify-center h-32 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
-                              <div className="flex flex-col items-center gap-2">
-                                <svg className="animate-spin h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                </svg>
-                                <span className="text-sm text-gray-500 font-medium">Đang tải ảnh lên...</span>
-                              </div>
-                            </div>
-                          ) : passenger.id_card_image ? (
-                            <div className="relative inline-block mt-1">
-                              <img
-                                src={passenger.id_card_image}
-                                alt="Ảnh CCCD"
-                                className="w-48 h-32 object-cover rounded-xl border border-gray-200 shadow-sm"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handlePassengerChange(index, "id_card_image", "")}
-                                className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md focus:outline-none"
-                                aria-label="Xóa ảnh"
-                              >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          ) : (
-                            <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-emerald-400 transition-all group">
-                              <div className="flex flex-col items-center gap-1.5 text-center px-4">
-                                <svg className="w-8 h-8 text-gray-400 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                                </svg>
-                                <span className="text-sm font-medium text-gray-600 group-hover:text-emerald-600 transition-colors">Tải ảnh lên (mặt trước CCCD)</span>
-                                <span className="text-xs text-gray-400">Chấp nhận JPG, PNG dung lượng dưới 5MB</span>
-                              </div>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleUploadFile(index, file);
-                                }}
-                                className="hidden"
-                              />
-                            </label>
-                          )}
-                          {uploadErrors[index] && (
-                            <p className="text-xs text-red-500 mt-1">{uploadErrors[index]}</p>
-                          )}
                         </div>
                       </div>
                     </div>

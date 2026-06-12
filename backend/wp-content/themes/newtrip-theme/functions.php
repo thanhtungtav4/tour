@@ -302,6 +302,74 @@ function newtrip_parse_itinerary_pro($value) {
     return $itinerary;
 }
 
+// Xử lý Thông số trekking ACF Pro Repeater (với fallback sang trường cũ)
+function newtrip_parse_specs_pro($value, $post_id) {
+    $specs = [];
+    if (is_array($value) && !empty($value)) {
+        foreach ($value as $row) {
+            $specs[] = [
+                'label' => isset($row['label']) ? trim($row['label']) : '',
+                'value' => isset($row['value']) ? trim($row['value']) : '',
+                'icon' => isset($row['icon']) ? trim($row['icon']) : 'footprints'
+            ];
+        }
+        return $specs;
+    }
+    
+    // Fallback sang các trường cấu hình đơn lẻ cũ
+    $distance = newtrip_get_field('distance', $post_id);
+    $elevation = newtrip_get_field('elevation', $post_id);
+    $max_altitude = newtrip_get_field('max_altitude', $post_id);
+    $terrain = newtrip_get_field('terrain', $post_id);
+    $age_min = newtrip_get_field('age_min', $post_id);
+    $fitness = newtrip_get_field('fitness', $post_id);
+    
+    if ($distance) {
+        $specs[] = [
+            'label' => 'Quãng đường',
+            'value' => $distance,
+            'icon' => 'footprints'
+        ];
+    }
+    if ($elevation) {
+        $specs[] = [
+            'label' => 'Độ cao dốc',
+            'value' => $elevation,
+            'icon' => 'mountain'
+        ];
+    }
+    if ($max_altitude) {
+        $specs[] = [
+            'label' => 'Độ cao cực đại',
+            'value' => $max_altitude,
+            'icon' => 'chevron-right'
+        ];
+    }
+    if ($terrain) {
+        $specs[] = [
+            'label' => 'Địa hình',
+            'value' => $terrain,
+            'icon' => 'compass'
+        ];
+    }
+    if ($age_min) {
+        $specs[] = [
+            'label' => 'Độ tuổi',
+            'value' => $age_min,
+            'icon' => 'users'
+        ];
+    }
+    if ($fitness) {
+        $specs[] = [
+            'label' => 'Thể lực',
+            'value' => $fitness,
+            'icon' => 'flame'
+        ];
+    }
+    
+    return $specs;
+}
+
 // Xử lý Ngày đi & Số chỗ trống từ ACF Pro Repeater
 function newtrip_parse_departure_dates_pro($value, $post_id) {
     $dates = [];
@@ -588,6 +656,7 @@ function newtrip_format_tour_detail($post) {
         'terrain' => newtrip_get_field('terrain', $post_id) ?: 'Rừng, đồi, suối',
         'age_min' => newtrip_get_field('age_min', $post_id) ?: '16+',
         'fitness' => newtrip_get_field('fitness', $post_id) ?: 'Trung bình',
+        'specs' => newtrip_parse_specs_pro(newtrip_get_field('specs', $post_id), $post_id),
         'gear_list' => newtrip_parse_gear_list_pro(newtrip_get_field('gear_list', $post_id)),
     ]);
 }
@@ -1111,13 +1180,6 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         $p_id_no = isset($p['id_number']) ? sanitize_text_field($p['id_number']) : '';
         $p_health = isset($p['health_status']) ? sanitize_text_field($p['health_status']) : '';
         $p_seat = isset($params['selected_seats'][$idx]) ? sanitize_text_field($params['selected_seats'][$idx]) : '';
-        $p_image = isset($p['id_card_image']) ? esc_url_raw($p['id_card_image']) : '';
-        if (!empty($p_image)) {
-            $attach_id = attachment_url_to_postid($p_image);
-            if ($attach_id) {
-                $p_image = $attach_id;
-            }
-        }
         
         $p_pickup_point_id = isset($p['pickup_point_id']) ? intval($p['pickup_point_id']) : 0;
         if (!$p_pickup_point_id) {
@@ -1142,7 +1204,6 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
             'seat' => $p_seat,
             'checked_in' => 0,
             'health_status' => $p_health,
-            'id_card_image' => $p_image,
         ];
         
         $passengers_response_data[] = [
@@ -1245,7 +1306,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         "- Số người: %d\n" .
         "- Tổng thanh toán: %s đ\n" .
         "- Phương thức: %s\n\n" .
-        "Để bổ sung, cập nhật thông tin của các thành viên tham gia chuyến đi (như Ngày sinh, SĐT, Bệnh lý...) và tải lên ảnh CCCD để ban tổ chức mua bảo hiểm du lịch bắt buộc, quý khách vui lòng truy cập liên kết sau:\n" .
+        "Để bổ sung, cập nhật thông tin của các thành viên tham gia chuyến đi (như Ngày sinh, SĐT, Bệnh lý...), quý khách vui lòng truy cập liên kết sau:\n" .
         "%s\n\n" .
         "Chúng tôi sẽ liên hệ lại qua số điện thoại %s để xác nhận thông tin sớm nhất.\n\nTrân trọng,\nĐôi Dép Adventure.",
         $full_name,
@@ -1388,12 +1449,6 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                     $pickup_name = $pickup_post->post_title;
                 }
             }
-            
-            $p_image = $p['id_card_image'] ?? '';
-            if (is_numeric($p_image) && intval($p_image) > 0) {
-                $p_image = wp_get_attachment_url(intval($p_image)) ?: '';
-            }
-            
             $passengers[] = [
                 'id' => 1000 + $idx,
                 'full_name' => $p['full_name'] ?? '',
@@ -1406,7 +1461,6 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'birth_date' => $p['birth_date'] ?? ($p['birth_year'] ?? ''),
                 'id_number' => $p['id_number'] ?? '',
                 'health_status' => $p['health_status'] ?? '',
-                'id_card_image' => $p_image,
             ];
         }
     } else {
@@ -1422,11 +1476,6 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
             }
         }
         
-        $p_image = get_post_meta($b_id, 'id_card_image', true) ?: '';
-        if (is_numeric($p_image) && intval($p_image) > 0) {
-            $p_image = wp_get_attachment_url(intval($p_image)) ?: '';
-        }
-        
         $passengers = [
             [
                 'id' => 1000,
@@ -1438,7 +1487,6 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'birth_date' => newtrip_get_field('birth_date', $b_id) ?: (newtrip_get_field('birth_year', $b_id) ?: ''),
                 'id_number' => newtrip_get_field('id_number', $b_id) ?: '',
                 'health_status' => newtrip_get_field('health_status', $b_id) ?: '',
-                'id_card_image' => $p_image,
             ]
         ];
     }
@@ -2597,13 +2645,6 @@ function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
         $p_health = sanitize_text_field($p['health_status'] ?? '');
         $p_seat = sanitize_text_field($p['seat'] ?? '');
         $p_checkin = !empty($p['checked_in']) ? 1 : 0;
-        $p_image = esc_url_raw($p['id_card_image'] ?? '');
-        if (!empty($p_image)) {
-            $attach_id = attachment_url_to_postid($p_image);
-            if ($attach_id) {
-                $p_image = $attach_id;
-            }
-        }
         $p_pickup_point_id = intval($p['pickup_point_id'] ?? 0);
 
         $passengers_data[] = [
@@ -2616,7 +2657,6 @@ function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
             'seat' => $p_seat,
             'checked_in' => $p_checkin,
             'health_status' => $p_health,
-            'id_card_image' => $p_image,
         ];
     }
 

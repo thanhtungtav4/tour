@@ -100,6 +100,7 @@ export interface TourDetail extends TourListItem {
   terrain?: string;
   age_min?: string;
   fitness?: string;
+  specs?: { label: string; value: string; icon?: string }[];
   gear_list?: { icon: string; name: string; important: boolean }[];
 }
 
@@ -204,7 +205,6 @@ export interface BookingDetail {
     birth_date?: string;
     id_number?: string;
     health_status?: string;
-    id_card_image?: string;
   }[];
   rental_items?: { id: string; name: string; qty: number; subtotal: number }[];
   payment: {

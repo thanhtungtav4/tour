@@ -76,6 +76,7 @@ const ITINERARY_ICON_MAP: Record<string, React.ComponentType<any>> = {
   "check-circle": CheckCircleIcon,
   "wallet": WalletIcon,
   "phone": PhoneIcon,
+  "chevron-right": ChevronRightIcon,
 };
 
 const getItineraryIcon = (activity: string) => {
@@ -279,16 +280,20 @@ export default function TourDetailPage({ params }: PageProps) {
     tour.gallery && tour.gallery.length > 0 ? tour.gallery : []
   );
 
-  // Tour Summary data
-  const tourSummary = {
-    duration: tour.duration,
-    distance: tour.distance || "8-10 km",
-    elevation: tour.elevation || "1.200m",
-    maxAltitude: tour.max_altitude || "1.500m",
-    terrain: tour.terrain || "Rừng, đồi, suối",
-    ageMin: tour.age_min || "16+",
-    fitness: tour.fitness || "Trung bình",
-  };
+  // Dynamic Trekking Specs list
+  const specItems = [
+    { label: "Thời gian", value: tour.duration || "1 ngày", icon: ClockIcon },
+    ...(tour.specs || []).map(spec => {
+      const IconComponent = spec.icon && ITINERARY_ICON_MAP[spec.icon]
+        ? ITINERARY_ICON_MAP[spec.icon]
+        : FootprintsIcon;
+      return {
+        label: spec.label,
+        value: spec.value,
+        icon: IconComponent
+      };
+    })
+  ];
 
   // Gear recommendations
   const gearList = tour.gear_list && tour.gear_list.length > 0 
@@ -480,15 +485,7 @@ export default function TourDetailPage({ params }: PageProps) {
                 Tour Summary
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {[
-                  { label: "Thời gian", value: tourSummary.duration, icon: ClockIcon },
-                  { label: "Quãng đường", value: tourSummary.distance, icon: FootprintsIcon },
-                  { label: "Độ cao", value: tourSummary.elevation, icon: MountainIcon },
-                  { label: "Độ cao MAX", value: tourSummary.maxAltitude, icon: ChevronRightIcon },
-                  { label: "Địa hình", value: tourSummary.terrain, icon: CompassIcon },
-                  { label: "Độ tuổi", value: tourSummary.ageMin, icon: UsersIcon },
-                  { label: "Thể lực", value: tourSummary.fitness, icon: FlameIcon },
-                ].map((item, index) => (
+                {specItems.map((item, index) => (
                   <div key={index} className="bg-white/10 rounded-xl p-4 text-center flex flex-col justify-between min-h-[110px]">
                     <item.icon className="w-5 h-5 mx-auto mb-1.5 opacity-80 flex-shrink-0" />
                     <div className="flex-grow flex items-center justify-center">
