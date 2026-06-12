@@ -1,19 +1,35 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PhoneIcon, MailIcon, MapPinIcon, ClockIcon } from "@/components/icons";
-import { getSettings } from "@/lib/api";
+import { getSettings, getContactPageData } from "@/lib/api";
 
 export default async function ContactPage() {
   let settings = null;
+  let contactData = null;
   try {
     settings = await getSettings();
   } catch (err) {
     console.error("Error fetching general settings for contact page:", err);
   }
+  try {
+    contactData = await getContactPageData();
+  } catch (err) {
+    console.error("Error fetching contact page data:", err);
+  }
 
   const hotline = settings?.hotline || "096 180 43 59";
   const email = settings?.contact_email || "doidepadventure@gmail.com";
   const address = settings?.company_address || "TP. Hồ Chí Minh";
+
+  // Hero Section
+  const heroBadge = contactData?.hero?.badge || "Liên hệ";
+  const heroTitle = contactData?.hero?.title || "Kết nối với Đôi Dép Adventure";
+  const heroSubtitle = contactData?.hero?.subtitle || "Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn. Liên hệ ngay để được tư vấn về các chuyến đi.";
+
+  // Form & Hours
+  const formTitle = contactData?.form_title || "Gửi tin nhắn cho chúng tôi";
+  const hours = contactData?.working_hours?.hours || "8:00 - 20:00";
+  const days = contactData?.working_hours?.days || "Thứ 2 - Chủ nhật";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -23,13 +39,13 @@ export default async function ContactPage() {
         <section className="py-16 px-4 bg-gradient-to-b from-white to-[#f5f7fa]">
           <div className="container mx-auto text-center">
             <span className="inline-block px-4 py-2 text-sm font-semibold text-[#16a249] bg-[rgba(22,162,73,0.1)] rounded-full mb-4">
-              Liên hệ
+              {heroBadge}
             </span>
             <h1 className="text-4xl lg:text-6xl font-extrabold text-[#0e1425] mb-4">
-              Kết nối với Đôi Dép Adventure
+              {heroTitle}
             </h1>
             <p className="text-lg text-[#6b7280] max-w-2xl mx-auto">
-              Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn. Liên hệ ngay để được tư vấn về các chuyến đi.
+              {heroSubtitle}
             </p>
           </div>
         </section>
@@ -74,15 +90,15 @@ export default async function ContactPage() {
                   <ClockIcon className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-bold text-[#0e1425] mb-2">Giờ làm việc</h3>
-                <p className="text-[#6b7280]">8:00 - 20:00</p>
-                <p className="text-sm text-[#6b7280] mt-1">Thứ 2 - Chủ nhật</p>
+                <p className="text-[#6b7280]">{hours}</p>
+                <p className="text-sm text-[#6b7280] mt-1">{days}</p>
               </div>
             </div>
 
             {/* Contact Form */}
             <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-[#0e1425] mb-6 text-center">
-                Gửi tin nhắn cho chúng tôi
+                {formTitle}
               </h2>
               <form className="space-y-4">
                 <div>

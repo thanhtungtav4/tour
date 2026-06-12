@@ -362,4 +362,50 @@ export interface ApiHomepageData {
   };
 }
 
+export interface ApiAboutPageData {
+  hero: {
+    badge: string;
+    title: string;
+    subtitle: string;
+  };
+  stats: {
+    number: string;
+    label: string;
+  }[];
+  mission: {
+    badge: string;
+    title: string;
+    description: string;
+    points: {
+      icon: string;
+      title: string;
+      desc: string;
+    }[] | null;
+    right_title: string;
+    right_subtitle: string;
+    right_icon: string;
+  };
+  team: {
+    badge: string;
+    title: string;
+    members: {
+      name: string;
+      role: string;
+      avatar_text?: string;
+      avatar_image?: string;
+    }[] | null;
+  };
+}
 
+export interface ApiContactPageData {
+  hero: {
+    badge: string;
+    title: string;
+    subtitle: string;
+  };
+  working_hours: {
+    hours: string;
+    days: string;
+  };
+  form_title: string;
+}

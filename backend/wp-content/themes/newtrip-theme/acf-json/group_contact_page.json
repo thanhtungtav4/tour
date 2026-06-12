@@ -1,0 +1,88 @@
+{
+  "key": "group_contact_page",
+  "title": "Cấu hình Trang Liên hệ",
+  "fields": [
+    {
+      "key": "field_contact_tab_hero",
+      "label": "Hero Section",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_contact_hero_badge",
+      "label": "Badge text",
+      "name": "contact_hero_badge",
+      "type": "text",
+      "default_value": "Liên hệ"
+    },
+    {
+      "key": "field_contact_hero_title",
+      "label": "Tiêu đề chính",
+      "name": "contact_hero_title",
+      "type": "text",
+      "default_value": "Kết nối với Đôi Dép Adventure"
+    },
+    {
+      "key": "field_contact_hero_subtitle",
+      "label": "Mô tả ngắn",
+      "name": "contact_hero_subtitle",
+      "type": "textarea",
+      "rows": 3,
+      "default_value": "Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn. Liên hệ ngay để được tư vấn về các chuyến đi."
+    },
+    {
+      "key": "field_contact_tab_form",
+      "label": "Form & Hours",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_contact_form_title",
+      "label": "Tiêu đề biểu mẫu liên hệ",
+      "name": "contact_form_title",
+      "type": "text",
+      "default_value": "Gửi tin nhắn cho chúng tôi"
+    },
+    {
+      "key": "field_contact_hours",
+      "label": "Giờ làm việc hàng ngày",
+      "name": "contact_hours",
+      "type": "text",
+      "default_value": "8:00 - 20:00",
+      "wrapper": {
+        "width": "50"
+      }
+    },
+    {
+      "key": "field_contact_days",
+      "label": "Ngày làm việc hàng tuần",
+      "name": "contact_days",
+      "type": "text",
+      "default_value": "Thứ 2 - Chủ nhật",
+      "wrapper": {
+        "width": "50"
+      }
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "page"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": ""
+}

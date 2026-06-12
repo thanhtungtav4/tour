@@ -1,0 +1,263 @@
+{
+  "key": "group_about_page",
+  "title": "Cấu hình Trang Giới thiệu",
+  "fields": [
+    {
+      "key": "field_about_tab_hero",
+      "label": "Hero Section",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_about_hero_badge",
+      "label": "Badge text",
+      "name": "about_hero_badge",
+      "type": "text",
+      "default_value": "Về chúng tôi"
+    },
+    {
+      "key": "field_about_hero_title",
+      "label": "Tiêu đề chính",
+      "name": "about_hero_title",
+      "type": "text",
+      "default_value": "Câu chuyện của Đôi Dép Adventure"
+    },
+    {
+      "key": "field_about_hero_subtitle",
+      "label": "Mô tả ngắn",
+      "name": "about_hero_subtitle",
+      "type": "textarea",
+      "rows": 3,
+      "default_value": "Đôi Dép Adventure được thành lập với niềm đam mê khám phá thiên nhiên Việt Nam. Chúng tôi tin rằng mỗi người đều xứng đáng được trải nghiệm những điều tuyệt vời nhất mà thiên nhiên mang lại."
+    },
+    {
+      "key": "field_about_tab_stats",
+      "label": "Stats Section",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_about_stats",
+      "label": "Số liệu thống kê",
+      "name": "about_stats",
+      "type": "repeater",
+      "layout": "table",
+      "button_label": "Thêm số liệu",
+      "min": 0,
+      "max": 4,
+      "sub_fields": [
+        {
+          "key": "field_about_stat_number",
+          "label": "Con số",
+          "name": "number",
+          "type": "text",
+          "required": 1,
+          "placeholder": "Ví dụ: 500+"
+        },
+        {
+          "key": "field_about_stat_label",
+          "label": "Nhãn mô tả",
+          "name": "label",
+          "type": "text",
+          "required": 1,
+          "placeholder": "Ví dụ: Chuyến đã tổ chức"
+        }
+      ]
+    },
+    {
+      "key": "field_about_tab_mission",
+      "label": "Mission Section",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_about_mission_badge",
+      "label": "Badge text sứ mệnh",
+      "name": "mission_badge",
+      "type": "text",
+      "default_value": "Sứ mệnh"
+    },
+    {
+      "key": "field_about_mission_title",
+      "label": "Tiêu đề sứ mệnh",
+      "name": "mission_title",
+      "type": "text",
+      "default_value": "Mang thiên nhiên đến gần hơn với mọi người"
+    },
+    {
+      "key": "field_about_mission_desc",
+      "label": "Mô tả sứ mệnh",
+      "name": "mission_desc",
+      "type": "textarea",
+      "rows": 4,
+      "default_value": "Chúng tôi không chỉ tổ chức các chuyến đi - chúng tôi tạo ra những trải nghiệm đáng nhớ, an toàn và phù hợp với mọi lứa tuổi. Từ những buổi dã ngoại đơn giản đến những chuyến trekking đầy thử thách, Đôi Dép Adventure luôn đồng hành cùng bạn."
+    },
+    {
+      "key": "field_about_mission_points",
+      "label": "Các điểm đặc trưng sứ mệnh (tối đa 3)",
+      "name": "mission_points",
+      "type": "repeater",
+      "layout": "block",
+      "button_label": "Thêm điểm đặc trưng",
+      "min": 0,
+      "max": 3,
+      "sub_fields": [
+        {
+          "key": "field_about_mission_point_icon",
+          "label": "Biểu tượng",
+          "name": "icon",
+          "type": "select",
+          "required": 1,
+          "choices": {
+            "users": "Users (Đội ngũ chuyên nghiệp)",
+            "shield": "Shield (An toàn hàng đầu)",
+            "sparkles": "Sparkles (Độc đáo)",
+            "wallet": "Wallet (Tiết kiệm)",
+            "map-pin": "Map Pin (Địa điểm)",
+            "calendar": "Calendar (Lịch trình)"
+          },
+          "default_value": "users"
+        },
+        {
+          "key": "field_about_mission_point_title",
+          "label": "Tiêu đề",
+          "name": "title",
+          "type": "text",
+          "required": 1
+        },
+        {
+          "key": "field_about_mission_point_desc",
+          "label": "Mô tả ngắn",
+          "name": "desc",
+          "type": "text",
+          "required": 1
+        }
+      ]
+    },
+    {
+      "key": "field_about_mission_right_title",
+      "label": "Tiêu đề khối bên phải",
+      "name": "mission_right_title",
+      "type": "text",
+      "default_value": "Khám phá Việt Nam"
+    },
+    {
+      "key": "field_about_mission_right_subtitle",
+      "label": "Mô tả khối bên phải",
+      "name": "mission_right_subtitle",
+      "type": "text",
+      "default_value": "Từ Bắc vào Nam"
+    },
+    {
+      "key": "field_about_mission_right_icon",
+      "label": "Biểu tượng khối bên phải",
+      "name": "mission_right_icon",
+      "type": "select",
+      "choices": {
+        "map-pin": "Map Pin (📍)",
+        "mountain": "Mountain (⛰️)",
+        "compass": "Compass (🧭)",
+        "tree": "Tree (🌲)"
+      },
+      "default_value": "map-pin"
+    },
+    {
+      "key": "field_about_tab_team",
+      "label": "Team Section",
+      "name": "",
+      "type": "tab",
+      "placement": "top",
+      "endpoint": 0
+    },
+    {
+      "key": "field_about_team_badge",
+      "label": "Badge text đội ngũ",
+      "name": "team_badge",
+      "type": "text",
+      "default_value": "Đội ngũ"
+    },
+    {
+      "key": "field_about_team_title",
+      "label": "Tiêu đề đội ngũ",
+      "name": "team_title",
+      "type": "text",
+      "default_value": "Những người đam mê khám phá"
+    },
+    {
+      "key": "field_about_team_members",
+      "label": "Thành viên đội ngũ",
+      "name": "team_members",
+      "type": "repeater",
+      "layout": "block",
+      "button_label": "Thêm thành viên",
+      "sub_fields": [
+        {
+          "key": "field_about_team_member_name",
+          "label": "Họ và tên",
+          "name": "name",
+          "type": "text",
+          "required": 1,
+          "wrapper": {
+            "width": "50"
+          }
+        },
+        {
+          "key": "field_about_team_member_role",
+          "label": "Chức vụ / Vai trò",
+          "name": "role",
+          "type": "text",
+          "required": 1,
+          "wrapper": {
+            "width": "50"
+          }
+        },
+        {
+          "key": "field_about_team_member_avatar_text",
+          "label": "Ký tự đại diện (Initial)",
+          "name": "avatar_text",
+          "type": "text",
+          "instructions": "Ví dụ: MA (Cho Minh Anh)",
+          "required": 0,
+          "wrapper": {
+            "width": "50"
+          }
+        },
+        {
+          "key": "field_about_team_member_avatar_image",
+          "label": "Ảnh chân dung",
+          "name": "avatar_image",
+          "type": "image",
+          "return_format": "url",
+          "preview_size": "thumbnail",
+          "required": 0,
+          "wrapper": {
+            "width": "50"
+          }
+        }
+      ]
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "page"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": ""
+}

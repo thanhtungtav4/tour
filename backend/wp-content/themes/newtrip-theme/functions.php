@@ -685,6 +685,20 @@ add_action('rest_api_init', function () {
         'callback' => 'newtrip_api_get_homepage_data',
         'permission_callback' => '__return_true',
     ]);
+
+    // 5.13 GET /wp-json/newtrip/v1/about - Lấy dữ liệu tĩnh của Trang Giới thiệu (About)
+    register_rest_route('newtrip/v1', '/about', [
+        'methods' => 'GET',
+        'callback' => 'newtrip_api_get_about_data',
+        'permission_callback' => '__return_true',
+    ]);
+
+    // 5.14 GET /wp-json/newtrip/v1/contact - Lấy dữ liệu tĩnh của Trang Liên hệ (Contact)
+    register_rest_route('newtrip/v1', '/contact', [
+        'methods' => 'GET',
+        'callback' => 'newtrip_api_get_contact_data',
+        'permission_callback' => '__return_true',
+    ]);
 });
 
 // 6. Định nghĩa callbacks cho các API Endpoints
@@ -2812,6 +2826,174 @@ function newtrip_api_get_homepage_data(WP_REST_Request $request) {
         ]
     ], 200);
 }
+
+// 6.17 Lấy dữ liệu tĩnh của Trang Giới thiệu (About)
+function newtrip_api_get_about_data(WP_REST_Request $request) {
+    $about_id = null;
+    $about_page = get_page_by_path('gioi-thieu');
+    if ($about_page) {
+        $about_id = $about_page->ID;
+    }
+
+    $hero_badge = $about_id ? get_field('about_hero_badge', $about_id) : '';
+    $hero_title = $about_id ? get_field('about_hero_title', $about_id) : '';
+    $hero_subtitle = $about_id ? get_field('about_hero_subtitle', $about_id) : '';
+
+    $stats_data = $about_id ? get_field('about_stats', $about_id) : null;
+    $mission_badge = $about_id ? get_field('mission_badge', $about_id) : '';
+    $mission_title = $about_id ? get_field('mission_title', $about_id) : '';
+    $mission_desc = $about_id ? get_field('mission_desc', $about_id) : '';
+    $mission_points = $about_id ? get_field('mission_points', $about_id) : null;
+    $mission_right_title = $about_id ? get_field('mission_right_title', $about_id) : '';
+    $mission_right_subtitle = $about_id ? get_field('mission_right_subtitle', $about_id) : '';
+    $mission_right_icon = $about_id ? get_field('mission_right_icon', $about_id) : '';
+
+    $team_badge = $about_id ? get_field('team_badge', $about_id) : '';
+    $team_title = $about_id ? get_field('team_title', $about_id) : '';
+    $team_members = $about_id ? get_field('team_members', $about_id) : null;
+
+    // Định dạng stats
+    $formatted_stats = [];
+    if (!empty($stats_data) && is_array($stats_data)) {
+        foreach ($stats_data as $stat) {
+            $formatted_stats[] = [
+                'number' => $stat['number'] ?? '',
+                'label' => $stat['label'] ?? '',
+            ];
+        }
+    }
+
+    // Định dạng mission points
+    $formatted_points = [];
+    if (!empty($mission_points) && is_array($mission_points)) {
+        foreach ($mission_points as $point) {
+            $formatted_points[] = [
+                'icon' => $point['icon'] ?? 'users',
+                'title' => $point['title'] ?? '',
+                'desc' => $point['desc'] ?? '',
+            ];
+        }
+    }
+
+    // Định dạng team members
+    $formatted_members = [];
+    if (!empty($team_members) && is_array($team_members)) {
+        foreach ($team_members as $member) {
+            $formatted_members[] = [
+                'name' => $member['name'] ?? '',
+                'role' => $member['role'] ?? '',
+                'avatar_text' => $member['avatar_text'] ?? '',
+                'avatar_image' => $member['avatar_image'] ?? '',
+            ];
+        }
+    }
+
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => [
+            'hero' => [
+                'badge' => $hero_badge ?: 'Về chúng tôi',
+                'title' => $hero_title ?: 'Câu chuyện của Đôi Dép Adventure',
+                'subtitle' => $hero_subtitle ?: 'Đôi Dép Adventure được thành lập với niềm đam mê khám phá thiên nhiên Việt Nam. Chúng tôi tin rằng mỗi người đều xứng đáng được trải nghiệm những điều tuyệt vời nhất mà thiên nhiên mang lại.',
+            ],
+            'stats' => !empty($formatted_stats) ? $formatted_stats : [
+                ['number' => '500+', 'label' => 'Chuyến đã tổ chức'],
+                ['number' => '3000+', 'label' => 'Khách hàng'],
+                ['number' => '50+', 'label' => 'Tuyến đường'],
+                ['number' => '5', 'label' => 'Năm kinh nghiệm'],
+            ],
+            'mission' => [
+                'badge' => $mission_badge ?: 'Sứ mệnh',
+                'title' => $mission_title ?: 'Mang thiên nhiên đến gần hơn với mọi người',
+                'description' => $mission_desc ?: 'Chúng tôi không chỉ tổ chức các chuyến đi - chúng tôi tạo ra những trải nghiệm đáng nhớ, an toàn và phù hợp với mọi lứa tuổi. Từ những buổi dã ngoại đơn giản đến những chuyến trekking đầy thử thách, Đôi Dép Adventure luôn đồng hành cùng bạn.',
+                'points' => !empty($formatted_points) ? $formatted_points : [
+                    ['icon' => 'users', 'title' => 'Đội ngũ chuyên nghiệp', 'desc' => 'Hướng dẫn viên giàu kinh nghiệm, được đào tạo bài bản'],
+                    ['icon' => 'shield', 'title' => 'An toàn là ưu tiên số 1', 'desc' => 'Trang thiết bị chất lượng cao, quy trình an toàn nghiêm ngặt'],
+                ],
+                'right_title' => $mission_right_title ?: 'Khám phá Việt Nam',
+                'right_subtitle' => $mission_right_subtitle ?: 'Từ Bắc vào Nam',
+                'right_icon' => $mission_right_icon ?: 'map-pin',
+            ],
+            'team' => [
+                'badge' => $team_badge ?: 'Đội ngũ',
+                'title' => $team_title ?: 'Những người đam mê khám phá',
+                'members' => !empty($formatted_members) ? $formatted_members : [
+                    ['name' => 'Minh Anh', 'role' => 'Founder & CEO', 'avatar_text' => 'MA'],
+                    ['name' => 'Hoàng Nam', 'role' => 'Head Guide', 'avatar_text' => 'HN'],
+                    ['name' => 'Thu Hà', 'role' => 'Operations Manager', 'avatar_text' => 'TH'],
+                    ['name' => 'Văn Đức', 'role' => 'Lead Trekker', 'avatar_text' => 'VD'],
+                ],
+            ]
+        ]
+    ], 200);
+}
+
+// 6.18 Lấy dữ liệu tĩnh của Trang Liên hệ (Contact)
+function newtrip_api_get_contact_data(WP_REST_Request $request) {
+    $contact_id = null;
+    $contact_page = get_page_by_path('lien-he');
+    if ($contact_page) {
+        $contact_id = $contact_page->ID;
+    }
+
+    $hero_badge = $contact_id ? get_field('contact_hero_badge', $contact_id) : '';
+    $hero_title = $contact_id ? get_field('contact_hero_title', $contact_id) : '';
+    $hero_subtitle = $contact_id ? get_field('contact_hero_subtitle', $contact_id) : '';
+
+    $form_title = $contact_id ? get_field('contact_form_title', $contact_id) : '';
+    $hours = $contact_id ? get_field('contact_hours', $contact_id) : '';
+    $days = $contact_id ? get_field('contact_days', $contact_id) : '';
+
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => [
+            'hero' => [
+                'badge' => $hero_badge ?: 'Liên hệ',
+                'title' => $hero_title ?: 'Kết nối với Đôi Dép Adventure',
+                'subtitle' => $hero_subtitle ?: 'Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn. Liên hệ ngay để được tư vấn về các chuyến đi.',
+            ],
+            'working_hours' => [
+                'hours' => $hours ?: '8:00 - 20:00',
+                'days' => $days ?: 'Thứ 2 - Chủ nhật',
+            ],
+            'form_title' => $form_title ?: 'Gửi tin nhắn cho chúng tôi',
+        ]
+    ], 200);
+}
+
+// 7. Đồng bộ điều kiện hiển thị của nhóm ACF About & Contact động dựa trên Slug
+add_filter('acf/load_field_group', function($group) {
+    if ($group['key'] === 'group_about_page') {
+        $page = get_page_by_path('gioi-thieu');
+        if ($page) {
+            $group['location'] = [
+                [
+                    [
+                        'param' => 'post',
+                        'operator' => '==',
+                        'value' => $page->ID,
+                    ]
+                ]
+            ];
+        }
+    }
+    if ($group['key'] === 'group_contact_page') {
+        $page = get_page_by_path('lien-he');
+        if ($page) {
+            $group['location'] = [
+                [
+                    [
+                        'param' => 'post',
+                        'operator' => '==',
+                        'value' => $page->ID,
+                    ]
+                ]
+            ];
+        }
+    }
+    return $group;
+});
+
 
 
 

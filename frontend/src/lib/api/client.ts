@@ -13,7 +13,9 @@ import {
   GeneralSettings,
   ApiPage,
   ApiMenus,
-  ApiHomepageData
+  ApiHomepageData,
+  ApiAboutPageData,
+  ApiContactPageData
 } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tour-api.nttung.dev/wp-json/newtrip/v1";
@@ -330,6 +332,30 @@ export async function getHomepageData(): Promise<ApiHomepageData> {
   const json = await res.json();
   if (!res.ok || !json.success) {
     throw new Error(json.error?.message || "Không thể tải cấu hình trang chủ");
+  }
+  return json.data;
+}
+
+export async function getAboutPageData(): Promise<ApiAboutPageData> {
+  const url = `${API_BASE_URL}/about`;
+  const res = await fetch(url, {
+    next: { revalidate: 60 }, // Cache about page data for 60 seconds
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.message || "Không thể tải cấu hình trang giới thiệu");
+  }
+  return json.data;
+}
+
+export async function getContactPageData(): Promise<ApiContactPageData> {
+  const url = `${API_BASE_URL}/contact`;
+  const res = await fetch(url, {
+    next: { revalidate: 60 }, // Cache contact page data for 60 seconds
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.message || "Không thể tải cấu hình trang liên hệ");
   }
   return json.data;
 }
