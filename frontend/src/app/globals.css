@@ -242,3 +242,66 @@
     display: none;
   }
 }
+
+/* Dynamic WordPress HTML content styling */
+.dynamic-policy-content {
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  p {
+    color: #4b5563;
+    line-height: 1.625;
+    margin-bottom: 1rem;
+  }
+  strong {
+    font-weight: 600;
+    color: var(--foreground);
+  }
+  ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    color: #4b5563;
+    margin-bottom: 1rem;
+    margin-top: 0.5rem;
+  }
+  ul li {
+    margin-bottom: 0.5rem;
+  }
+  ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+    color: #4b5563;
+    margin-bottom: 1rem;
+    margin-top: 0.5rem;
+  }
+  ol li {
+    margin-bottom: 0.5rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+  }
+  th {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+  }
+  td {
+    border: 1px solid #e5e7eb;
+    padding: 0.75rem 1rem;
+    color: #4b5563;
+  }
+  tr:nth-child(even) {
+    background-color: #f9fafb;
+  }
+}
