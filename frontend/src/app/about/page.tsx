@@ -13,6 +13,25 @@ import {
 } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { getAboutPageData } from "@/lib/api";
+import type { Metadata } from "next";
+import { seoToMetadata } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const data = await getAboutPageData();
+    const fallback: Metadata = {
+      title: "Giới thiệu | Đôi Dép Adventure",
+      description: "Câu chuyện của Đôi Dép Adventure - Đối tác tin cậy cho hành trình trekking đáng nhớ.",
+    };
+    return seoToMetadata(data.seo, fallback);
+  } catch {
+    return {
+      title: "Giới thiệu | Đôi Dép Adventure",
+      description: "Câu chuyện của Đôi Dép Adventure - Đối tác tin cậy cho hành trình trekking đáng nhớ.",
+    };
+  }
+}
+
 
 const iconMap: Record<string, React.ComponentType<any>> = {
   users: UsersIcon,

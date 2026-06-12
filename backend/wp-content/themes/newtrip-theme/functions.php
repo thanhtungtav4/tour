@@ -2427,6 +2427,7 @@ function newtrip_api_get_page_by_slug(WP_REST_Request $request) {
         'slug' => $post->post_name,
         'title' => $post->post_title,
         'content' => apply_filters('the_content', $post->post_content),
+        'seo' => newtrip_get_yoast_seo($post->ID),
     ];
     
     return new WP_REST_Response([
@@ -2805,6 +2806,7 @@ function newtrip_api_get_homepage_data(WP_REST_Request $request) {
     return new WP_REST_Response([
         'success' => true,
         'data' => [
+            'seo' => $homepage_id ? newtrip_get_yoast_seo($homepage_id) : null,
             'hero' => [
                 'banner' => $hero_banner ?: '/images/banner3.jpg',
                 'badge' => $hero_badge ?: 'Trekking & Camping Experience',
@@ -2923,7 +2925,8 @@ function newtrip_api_get_about_data(WP_REST_Request $request) {
                     ['name' => 'Thu Hà', 'role' => 'Operations Manager', 'avatar_text' => 'TH'],
                     ['name' => 'Văn Đức', 'role' => 'Lead Trekker', 'avatar_text' => 'VD'],
                 ],
-            ]
+            ],
+            'seo' => $about_id ? newtrip_get_yoast_seo($about_id) : null
         ]
     ], 200);
 }
@@ -2947,6 +2950,7 @@ function newtrip_api_get_contact_data(WP_REST_Request $request) {
     return new WP_REST_Response([
         'success' => true,
         'data' => [
+            'seo' => $contact_id ? newtrip_get_yoast_seo($contact_id) : null,
             'hero' => [
                 'badge' => $hero_badge ?: 'Liên hệ',
                 'title' => $hero_title ?: 'Kết nối với Đôi Dép Adventure',

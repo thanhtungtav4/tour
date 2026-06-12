@@ -2,6 +2,24 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PhoneIcon, MailIcon, MapPinIcon, ClockIcon } from "@/components/icons";
 import { getSettings, getContactPageData } from "@/lib/api";
+import type { Metadata } from "next";
+import { seoToMetadata } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const data = await getContactPageData();
+    const fallback: Metadata = {
+      title: "Liên hệ | Đôi Dép Adventure",
+      description: "Kết nối với Đôi Dép Adventure - Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn.",
+    };
+    return seoToMetadata(data.seo, fallback);
+  } catch {
+    return {
+      title: "Liên hệ | Đôi Dép Adventure",
+      description: "Kết nối với Đôi Dép Adventure - Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn.",
+    };
+  }
+}
 
 export default async function ContactPage() {
   let settings = null;

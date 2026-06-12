@@ -3,10 +3,45 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { seoToMetadata } from "@/lib/seo";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const page = await getPageBySlug(slug);
+    const fallback: Metadata = {
+      title: `${page.title} | Đôi Dép Adventure`,
+      description: page.title,
+      openGraph: {
+        title: page.title,
+        description: page.title,
+      },
+    };
+    return seoToMetadata(page.seo, fallback);
+  } catch {
+    const getStaticTitle = (slugStr: string) => {
+      switch (slugStr) {
+        case "chinh-sach-an-toan": return "Chính sách an toàn";
+        case "chinh-sach-huy-ve": return "Chính sách hủy vé";
+        case "chinh-sach-doi-ve-bao-luu": return "Chính sách đổi vé, bảo lưu";
+        case "chinh-sach-hoan-tien": return "Chính sách hoàn tiền";
+        case "chinh-sach-bao-mat": return "Chính sách bảo mật";
+        case "dieu-khoan-su-dung": return "Điều khoản sử dụng";
+        default: return "Trang không tồn tại";
+      }
+    };
+    const title = getStaticTitle(slug);
+    return {
+      title: `${title} | Đôi Dép Adventure`,
+    };
+  }
+}
+
 
 const policyLinks = [
   { href: "/chinh-sach-an-toan", label: "Chính sách an toàn" },

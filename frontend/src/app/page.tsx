@@ -6,6 +6,24 @@ import { PartnersSection } from "@/components/PartnersSection";
 import { BlogSection } from "@/components/BlogSection";
 import { Footer } from "@/components/Footer";
 import { getHomepageData } from "@/lib/api";
+import type { Metadata } from "next";
+import { seoToMetadata } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const data = await getHomepageData();
+    const fallback: Metadata = {
+      title: "Đôi Dép Adventure | Chuyến đi trekking, cắm trại dã ngoại chuyên nghiệp",
+      description: "Trải nghiệm những chuyến đi trekking, camping tuyệt vời nhất cùng đội ngũ hướng dẫn viên chuyên nghiệp.",
+    };
+    return seoToMetadata(data.seo, fallback);
+  } catch {
+    return {
+      title: "Đôi Dép Adventure | Chuyến đi trekking, cắm trại dã ngoại chuyên nghiệp",
+      description: "Trải nghiệm những chuyến đi trekking, camping tuyệt vời nhất cùng đội ngũ hướng dẫn viên chuyên nghiệp.",
+    };
+  }
+}
 
 export default async function Home() {
   let homepageData = null;

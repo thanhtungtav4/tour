@@ -315,6 +315,7 @@ export interface ApiPage {
   slug: string;
   title: string;
   content: string;
+  seo: SeoMeta | null;
 }
 
 export interface ApiMenuItem {
@@ -332,6 +333,7 @@ export interface ApiMenus {
 
 // Homepage static dynamic sections
 export interface ApiHomepageData {
+  seo: SeoMeta | null;
   hero: {
     banner: string;
     badge: string;
@@ -363,6 +365,7 @@ export interface ApiHomepageData {
 }
 
 export interface ApiAboutPageData {
+  seo: SeoMeta | null;
   hero: {
     badge: string;
     title: string;
@@ -398,6 +401,7 @@ export interface ApiAboutPageData {
 }
 
 export interface ApiContactPageData {
+  seo: SeoMeta | null;
   hero: {
     badge: string;
     title: string;
