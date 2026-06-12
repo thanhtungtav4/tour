@@ -276,111 +276,128 @@ add_action('rest_api_init', function () {
 });
 
 function newtrip_api_get_customers(WP_REST_Request $request) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'newtrip_customers';
+    
     $search = sanitize_text_field((string) $request->get_param('search'));
     $page = max(1, intval($request->get_param('page') ?: 1));
     $per_page = min(100, max(10, intval($request->get_param('per_page') ?: 20)));
+    $offset = ($page - 1) * $per_page;
     
-    $args = [
-        'post_type' => 'customer',
-        'post_status' => 'publish',
-        'posts_per_page' => $per_page,
-        'paged' => $page,
-    ];
+    $orderby = sanitize_key($request->get_param('orderby') ?: 'id');
+    $order = strtoupper(sanitize_key($request->get_param('order') ?: 'DESC'));
+    if (!in_array($order, ['ASC', 'DESC'])) {
+        $order = 'DESC';
+    }
+    
+    $allowed_orderby = ['id', 'full_name', 'phone', 'email', 'birth_date', 'id_number', 'total_bookings', 'total_spent', 'last_booking_date', 'created_at', 'updated_at'];
+    if (!in_array($orderby, $allowed_orderby)) {
+        $orderby = 'id';
+    }
+    
+    $where = "1=1";
+    $params = [];
     
     if (!empty($search)) {
-        $args['s'] = $search;
+        $where .= " AND (full_name LIKE %s OR phone LIKE %s OR email LIKE %s OR id_number LIKE %s)";
+        $like = '%' . $wpdb->esc_like($search) . '%';
+        $params[] = $like;
+        $params[] = $like;
+        $params[] = $like;
+        $params[] = $like;
     }
     
-    $query = new WP_Query($args);
+    // Total count
+    if (!empty($params)) {
+        $total_items = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE $where", $params));
+    } else {
+        $total_items = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE $where");
+    }
+    
+    $query_sql = "SELECT * FROM $table_name WHERE $where ORDER BY $orderby $order LIMIT %d OFFSET %d";
+    $query_params = array_merge($params, [$per_page, $offset]);
+    
+    $rows = $wpdb->get_results($wpdb->prepare($query_sql, $query_params));
+    
     $results = [];
-    
-    if ($query->have_posts()) {
-        foreach ($query->posts as $post) {
-            $customer_id = $post->ID;
-            $phone = get_post_meta($customer_id, 'phone', true) ?: '';
-            $email = get_post_meta($customer_id, 'email', true) ?: '';
-            $birth_date_raw = get_post_meta($customer_id, 'birth_date', true) ?: '';
-            $birth_date = '';
-            if (!empty($birth_date_raw)) {
-                $time = strtotime($birth_date_raw);
-                $birth_date = $time ? date('d/m/Y', $time) : $birth_date_raw;
-            }
-            $id_number = get_post_meta($customer_id, 'id_number', true) ?: '';
-            $total_bookings = intval(get_post_meta($customer_id, 'total_bookings', true) ?: 0);
-            $total_spent = floatval(get_post_meta($customer_id, 'total_spent', true) ?: 0);
-            $last_booking = get_post_meta($customer_id, 'last_booking_date', true) ?: '';
-            $history_raw = get_post_meta($customer_id, 'bookings_history', true) ?: [];
-            $history = is_array($history_raw) ? $history_raw : [];
-            
-            $results[] = [
-                'id' => $customer_id,
-                'name' => $post->post_title,
-                'phone' => $phone,
-                'email' => $email,
-                'birth_date' => $birth_date,
-                'id_number' => $id_number,
-                'total_bookings' => $total_bookings,
-                'total_spent' => $total_spent,
-                'last_booking_date' => $last_booking,
-                'recent_tours' => array_slice($history, -3, 3),
-            ];
+    foreach ($rows as $row) {
+        $history_raw = $row->bookings_history;
+        $history = [];
+        if (!empty($history_raw)) {
+            $history = json_decode($history_raw, true);
         }
+        if (!is_array($history)) {
+            $history = [];
+        }
+        
+        $birth_date = '';
+        if (!empty($row->birth_date) && $row->birth_date !== '0000-00-00') {
+            $time = strtotime($row->birth_date);
+            $birth_date = $time ? date('d/m/Y', $time) : $row->birth_date;
+        }
+        
+        $results[] = [
+            'id' => intval($row->id),
+            'name' => $row->full_name,
+            'phone' => $row->phone,
+            'email' => $row->email,
+            'birth_date' => $birth_date,
+            'id_number' => $row->id_number,
+            'total_bookings' => intval($row->total_bookings),
+            'total_spent' => floatval($row->total_spent),
+            'last_booking_date' => $row->last_booking_date,
+            'recent_tours' => array_slice($history, -3, 3),
+        ];
     }
+    
+    $total_pages = ceil($total_items / $per_page);
     
     return new WP_REST_Response([
         'success' => true,
         'data' => $results,
         'meta' => [
-            'total' => $query->found_posts,
+            'total' => intval($total_items),
             'page' => $page,
             'per_page' => $per_page,
-            'total_pages' => $query->max_num_pages,
+            'total_pages' => $total_pages,
         ]
     ], 200);
 }
 
 function newtrip_api_export_customers(WP_REST_Request $request) {
-    $args = [
-        'post_type' => 'customer',
-        'post_status' => 'publish',
-        'posts_per_page' => -1,
-    ];
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'newtrip_customers';
     
-    $query = new WP_Query($args);
-    $csv_rows = [];
-    $csv_rows[] = ['ID', 'Họ tên', 'SĐT', 'Email', 'Ngày sinh', 'Số CMND/CCCD', 'Số chuyến', 'Tổng chi tiêu', 'Ngày đặt gần nhất'];
-    
-    if ($query->have_posts()) {
-        foreach ($query->posts as $post) {
-            $customer_id = $post->ID;
-            $csv_rows[] = [
-                $customer_id,
-                $post->post_title,
-                get_post_meta($customer_id, 'phone', true) ?: '',
-                get_post_meta($customer_id, 'email', true) ?: '',
-                (function() use ($customer_id) {
-                    $birth_date_raw = get_post_meta($customer_id, 'birth_date', true) ?: '';
-                    if (!empty($birth_date_raw)) {
-                        $time = strtotime($birth_date_raw);
-                        return $time ? date('d/m/Y', $time) : $birth_date_raw;
-                    }
-                    return '';
-                })(),
-                get_post_meta($customer_id, 'id_number', true) ?: '',
-                get_post_meta($customer_id, 'total_bookings', true) ?: '0',
-                get_post_meta($customer_id, 'total_spent', true) ?: '0',
-                get_post_meta($customer_id, 'last_booking_date', true) ?: '',
-            ];
-        }
-    }
-    
-    $output = fopen('php://output', 'w');
-    foreach ($csv_rows as $row) {
-        fputcsv($output, $row);
-    }
-    fclose($output);
+    $rows = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
     
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=customers_export_' . date('Y-m-d') . '.csv');
+    
+    // Thêm UTF-8 BOM để Excel hiển thị đúng dấu tiếng Việt
+    echo "\xEF\xBB\xBF";
+    
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ['ID', 'Họ tên', 'SĐT', 'Email', 'Ngày sinh', 'Số CMND/CCCD', 'Số chuyến', 'Tổng chi tiêu', 'Ngày đặt gần nhất']);
+    
+    foreach ($rows as $row) {
+        $birth_date = '';
+        if (!empty($row->birth_date) && $row->birth_date !== '0000-00-00') {
+            $time = strtotime($row->birth_date);
+            $birth_date = $time ? date('d/m/Y', $time) : $row->birth_date;
+        }
+        
+        fputcsv($output, [
+            $row->id,
+            $row->full_name,
+            $row->phone,
+            $row->email,
+            $birth_date,
+            $row->id_number,
+            $row->total_bookings,
+            $row->total_spent,
+            $row->last_booking_date,
+        ]);
+    }
+    fclose($output);
     exit;
 }

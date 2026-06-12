@@ -31,6 +31,41 @@ function newtrip_create_checkin_page() {
     }
 }
 
+// Tự động tạo bảng custom newtrip_customers khi theme được nạp
+add_action('init', 'newtrip_check_create_customers_table');
+function newtrip_check_create_customers_table() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'newtrip_customers';
+    
+    if (get_option('newtrip_customers_table_version') !== '1.1') {
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        $sql = "CREATE TABLE $table_name (
+            id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            full_name VARCHAR(255) NOT NULL,
+            phone VARCHAR(50) NOT NULL UNIQUE,
+            email VARCHAR(100),
+            birth_date DATE,
+            id_number VARCHAR(50),
+            total_bookings INT DEFAULT 0,
+            total_spent DECIMAL(15,2) DEFAULT 0.00,
+            bookings_history LONGTEXT,
+            last_booking_date DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY phone_idx (phone),
+            KEY email_idx (email),
+            KEY birth_date_idx (birth_date),
+            KEY id_number_idx (id_number)
+        ) $charset_collate;";
+        
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        dbDelta($sql);
+        
+        update_option('newtrip_customers_table_version', '1.1');
+    }
+}
+
 // CORS cho Frontend (Vercel + dev local)
 add_action('rest_api_init', function () {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
@@ -142,21 +177,7 @@ function newtrip_register_post_types()
         'menu_icon' => 'dashicons-plus-alt',
     ]);
 
-    // 1.6 CPT Customer (Khách hàng - Remarketing)
-    register_post_type('customer', [
-        'labels' => [
-            'name' => __('Khách Hàng', 'newtrip-theme'),
-            'singular_name' => __('Khách Hàng', 'newtrip-theme'),
-            'add_new_item' => __('Thêm Khách hàng mới', 'newtrip-theme'),
-            'edit_item' => __('Chỉnh sửa Khách hàng', 'newtrip-theme'),
-            'all_items' => __('Tất cả Khách hàng', 'newtrip-theme'),
-        ],
-        'public' => false,
-        'show_ui' => true,
-        'show_in_rest' => true,
-        'supports' => ['title', 'custom-fields'],
-        'menu_icon' => 'dashicons-admin-users',
-    ]);
+    // CPT Customer đã được chuyển đổi sang bảng Custom Database Table và Admin Dashboard tùy biến
 }
 add_action('init', 'newtrip_register_post_types');
 
@@ -4077,6 +4098,9 @@ function newtrip_sync_booking_to_customer($booking_id)
     $tour_name = $tour_post ? $tour_post->post_title : 'Chuyến đi';
     $departure_date = newtrip_get_field('departure_date', $booking_id) ?: '';
 
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'newtrip_customers';
+
     foreach ($people as $person) {
         $phone = newtrip_normalize_phone(sanitize_text_field($person['phone']));
         $full_name = sanitize_text_field($person['full_name']);
@@ -4084,73 +4108,52 @@ function newtrip_sync_booking_to_customer($booking_id)
         $birth_date = sanitize_text_field($person['birth_date']);
         $id_number = sanitize_text_field($person['id_number'] ?? '');
 
-        // Truy vấn xem số điện thoại này đã tồn tại trong danh sách Khách hàng chưa
-        $customer_query = new WP_Query([
-            'post_type' => 'customer',
-            'meta_query' => [
-                [
-                    'key' => 'phone',
-                    'value' => $phone,
-                    'compare' => '='
-                ]
-            ],
-            'posts_per_page' => 1,
-            'post_status' => 'any'
-        ]);
+        // 1. Kiểm tra xem Số điện thoại đã tồn tại trong bảng custom chưa
+        $existing = $wpdb->get_row($wpdb->prepare(
+            "SELECT id, bookings_history FROM $table_name WHERE phone = %s",
+            $phone
+        ));
 
         $customer_id = 0;
-        if ($customer_query->have_posts()) {
-            $customer_id = $customer_query->posts[0]->ID;
-        } else {
-            // Chưa có -> Tạo khách hàng mới
-            $customer_id = wp_insert_post([
-                'post_type' => 'customer',
-                'post_title' => sprintf('%s - %s', $full_name, $phone),
-                'post_status' => 'publish'
-            ]);
-
-            if (function_exists('update_field')) {
-                update_field('field_customer_phone', $phone, $customer_id);
-            } else {
-                update_post_meta($customer_id, 'phone', $phone);
-            }
-            update_post_meta($customer_id, 'full_name', $full_name);
-        }
-
-        if (!$customer_id)
-            continue;
-
-        // Cập nhật thông tin profile nếu trống hoặc có cập nhật mới
-        if (!empty($email)) {
-            if (function_exists('update_field')) {
-                update_field('field_customer_email', $email, $customer_id);
-            } else {
-                update_post_meta($customer_id, 'email', $email);
-            }
-        }
-        if (!empty($birth_date)) {
-            $birth_date = newtrip_normalize_date($birth_date);
-            $formatted_birth_date = date('Ymd', strtotime($birth_date));
-            
-            if (function_exists('update_field')) {
-                update_field('field_customer_birth_date', $formatted_birth_date, $customer_id);
-            }
-            update_post_meta($customer_id, 'birth_date', $birth_date);
-        }
-        if (!empty($id_number)) {
-            update_post_meta($customer_id, 'id_number', $id_number);
-        }
-
-        // Xử lý Lịch sử mua hàng (bookings_history)
-        $history_raw = get_post_meta($customer_id, 'bookings_history', true);
         $history = [];
-        if (!empty($history_raw)) {
-            $history = is_array($history_raw) ? $history_raw : json_decode($history_raw, true);
-        }
-        if (!is_array($history))
-            $history = [];
 
-        // Kiểm tra xem đơn hàng này đã được đồng bộ trong lịch sử của họ chưa
+        if ($existing) {
+            $customer_id = intval($existing->id);
+            $history_raw = $existing->bookings_history;
+            if (!empty($history_raw)) {
+                $history = is_array($history_raw) ? $history_raw : json_decode($history_raw, true);
+            }
+        } else {
+            // Chưa có -> Tạo dòng mới
+            $inserted = $wpdb->insert(
+                $table_name,
+                [
+                    'full_name' => $full_name,
+                    'phone' => $phone,
+                    'email' => $email,
+                    'birth_date' => !empty($birth_date) ? newtrip_normalize_date($birth_date) : null,
+                    'id_number' => $id_number,
+                    'total_bookings' => 0,
+                    'total_spent' => 0.00,
+                    'bookings_history' => '[]',
+                    'last_booking_date' => null
+                ],
+                ['%s', '%s', '%s', '%s', '%s', '%d', '%f', '%s', '%s']
+            );
+            if ($inserted) {
+                $customer_id = $wpdb->insert_id;
+            }
+        }
+
+        if (!$customer_id) {
+            continue;
+        }
+
+        if (!is_array($history)) {
+            $history = [];
+        }
+
+        // 2. Kiểm tra/thêm Booking vào lịch sử
         $found_index = -1;
         foreach ($history as $index => $h) {
             if (($h['booking_id'] ?? 0) == $booking_id || (!empty($booking_code) && ($h['booking_code'] ?? '') === $booking_code)) {
@@ -4177,7 +4180,7 @@ function newtrip_sync_booking_to_customer($booking_id)
             $history[] = $booking_entry;
         }
 
-        // Tính toán động lại tổng số chuyến đi và tổng chi tiêu từ lịch sử mới để tránh sai lệch cộng dồn
+        // 3. Tính toán lại tổng số chuyến đi và tổng chi tiêu
         $total_bookings = 0;
         $total_spent = 0;
 
@@ -4194,71 +4197,569 @@ function newtrip_sync_booking_to_customer($booking_id)
             }
         }
 
-        if (function_exists('update_field')) {
-            update_field('field_customer_bookings_history', $history, $customer_id);
-            update_field('field_customer_total_bookings', $total_bookings, $customer_id);
-            update_field('field_customer_total_spent', $total_spent, $customer_id);
-            update_field('field_customer_last_booking', date('Y-m-d H:i:s'), $customer_id);
-        } else {
-            update_post_meta($customer_id, 'bookings_history', $history);
-            update_post_meta($customer_id, 'total_bookings', $total_bookings);
-            update_post_meta($customer_id, 'total_spent', $total_spent);
-            update_post_meta($customer_id, 'last_booking_date', date('Y-m-d H:i:s'));
+        // 4. Cập nhật cơ sở dữ liệu
+        $update_data = [
+            'full_name' => $full_name,
+            'email' => $email,
+            'id_number' => $id_number,
+            'total_bookings' => $total_bookings,
+            'total_spent' => $total_spent,
+            'bookings_history' => json_encode($history, JSON_UNESCAPED_UNICODE),
+            'last_booking_date' => date('Y-m-d H:i:s')
+        ];
+        $update_format = ['%s', '%s', '%s', '%d', '%f', '%s', '%s'];
+
+        if (!empty($birth_date)) {
+            $update_data['birth_date'] = newtrip_normalize_date($birth_date);
+            $update_format[] = '%s';
         }
+
+        $wpdb->update(
+            $table_name,
+            $update_data,
+            ['id' => $customer_id],
+            $update_format,
+            ['%d']
+        );
     }
 }
 
-// Đăng ký các cột hiển thị trong Admin Table cho Customer CPT
-add_filter('manage_customer_posts_columns', 'newtrip_customer_table_columns');
-function newtrip_customer_table_columns($columns)
-{
-    return [
-        'cb' => $columns['cb'],
-        'title' => __('Họ tên', 'newtrip-theme'),
-        'phone' => __('Số điện thoại', 'newtrip-theme'),
-        'email' => __('Email', 'newtrip-theme'),
-        'birth_date' => __('Ngày sinh', 'newtrip-theme'),
-        'id_number' => __('Số CCCD', 'newtrip-theme'),
-        'total_bookings' => __('Số chuyến đi', 'newtrip-theme'),
-        'total_spent' => __('Tổng chi tiêu', 'newtrip-theme'),
-        'last_booking_date' => __('Ngày đặt gần nhất', 'newtrip-theme'),
-    ];
+// Đăng ký trang quản lý khách hàng tùy biến trong WordPress Admin Dashboard
+add_action('admin_menu', 'newtrip_register_customers_admin_menu');
+function newtrip_register_customers_admin_menu() {
+    add_menu_page(
+        __('Quản lý Khách Hàng', 'newtrip-theme'),
+        __('Khách Hàng', 'newtrip-theme'),
+        'manage_options',
+        'newtrip-customers',
+        'newtrip_render_customers_admin_page',
+        'dashicons-groups',
+        25
+    );
 }
 
-add_action('manage_customer_posts_custom_column', 'newtrip_customer_table_column_content', 10, 2);
-function newtrip_customer_table_column_content($column, $post_id)
-{
-    switch ($column) {
-        case 'phone':
-            echo esc_html(get_post_meta($post_id, 'phone', true) ?: '—');
-            break;
-        case 'email':
-            echo esc_html(get_post_meta($post_id, 'email', true) ?: '—');
-            break;
-        case 'birth_date':
-            $meta_date = get_post_meta($post_id, 'birth_date', true);
-            if (!empty($meta_date)) {
-                $time = strtotime($meta_date);
-                echo esc_html($time ? date('d/m/Y', $time) : $meta_date);
-            } else {
-                echo '—';
+// Handler xuất dữ liệu CSV dành cho admin
+add_action('admin_post_newtrip_export_customers', 'newtrip_admin_export_customers_handler');
+function newtrip_admin_export_customers_handler() {
+    if (!current_user_can('manage_options')) {
+        wp_die(__('Bạn không có quyền thực hiện hành động này.', 'newtrip-theme'));
+    }
+    
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'newtrip_customers';
+    $rows = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
+    
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=customers_export_' . date('Y-m-d') . '.csv');
+    echo "\xEF\xBB\xBF"; // UTF-8 BOM
+    
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ['ID', 'Họ tên', 'SĐT', 'Email', 'Ngày sinh', 'Số CMND/CCCD', 'Số chuyến', 'Tổng chi tiêu', 'Ngày đặt gần nhất']);
+    
+    foreach ($rows as $row) {
+        $birth_date = '';
+        if (!empty($row->birth_date) && $row->birth_date !== '0000-00-00') {
+            $time = strtotime($row->birth_date);
+            $birth_date = $time ? date('d/m/Y', $time) : $row->birth_date;
+        }
+        
+        fputcsv($output, [
+            $row->id,
+            $row->full_name,
+            $row->phone,
+            $row->email,
+            $birth_date,
+            $row->id_number,
+            $row->total_bookings,
+            $row->total_spent,
+            $row->last_booking_date,
+        ]);
+    }
+    fclose($output);
+    exit;
+}
+
+// Render giao diện dashboard quản lý khách hàng
+function newtrip_render_customers_admin_page() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'newtrip_customers';
+    
+    // Thống kê chung
+    $total_customers = $wpdb->get_var("SELECT COUNT(*) FROM $table_name") ?: 0;
+    $total_bookings = $wpdb->get_var("SELECT SUM(total_bookings) FROM $table_name") ?: 0;
+    $total_spent = $wpdb->get_var("SELECT SUM(total_spent) FROM $table_name") ?: 0.00;
+    
+    // Tham số tìm kiếm / sắp xếp / phân trang
+    $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+    $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+    $per_page = 20;
+    $offset = ($paged - 1) * $per_page;
+    
+    $orderby = isset($_GET['orderby']) ? sanitize_key($_GET['orderby']) : 'id';
+    $order = isset($_GET['order']) ? strtoupper(sanitize_key($_GET['order'])) : 'DESC';
+    if (!in_array($order, ['ASC', 'DESC'])) {
+        $order = 'DESC';
+    }
+    
+    $allowed_orderby = ['id', 'full_name', 'phone', 'email', 'birth_date', 'id_number', 'total_bookings', 'total_spent', 'last_booking_date'];
+    if (!in_array($orderby, $allowed_orderby)) {
+        $orderby = 'id';
+    }
+    
+    $where = "1=1";
+    $params = [];
+    if (!empty($search)) {
+        $where .= " AND (full_name LIKE %s OR phone LIKE %s OR email LIKE %s OR id_number LIKE %s)";
+        $like = '%' . $wpdb->esc_like($search) . '%';
+        $params[] = $like;
+        $params[] = $like;
+        $params[] = $like;
+        $params[] = $like;
+    }
+    
+    if (!empty($params)) {
+        $total_filtered = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE $where", $params));
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE $where ORDER BY $orderby $order LIMIT %d OFFSET %d",
+            array_merge($params, [$per_page, $offset])
+        ));
+    } else {
+        $total_filtered = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE $where");
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE $where ORDER BY $orderby $order LIMIT %d OFFSET %d",
+            $per_page,
+            $offset
+        ));
+    }
+    $total_pages = ceil($total_filtered / $per_page);
+    
+    // Closures hỗ trợ UI
+    $get_sort_arrow = function($col) use ($orderby, $order) {
+        if ($orderby !== $col) {
+            return '<span class="dashicons dashicons-sort" style="font-size:14px; width:14px; height:14px; color:#cbd5e1; margin-left:4px; vertical-align:middle;"></span>';
+        }
+        return $order === 'ASC' 
+            ? '<span class="dashicons dashicons-arrow-up-alt2" style="font-size:14px; width:14px; height:14px; color:#f97316; margin-left:4px; vertical-align:middle;"></span>' 
+            : '<span class="dashicons dashicons-arrow-down-alt2" style="font-size:14px; width:14px; height:14px; color:#f97316; margin-left:4px; vertical-align:middle;"></span>';
+    };
+
+    $get_sort_url = function($col_name) use ($orderby, $order, $search) {
+        $next_order = ($orderby === $col_name && $order === 'ASC') ? 'DESC' : 'ASC';
+        return add_query_arg([
+            'page' => 'newtrip-customers',
+            'orderby' => $col_name,
+            'order' => $next_order,
+            's' => $search
+        ], admin_url('admin.php'));
+    };
+    
+    $get_page_url = function($p) use ($orderby, $order, $search) {
+        return add_query_arg([
+            'page' => 'newtrip-customers',
+            'orderby' => $orderby,
+            'order' => $order,
+            's' => $search,
+            'paged' => $p
+        ], admin_url('admin.php'));
+    };
+    
+    ?>
+    <div class="wrap">
+        <style>
+            .newtrip-admin-wrap {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                padding: 24px;
+                background: #f8fafc;
+                color: #1e293b;
+                border-radius: 12px;
+                margin-top: 20px;
+                margin-right: 20px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
             }
-            break;
-        case 'id_number':
-            echo esc_html(get_post_meta($post_id, 'id_number', true) ?: '—');
-            break;
-        case 'total_bookings':
-            echo esc_html(get_post_meta($post_id, 'total_bookings', true) ?: '0');
-            break;
-        case 'total_spent':
-            $spent = floatval(get_post_meta($post_id, 'total_spent', true) ?: 0);
-            echo esc_html(number_format($spent) . ' đ');
-            break;
-        case 'last_booking_date':
-            $date = get_post_meta($post_id, 'last_booking_date', true);
-            echo esc_html($date ? date('d/m/Y H:i', strtotime($date)) : '—');
-            break;
-    }
+            .newtrip-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 24px;
+                border-bottom: 1px solid #e2e8f0;
+                padding-bottom: 20px;
+            }
+            .newtrip-title-area h2 {
+                font-size: 28px;
+                font-weight: 700;
+                color: #0f172a;
+                margin: 0 0 6px 0;
+            }
+            .newtrip-title-area p {
+                margin: 0;
+                color: #64748b;
+                font-size: 14px;
+            }
+            .newtrip-btn-export {
+                display: inline-flex;
+                align-items: center;
+                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+                color: white !important;
+                text-decoration: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-weight: 600;
+                font-size: 14px;
+                box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
+                transition: all 0.2s ease-in-out;
+            }
+            .newtrip-btn-export:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 14px rgba(249, 115, 22, 0.35);
+            }
+            .newtrip-stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 20px;
+                margin-bottom: 28px;
+            }
+            .newtrip-stat-card {
+                background: white;
+                padding: 24px;
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                transition: transform 0.2s;
+            }
+            .newtrip-stat-card:hover {
+                transform: scale(1.02);
+            }
+            .newtrip-stat-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 10px;
+                background: #fff7ed;
+                color: #f97316;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+            }
+            .newtrip-stat-icon .dashicons {
+                font-size: 26px;
+                width: 26px;
+                height: 26px;
+            }
+            .newtrip-stat-info h3 {
+                margin: 0;
+                font-size: 13px;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                font-weight: 600;
+            }
+            .newtrip-stat-value {
+                font-size: 24px;
+                font-weight: 700;
+                color: #0f172a;
+                margin-top: 4px;
+            }
+            .newtrip-filter-bar {
+                background: white;
+                padding: 16px 20px;
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
+                margin-bottom: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .newtrip-search-form {
+                display: flex;
+                gap: 10px;
+                flex-grow: 1;
+                max-width: 480px;
+            }
+            .newtrip-search-input {
+                flex-grow: 1;
+                padding: 8px 14px;
+                border-radius: 8px;
+                border: 1px solid #cbd5e1;
+                font-size: 14px;
+            }
+            .newtrip-search-btn {
+                background: #0f172a;
+                color: white;
+                border: none;
+                padding: 8px 18px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .newtrip-search-btn:hover {
+                background: #1e293b;
+            }
+            .newtrip-table-container {
+                background: white;
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
+                overflow: hidden;
+                margin-bottom: 20px;
+            }
+            .newtrip-table {
+                width: 100%;
+                border-collapse: collapse;
+                text-align: left;
+                font-size: 14px;
+            }
+            .newtrip-table th {
+                background: #f8fafc;
+                padding: 14px 18px;
+                font-weight: 600;
+                color: #475569;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .newtrip-table td {
+                padding: 14px 18px;
+                border-bottom: 1px solid #f1f5f9;
+                color: #334155;
+                vertical-align: middle;
+            }
+            .newtrip-table tr:hover td {
+                background: #f8fafc;
+            }
+            .newtrip-sort-link {
+                color: #475569;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+            .newtrip-sort-link:hover {
+                color: #f97316;
+            }
+            .newtrip-badge {
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 500;
+                background: #f1f5f9;
+                color: #475569;
+            }
+            .newtrip-badge.representative {
+                background: #ecfdf5;
+                color: #059669;
+            }
+            .newtrip-pagination {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 14px 20px;
+                background: #f8fafc;
+                border-top: 1px solid #e2e8f0;
+            }
+            .newtrip-pagination-info {
+                color: #64748b;
+                font-size: 14px;
+            }
+            .newtrip-pagination-links {
+                display: flex;
+                gap: 6px;
+            }
+            .newtrip-page-link {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+                border-radius: 6px;
+                border: 1px solid #cbd5e1;
+                color: #475569;
+                text-decoration: none;
+                font-weight: 500;
+                transition: all 0.2s;
+            }
+            .newtrip-page-link:hover, .newtrip-page-link.current {
+                background: #f97316;
+                color: white;
+                border-color: #f97316;
+            }
+        </style>
+        <div class="newtrip-admin-wrap">
+            <div class="newtrip-header">
+                <div class="newtrip-title-area">
+                    <h2><?php _e('Quản lý Khách Hàng', 'newtrip-theme'); ?></h2>
+                    <p><?php _e('Báo cáo, thống kê và cập nhật lịch sử chuyến đi của khách hàng', 'newtrip-theme'); ?></p>
+                </div>
+                <div>
+                    <a href="<?php echo esc_url(admin_url('admin-post.php?action=newtrip_export_customers')); ?>" class="newtrip-btn-export">
+                        <span class="dashicons dashicons-download" style="margin-right: 6px; margin-top: 2px;"></span>
+                        <?php _e('Xuất danh sách CSV', 'newtrip-theme'); ?>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Thống kê -->
+            <div class="newtrip-stats-grid">
+                <div class="newtrip-stat-card">
+                    <div class="newtrip-stat-icon">
+                        <span class="dashicons dashicons-groups"></span>
+                    </div>
+                    <div class="newtrip-stat-info">
+                        <h3><?php _e('Tổng số khách hàng', 'newtrip-theme'); ?></h3>
+                        <div class="newtrip-stat-value"><?php echo number_format($total_customers); ?></div>
+                    </div>
+                </div>
+                
+                <div class="newtrip-stat-card">
+                    <div class="newtrip-stat-icon">
+                        <span class="dashicons dashicons-cart"></span>
+                    </div>
+                    <div class="newtrip-stat-info">
+                        <h3><?php _e('Tổng số chuyến đi', 'newtrip-theme'); ?></h3>
+                        <div class="newtrip-stat-value"><?php echo number_format($total_bookings); ?></div>
+                    </div>
+                </div>
+                
+                <div class="newtrip-stat-card">
+                    <div class="newtrip-stat-icon">
+                        <span class="dashicons dashicons-chart-area"></span>
+                    </div>
+                    <div class="newtrip-stat-info">
+                        <h3><?php _e('Doanh thu tích lũy', 'newtrip-theme'); ?></h3>
+                        <div class="newtrip-stat-value"><?php echo number_format($total_spent) . ' ₫'; ?></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bộ lọc & Tìm kiếm -->
+            <div class="newtrip-filter-bar">
+                <form method="GET" action="<?php echo esc_url(admin_url('admin.php')); ?>" class="newtrip-search-form">
+                    <input type="hidden" name="page" value="newtrip-customers" />
+                    <input type="text" name="s" class="newtrip-search-input" placeholder="<?php _e('Tìm kiếm theo tên, SĐT, email, CCCD...', 'newtrip-theme'); ?>" value="<?php echo esc_attr($search); ?>" />
+                    <button type="submit" class="newtrip-search-btn"><?php _e('Tìm kiếm', 'newtrip-theme'); ?></button>
+                    <?php if (!empty($search)) : ?>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=newtrip-customers')); ?>" class="button button-secondary" style="height: auto; display: flex; align-items: center; border-radius: 8px; font-weight: 500;"><?php _e('Xóa tìm kiếm', 'newtrip-theme'); ?></a>
+                    <?php endif; ?>
+                </form>
+                <div style="font-size: 14px; color: #64748b;">
+                    <?php if (!empty($search)) : ?>
+                        Tìm thấy <strong><?php echo number_format($total_filtered); ?></strong> kết quả
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Bảng danh sách -->
+            <div class="newtrip-table-container">
+                <table class="newtrip-table">
+                    <thead>
+                        <tr>
+                            <th><a href="<?php echo esc_url($get_sort_url('id')); ?>" class="newtrip-sort-link"><?php _e('ID', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('id'); ?></a></th>
+                            <th><a href="<?php echo esc_url($get_sort_url('full_name')); ?>" class="newtrip-sort-link"><?php _e('Họ tên', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('full_name'); ?></a></th>
+                            <th><?php _e('Số điện thoại', 'newtrip-theme'); ?></th>
+                            <th><?php _e('Email', 'newtrip-theme'); ?></th>
+                            <th><a href="<?php echo esc_url($get_sort_url('birth_date')); ?>" class="newtrip-sort-link"><?php _e('Ngày sinh', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('birth_date'); ?></a></th>
+                            <th><a href="<?php echo esc_url($get_sort_url('id_number')); ?>" class="newtrip-sort-link"><?php _e('Số CCCD', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('id_number'); ?></a></th>
+                            <th style="text-align: center;"><a href="<?php echo esc_url($get_sort_url('total_bookings')); ?>" class="newtrip-sort-link"><?php _e('Số chuyến đi', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('total_bookings'); ?></a></th>
+                            <th><a href="<?php echo esc_url($get_sort_url('total_spent')); ?>" class="newtrip-sort-link"><?php _e('Tổng chi tiêu', 'newtrip-theme'); ?> <?php echo $get_sort_arrow('total_spent'); ?></a></th>
+                            <th><?php _e('Chuyến đi gần đây', 'newtrip-theme'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($rows)) : ?>
+                            <tr>
+                                <td colspan="9" style="text-align: center; padding: 40px; color: #94a3b8;">
+                                    <?php _e('Không tìm thấy khách hàng nào', 'newtrip-theme'); ?>
+                                </td>
+                            </tr>
+                        <?php else : ?>
+                            <?php foreach ($rows as $row) : ?>
+                                <?php
+                                $birth_date = '';
+                                if (!empty($row->birth_date) && $row->birth_date !== '0000-00-00') {
+                                    $time = strtotime($row->birth_date);
+                                    $birth_date = $time ? date('d/m/Y', $time) : $row->birth_date;
+                                }
+                                
+                                $history_raw = $row->bookings_history;
+                                $history = [];
+                                if (!empty($history_raw)) {
+                                    $history = json_decode($history_raw, true);
+                                }
+                                if (!is_array($history)) {
+                                    $history = [];
+                                }
+                                ?>
+                                <tr>
+                                    <td style="font-weight: 500; color: #64748b;">#<?php echo esc_html($row->id); ?></td>
+                                    <td style="font-weight: 600; color: #0f172a;"><?php echo esc_html($row->full_name); ?></td>
+                                    <td style="font-family: monospace; font-size: 13px;"><?php echo esc_html($row->phone); ?></td>
+                                    <td><?php echo esc_html($row->email ?: '—'); ?></td>
+                                    <td><?php echo esc_html($birth_date ?: '—'); ?></td>
+                                    <td style="font-family: monospace; font-size: 13px;"><?php echo esc_html($row->id_number ?: '—'); ?></td>
+                                    <td style="text-align: center;"><span class="newtrip-badge"><?php echo esc_html($row->total_bookings); ?></span></td>
+                                    <td style="font-weight: 600; color: #10b981;"><?php echo number_format($row->total_spent) . ' ₫'; ?></td>
+                                    <td>
+                                        <?php
+                                        if (!empty($history)) {
+                                            $latest = array_slice($history, -2, 2);
+                                            foreach ($latest as $booking) {
+                                                $tour_name = esc_html($booking['tour_name'] ?? 'Chuyến đi');
+                                                $dep_date = esc_html($booking['departure_date'] ?? '');
+                                                $formatted_dep = !empty($dep_date) ? date('d/m/y', strtotime($dep_date)) : '';
+                                                $is_rep = $booking['is_representative'] ?? false;
+                                                
+                                                echo '<div style="margin-bottom:4px; font-size:12px; line-height:1.3; color: #334155;">';
+                                                echo '<span style="color: #64748b; font-weight: 500;">•</span> ' . $tour_name;
+                                                if ($formatted_dep) {
+                                                    echo ' <span style="color: #94a3b8;">(' . $formatted_dep . ')</span>';
+                                                }
+                                                if ($is_rep) {
+                                                    echo ' <span class="newtrip-badge representative" style="font-size:10px; padding: 1px 4px; margin-left: 4px;">' . __('Trưởng đoàn', 'newtrip-theme') . '</span>';
+                                                }
+                                                echo '</div>';
+                                            }
+                                        } else {
+                                            echo '<span style="color:#94a3b8; font-style: italic; font-size: 12px;">Chưa đi chuyến nào</span>';
+                                        }
+                                        ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+
+                <!-- Phân trang -->
+                <?php if ($total_pages > 1) : ?>
+                    <div class="newtrip-pagination">
+                        <div class="newtrip-pagination-info">
+                            Hiển thị trang <strong><?php echo $paged; ?></strong> trên <strong><?php echo $total_pages; ?></strong> (Tổng số <?php echo number_format($total_filtered); ?> khách hàng)
+                        </div>
+                        <div class="newtrip-pagination-links">
+                            <?php if ($paged > 1) : ?>
+                                <a href="<?php echo esc_url($get_page_url($paged - 1)); ?>" class="newtrip-page-link">&laquo;</a>
+                            <?php endif; ?>
+                            
+                            <?php
+                            $start = max(1, $paged - 2);
+                            $end = min($total_pages, $paged + 2);
+                            for ($i = $start; $i <= $end; $i++) :
+                                $class = ($i === $paged) ? 'newtrip-page-link current' : 'newtrip-page-link';
+                                echo '<a href="' . esc_url($get_page_url($i)) . '" class="' . $class . '">' . $i . '</a>';
+                            endfor;
+                            ?>
+
+                            <?php if ($paged < $total_pages) : ?>
+                                <a href="<?php echo esc_url($get_page_url($paged + 1)); ?>" class="newtrip-page-link">&raquo;</a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php
 }
 
 

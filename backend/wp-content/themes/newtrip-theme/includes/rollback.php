@@ -34,19 +34,19 @@ function newtrip_rollback_customer_for_booking($booking_id) {
 function newtrip_subtract_from_customer($phone, $booking_id, $booking_code, $amount_to_subtract) {
     if (empty($phone)) return;
     
-    $customer_query = new WP_Query([
-        'post_type' => 'customer',
-        'meta_query' => [
-            ['key' => 'phone', 'value' => $phone, 'compare' => '=']
-        ],
-        'posts_per_page' => 1,
-        'post_status' => 'any'
-    ]);
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'newtrip_customers';
     
-    if (!$customer_query->have_posts()) return;
-    $customer_id = $customer_query->posts[0]->ID;
+    // Find customer by phone
+    $existing = $wpdb->get_row($wpdb->prepare(
+        "SELECT id, bookings_history FROM $table_name WHERE phone = %s",
+        $phone
+    ));
     
-    $history_raw = get_post_meta($customer_id, 'bookings_history', true);
+    if (!$existing) return;
+    $customer_id = intval($existing->id);
+    
+    $history_raw = $existing->bookings_history;
     $history = [];
     if (!empty($history_raw)) {
         $history = is_array($history_raw) ? $history_raw : json_decode($history_raw, true);
@@ -79,30 +79,34 @@ function newtrip_subtract_from_customer($phone, $booking_id, $booking_code, $amo
         }
     }
     
-    if (function_exists('update_field')) {
-        update_field('field_customer_bookings_history', $new_history, $customer_id);
-        update_field('field_customer_total_bookings', $total_bookings, $customer_id);
-        update_field('field_customer_total_spent', $total_spent, $customer_id);
-    } else {
-        update_post_meta($customer_id, 'bookings_history', $new_history);
-        update_post_meta($customer_id, 'total_bookings', $total_bookings);
-        update_post_meta($customer_id, 'total_spent', $total_spent);
+    $last_booking_date = null;
+    if (!empty($new_history)) {
+        $latest_time = 0;
+        foreach ($new_history as $h) {
+            $b_date = $h['booking_date'] ?? '';
+            if (!empty($b_date)) {
+                $t = strtotime($b_date);
+                if ($t > $latest_time) {
+                    $latest_time = $t;
+                }
+            }
+        }
+        if ($latest_time > 0) {
+            $last_booking_date = date('Y-m-d H:i:s', $latest_time);
+        }
     }
     
-    if (!empty($new_history)) {
-        $last_entry = end($new_history);
-        $last_date = $last_entry['booking_date'] ?? date('Y-m-d H:i:s');
-        if (function_exists('update_field')) {
-            update_field('field_customer_last_booking', $last_date, $customer_id);
-        } else {
-            update_post_meta($customer_id, 'last_booking_date', $last_date);
-        }
-    } else {
-        if (function_exists('update_field')) {
-            update_field('field_customer_last_booking', '', $customer_id);
-        } else {
-            update_post_meta($customer_id, 'last_booking_date', '');
-        }
-    }
+    $wpdb->update(
+        $table_name,
+        [
+            'total_bookings' => $total_bookings,
+            'total_spent' => $total_spent,
+            'bookings_history' => json_encode($new_history, JSON_UNESCAPED_UNICODE),
+            'last_booking_date' => $last_booking_date,
+        ],
+        ['id' => $customer_id],
+        ['%d', '%f', '%s', '%s'],
+        ['%d']
+    );
 }
 
