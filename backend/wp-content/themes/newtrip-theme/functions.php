@@ -858,18 +858,25 @@ add_action('rest_api_init', function () {
         'permission_callback' => '__return_true',
     ]);
 
-    // 5.15 GET /wp-json/newtrip/v1/checkin/passengers - Lấy danh sách thành viên check-in
-    register_rest_route('newtrip/v1', '/checkin/passengers', [
-        'methods' => 'GET',
-        'callback' => 'newtrip_api_get_checkin_passengers',
+    // 5.14a POST /wp-json/newtrip/v1/checkin/auth - Xác thực nhân viên check-in bằng mã PIN
+    register_rest_route('newtrip/v1', '/checkin/auth', [
+        'methods' => 'POST',
+        'callback' => 'newtrip_api_checkin_auth',
         'permission_callback' => '__return_true',
     ]);
 
-    // 5.16 POST /wp-json/newtrip/v1/checkin/toggle - Cập nhật trạng thái check-in (lên xe hoặc tập trung)
+    // 5.15 GET /wp-json/newtrip/v1/checkin/passengers - Lấy danh sách thành viên check-in (yêu cầu token)
+    register_rest_route('newtrip/v1', '/checkin/passengers', [
+        'methods' => 'GET',
+        'callback' => 'newtrip_api_get_checkin_passengers',
+        'permission_callback' => 'newtrip_checkin_permission_check',
+    ]);
+
+    // 5.16 POST /wp-json/newtrip/v1/checkin/toggle - Cập nhật trạng thái check-in (yêu cầu token)
     register_rest_route('newtrip/v1', '/checkin/toggle', [
         'methods' => 'POST',
         'callback' => 'newtrip_api_toggle_checkin',
-        'permission_callback' => '__return_true',
+        'permission_callback' => 'newtrip_checkin_permission_check',
     ]);
 });
 
@@ -3181,6 +3188,42 @@ add_filter('acf/load_field_group', function ($group) {
     }
     return $group;
 });
+
+// API đăng nhập bằng mã PIN nhân viên check-in
+function newtrip_api_checkin_auth(WP_REST_Request $request)
+{
+    $params = $request->get_json_params();
+    $pin = isset($params['pin']) ? sanitize_text_field($params['pin']) : '';
+
+    $configured_pin = get_option('newtrip_checkin_pin', '');
+
+    if (empty($configured_pin)) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'pin_not_configured', 'message' => 'Hệ thống chưa cấu hình mã PIN check-in trong Admin.']
+        ], 400);
+    }
+
+    if ($pin !== $configured_pin) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'invalid_pin', 'message' => 'Mã PIN không chính xác. Vui lòng thử lại.']
+        ], 401);
+    }
+
+    // Tạo token ngẫu nhiên
+    $token = bin2hex(random_bytes(16));
+    // Lưu token vào transient trong 24 giờ (86400 giây)
+    set_transient('newtrip_checkin_token_' . $token, true, 86400);
+
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => [
+            'token' => $token,
+            'expires_in' => 86400
+        ]
+    ], 200);
+}
 
 // Callback API lấy danh sách thành viên check-in
 function newtrip_api_get_checkin_passengers(WP_REST_Request $request)
