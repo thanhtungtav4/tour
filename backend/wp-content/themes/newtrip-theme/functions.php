@@ -1412,63 +1412,130 @@ function newtrip_api_create_booking(WP_REST_Request $request)
     $payment_method_label = $payment_method === 'transfer' ? 'Chuyển khoản ngân hàng' : 'Tiền mặt';
     
     $content_html = '
-    <p style="margin-top: 0; font-size: 16px; color: #334155; line-height: 1.6;">
-        Chào <strong>' . esc_html($full_name) . '</strong>,
-    </p>
-    <p style="font-size: 15px; color: #334155; line-height: 1.6; margin-bottom: 25px;">
-        Cảm ơn bạn đã đặt tour tại Đôi Dép Adventure! Yêu cầu đặt chỗ của bạn đã được ghi nhận. Dưới đây là thông tin chi tiết về đơn đặt tour của bạn:
-    </p>
+              <h1 style="margin:0 0 12px; font-size:22px; line-height:1.35; color:#111827;">
+                Chào ' . esc_html($full_name) . ',
+              </h1>
 
-    <!-- Details Card -->
-    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 14px; line-height: 1.5; color: #334155;">
-            <tr>
-                <td style="padding: 6px 0; font-weight: 600; color: #64748b; width: 35%;">Mã đặt tour:</td>
-                <td style="padding: 6px 0; font-weight: 700; color: #0f172a;">' . esc_html($booking_code) . '</td>
-            </tr>
-            <tr>
-                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Hành trình:</td>
-                <td style="padding: 6px 0; font-weight: 700; color: #059669;">' . esc_html($tour_post->post_title) . '</td>
-            </tr>
-            <tr>
-                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Khởi hành:</td>
-                <td style="padding: 6px 0; color: #0f172a;">' . esc_html($departure_date) . '</td>
-            </tr>
-            <tr>
-                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Số lượng khách:</td>
-                <td style="padding: 6px 0; color: #0f172a;">' . intval($participants) . ' người</td>
-            </tr>
-            <tr>
-                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Tổng chi phí:</td>
-                <td style="padding: 6px 0; font-weight: 700; color: #0f172a; font-size: 16px;">' . number_format($total_amount, 0, ',', '.') . ' đ</td>
-            </tr>
-            <tr>
-                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Thanh toán:</td>
-                <td style="padding: 6px 0; color: #0f172a;">' . esc_html($payment_method_label) . '</td>
-            </tr>
-        </table>
-    </div>
+              <p style="margin:0 0 18px; font-size:15px; line-height:1.7; color:#4b5563;">
+                Cảm ơn bạn đã đặt tour tại <strong>Đôi Dép Adventure</strong>. 
+                Chúng tôi đã ghi nhận thông tin đặt tour của bạn với chi tiết bên dưới.
+              </p>
 
-    <!-- Important Notice -->
-    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px 20px; margin-bottom: 30px;">
-        <h3 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 700; color: #166534;">⚠️ YÊU CẦU CẬP NHẬT THÔNG TIN THÀNH VIÊN</h3>
-        <p style="margin: 0; font-size: 13px; color: #166534; line-height: 1.5;">
-            Để chuẩn bị tốt nhất cho chuyến đi (bố trí phương tiện, điểm đón và chuẩn bị bảo hiểm du lịch), quý khách vui lòng cập nhật đầy đủ Họ tên, Số điện thoại, <strong>Ngày sinh</strong> và thông tin bệnh lý của tất cả thành viên trong đoàn bằng cách bấm nút dưới đây:
-        </p>
-    </div>
+              <!-- Booking code -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px;">
+                <tr>
+                  <td style="padding:18px 20px; text-align:center;">
+                    <div style="font-size:13px; color:#166534; margin-bottom:6px;">
+                      Mã đặt tour
+                    </div>
+                    <div style="font-size:24px; letter-spacing:1px; font-weight:700; color:#14532d;">
+                      ' . esc_html($booking_code) . '
+                    </div>
+                  </td>
+                </tr>
+              </table>
 
-    <!-- CTA Button -->
-    <div style="text-align: center; margin-bottom: 30px;">
-        <a href="' . esc_url($update_url) . '" style="display: inline-block; background-color: #059669; color: #ffffff; padding: 14px 28px; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(5,150,105,0.2); transition: background-color 0.2s;">
-            CẬP NHẬT THÔNG TIN HÀNH KHÁCH
-        </a>
-    </div>
+              <!-- Detail Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-radius:14px; overflow:hidden;">
+                <tr>
+                  <td style="padding:16px 20px; background:#fafafa; font-size:16px; font-weight:700; color:#111827;">
+                    Chi tiết đơn đặt tour
+                  </td>
+                </tr>
 
-    <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 0;">
-        Đội ngũ của chúng tôi sẽ chủ động liên hệ với bạn qua số điện thoại <strong>' . esc_html($phone) . '</strong> để hỗ trợ các bước tiếp theo. Hẹn gặp lại bạn trong chuyến hành trình sắp tới!
-    </p>';
+                <tr>
+                  <td style="padding:0 20px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; color:#6b7280;">
+                          Tour
+                        </td>
+                        <td align="right" style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; font-weight:600; color:#111827;">
+                          ' . esc_html($tour_post->post_title) . '
+                        </td>
+                      </tr>
 
-    $html_body = newtrip_get_email_html_wrapper('Đặt Tour Thành Công!', $content_html);
+                      <tr>
+                        <td style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; color:#6b7280;">
+                          Ngày khởi hành
+                        </td>
+                        <td align="right" style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; font-weight:600; color:#111827;">
+                          ' . esc_html($departure_date) . '
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; color:#6b7280;">
+                          Số người
+                        </td>
+                        <td align="right" style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; font-weight:600; color:#111827;">
+                          ' . intval($participants) . ' khách
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; color:#6b7280;">
+                          Phương thức
+                        </td>
+                        <td align="right" style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; font-weight:600; color:#111827;">
+                          ' . esc_html($payment_method_label) . '
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style="padding:16px 0; font-size:15px; color:#6b7280;">
+                          Tổng thanh toán
+                        </td>
+                        <td align="right" style="padding:16px 0; font-size:20px; font-weight:700; color:#dc2626;">
+                          ' . number_format($total_amount, 0, ',', '.') . ' đ
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 20px;">
+                <tr>
+                  <td style="padding:22px; background:#f9fafb; border-radius:14px; text-align:center;">
+                    <div style="font-size:16px; font-weight:700; color:#111827; margin-bottom:8px;">
+                      Bổ sung thông tin thành viên
+                    </div>
+
+                    <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#6b7280;">
+                      Vui lòng cập nhật Ngày sinh, SĐT, Số CMND/CCCD, Bệnh lý hoặc các thông tin cần thiết khác trước ngày khởi hành.
+                    </p>
+
+                    <a href="' . esc_url($update_url) . '"
+                       style="display:inline-block; background:#15803d; color:#ffffff; text-decoration:none; font-size:15px; font-weight:700; padding:14px 24px; border-radius:999px;">
+                      Cập nhật thông tin ngay
+                    </a>
+
+                    <p style="margin:16px 0 0; font-size:12px; line-height:1.5; color:#9ca3af;">
+                      Liên kết này chỉ dành riêng cho đơn đặt tour của bạn. Không chia sẻ cho người khác.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Contact notice -->
+              <p style="margin:0 0 10px; font-size:14px; line-height:1.7; color:#4b5563;">
+                Chúng tôi sẽ liên hệ lại qua số điện thoại 
+                <strong style="color:#111827;">' . esc_html($phone) . '</strong> 
+                để xác nhận thông tin trong thời gian sớm nhất.
+              </p>
+
+              <p style="margin:0 0 24px; font-size:14px; line-height:1.7; color:#4b5563;">
+                Nếu bạn có thắc mắc, vui lòng phản hồi email này để được hỗ trợ.
+              </p>';
+
+    $html_body = newtrip_get_email_html_wrapper(
+        'Đặt Tour Thành Công!',
+        $content_html,
+        'Xác nhận đặt tour thành công',
+        'Đơn đặt tour ' . $tour_post->post_title . ' của bạn đã được ghi nhận. Vui lòng bổ sung thông tin thành viên.'
+    );
     $headers = [
         'Content-Type: text/html; charset=UTF-8',
         'From: Đôi Dép Adventure <doidepadventure@gmail.com>'
@@ -3248,61 +3315,68 @@ add_filter('acf/load_field_group', function ($group) {
 });
 
 // Khung xương (Wrapper) HTML Email cao cấp cho hệ thống Đôi Dép Adventure
-function newtrip_get_email_html_wrapper($title, $content_html)
+function newtrip_get_email_html_wrapper($title, $content_html, $subtitle = '', $preheader = '')
 {
-    $logo_url = 'https://doi-dep.vercel.app/images/logo.png';
+    $preheader_html = '';
+    if (!empty($preheader)) {
+        $preheader_html = '
+  <!-- Preheader -->
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
+    ' . esc_html($preheader) . '
+  </div>';
+    }
+    
+    $subtitle_val = !empty($subtitle) ? $subtitle : $title;
+
     return '
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>' . esc_html($title) . '</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>' . esc_html($title) . '</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f6f9fc; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f6f9fc; padding: 40px 0;">
-        <tr>
-            <td align="center">
-                <!-- Wrapper -->
-                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #eef2f6;">
-                    
-                    <!-- Header Banner -->
-                    <tr>
-                        <td align="center" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 40px 30px; text-align: center;">
-                            <img src="' . esc_url($logo_url) . '" alt="Đôi Dép Adventure" style="width: 72px; height: 72px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.15); margin-bottom: 15px; object-fit: cover;">
-                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">' . esc_html($title) . '</h1>
-                            <p style="color: #d1fae5; margin: 5px 0 0 0; font-size: 14px; font-weight: 500;">Đôi Dép Adventure • Trekking & Camping</p>
-                        </td>
-                    </tr>
-                    
-                    <!-- Body Content -->
-                    <tr>
-                        <td style="padding: 40px 30px; background-color: #ffffff;">
-                            ' . $content_html . '
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                        <td style="padding: 30px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center;">
-                            <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: #1e293b;">ĐÔI DÉP ADVENTURE</p>
-                            <p style="margin: 0 0 15px 0; font-size: 13px; color: #64748b; line-height: 1.5;">
-                                Đơn vị tổ chức các chuyến đi trải nghiệm, trekking, cắm trại dã ngoại kết hợp kỹ năng sinh tồn thực tế.
-                            </p>
-                            <div style="margin-bottom: 20px;">
-                                <a href="tel:0961804359" style="display: inline-block; margin: 0 10px; font-size: 13px; font-weight: 600; color: #059669; text-decoration: none;">Hotline: 096 180 43 59</a>
-                                <span style="color: #cbd5e1;">|</span>
-                                <a href="mailto:doidepadventure@gmail.com" style="display: inline-block; margin: 0 10px; font-size: 13px; font-weight: 600; color: #059669; text-decoration: none;">Email: doidepadventure@gmail.com</a>
-                            </div>
-                            <p style="margin: 0; font-size: 11px; color: #94a3b8;">
-                                © 2026 Đôi Dép Adventure. All rights reserved.
-                            </p>
-                        </td>
-                    </tr>
-                </table>
+<body style="margin:0; padding:0; background:#f3f6f4; font-family:Arial, Helvetica, sans-serif; color:#1f2937;">
+  ' . $preheader_html . '
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f6f4; padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px; background:#ffffff; border-radius:18px; overflow:hidden; box-shadow:0 8px 28px rgba(15, 23, 42, 0.08);">
+          <!-- Header -->
+          <tr>
+            <td style="background:#0f3d2e; padding:28px 28px 24px; text-align:center;">
+              <div style="font-size:24px; font-weight:700; color:#ffffff; margin-bottom:6px;">
+                Đôi Dép Adventure
+              </div>
+              <div style="font-size:14px; color:#d6eadf;">
+                ' . esc_html($subtitle_val) . '
+              </div>
             </td>
-        </tr>
-    </table>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px 28px 12px;">
+              ' . $content_html . '
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:22px 28px; background:#f9fafb; border-top:1px solid #e5e7eb; text-align:center;">
+              <div style="font-size:14px; font-weight:700; color:#111827; margin-bottom:6px;">
+                Đôi Dép Adventure
+              </div>
+              <div style="font-size:12px; line-height:1.6; color:#6b7280;">
+                Email này được gửi tự động từ hệ thống đặt tour.<br>
+                Vui lòng không chia sẻ mã đặt tour hoặc liên kết cập nhật cho người không liên quan.
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>';
 }
@@ -3590,43 +3664,81 @@ function newtrip_api_checkin_remind(WP_REST_Request $request)
 
     // Nội dung HTML email
     $content_html = '
-    <p style="margin-top: 0; font-size: 16px; color: #334155; line-height: 1.6;">
-        Xin chào <strong>' . esc_html($passenger_name) . '</strong>,
-    </p>
-    <p style="font-size: 15px; color: #334155; line-height: 1.6; margin-bottom: 25px;">
-        Đây là thông báo nhắc nhở chuẩn bị tập trung xuất phát cho hành trình tour sắp tới của bạn cùng đoàn <strong>Đôi Dép Adventure</strong>. Dưới đây là thông tin chi tiết:
-    </p>
+              <h1 style="margin:0 0 12px; font-size:22px; line-height:1.35; color:#111827;">
+                Xin chào ' . esc_html($passenger_name) . ',
+              </h1>
 
-    <!-- Gathering Card -->
-    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 14px; line-height: 1.6; color: #334155;">
-            <tr>
-                <td style="padding: 6px 0; font-weight: 600; color: #64748b; width: 35%;">Hành trình:</td>
-                <td style="padding: 6px 0; font-weight: 700; color: #0f172a;">' . esc_html($tour_name) . '</td>
-            </tr>
-            <tr>
-                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Khởi hành:</td>
-                <td style="padding: 6px 0; color: #0f172a; font-weight: 600;">' . esc_html($departure_date) . '</td>
-            </tr>
-            <tr>
-                <td style="padding: 6px 0; font-weight: 600; color: #4f46e5; font-size: 15px;">Điểm tập trung:</td>
-                <td style="padding: 6px 0; font-weight: 700; color: #4f46e5; font-size: 15px;">' . esc_html($pickup_name) . '</td>
-            </tr>
-        </table>
-    </div>
+              <p style="margin:0 0 18px; font-size:15px; line-height:1.7; color:#4b5563;">
+                Đây là thông báo nhắc nhở chuẩn bị tập trung xuất phát cho hành trình tour sắp tới của bạn cùng đoàn <strong>Đôi Dép Adventure</strong>. Dưới đây là thông tin chi tiết:
+              </p>
 
-    <!-- Callout Alert -->
-    <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px 20px; margin-bottom: 25px;">
-        <p style="margin: 0; font-size: 13.5px; color: #1e3a8a; line-height: 1.5;">
-            📌 <strong>Lưu ý:</strong> Vui lòng sắp xếp thời gian có mặt tại điểm đón đúng giờ quy định để đảm bảo hành trình của đoàn được xuất phát đúng lịch trình.
-        </p>
-    </div>
+              <!-- Gathering Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-radius:14px; overflow:hidden; margin-bottom:24px;">
+                <tr>
+                  <td style="padding:16px 20px; background:#fafafa; font-size:16px; font-weight:700; color:#111827;">
+                    Thông tin tập trung
+                  </td>
+                </tr>
 
-    <p style="font-size: 14px; color: #334155; line-height: 1.6; margin-bottom: 0;">
-        Nếu gặp bất kỳ khó khăn nào khi di chuyển đến điểm đón hoặc cần liên hệ khẩn cấp, vui lòng liên hệ ngay với <strong>Hướng dẫn viên</strong> của đoàn hoặc gọi hotline hỗ trợ nhanh: <strong>096 180 43 59</strong>.
-    </p>';
+                <tr>
+                  <td style="padding:0 20px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; color:#6b7280;">
+                          Hành trình
+                        </td>
+                        <td align="right" style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; font-weight:600; color:#111827;">
+                          ' . esc_html($tour_name) . '
+                        </td>
+                      </tr>
 
-    $html_body = newtrip_get_email_html_wrapper('Nhắc Nhở Tập Trung', $content_html);
+                      <tr>
+                        <td style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; color:#6b7280;">
+                          Ngày khởi hành
+                        </td>
+                        <td align="right" style="padding:14px 0; border-bottom:1px solid #eeeeee; font-size:14px; font-weight:600; color:#111827;">
+                          ' . esc_html($departure_date) . '
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style="padding:16px 0; font-size:15px; color:#15803d; font-weight:600;">
+                          Điểm tập trung / đón
+                        </td>
+                        <td align="right" style="padding:16px 0; font-size:15px; font-weight:700; color:#15803d;">
+                          ' . esc_html($pickup_name) . '
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Callout Alert -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <div style="font-size:14px; line-height:1.6; color:#166534;">
+                      📌 <strong>Lưu ý quan trọng:</strong> Vui lòng sắp xếp thời gian có mặt tại điểm đón đúng giờ quy định để đảm bảo hành trình của đoàn được xuất phát đúng lịch trình.
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 10px; font-size:14px; line-height:1.7; color:#4b5563;">
+                Nếu gặp bất kỳ khó khăn nào khi di chuyển đến điểm đón hoặc cần liên hệ khẩn cấp, vui lòng liên hệ ngay với <strong>Hướng dẫn viên</strong> của đoàn hoặc gọi hotline hỗ trợ nhanh: <strong style="color:#111827;">096 180 43 59</strong>.
+              </p>
+
+              <p style="margin:0 0 24px; font-size:14px; line-height:1.7; color:#4b5563;">
+                Hẹn gặp lại bạn trên hành trình trekking & camping đầy thú vị sắp tới!
+              </p>';
+
+    $html_body = newtrip_get_email_html_wrapper(
+        'Nhắc Nhở Tập Trung',
+        $content_html,
+        'Thông tin tập trung khởi hành',
+        'Nhắc nhở tập trung cho tour ' . $tour_name . ' khởi hành ngày ' . $departure_date
+    );
 
     $headers = [
         'Content-Type: text/html; charset=UTF-8',
@@ -3699,40 +3811,55 @@ function newtrip_send_birthday_wishes()
         $subject = '[Đôi Dép Adventure] Chúc mừng sinh nhật, ' . $full_name . '! 🎂';
         
         $content_html = '
-        <p style="margin-top: 0; font-size: 16px; color: #334155; line-height: 1.6; text-align: center;">
-            Chúc mừng sinh nhật, <strong>' . esc_html($full_name) . '</strong>! 🎉
-        </p>
-        <p style="font-size: 15px; color: #334155; line-height: 1.6; text-align: center; margin-bottom: 25px;">
-            Hôm nay là một ngày đặc biệt! Đội ngũ <strong>Đôi Dép Adventure</strong> xin gửi tới bạn những lời chúc mừng ấm áp nhất. Chúc bạn một tuổi mới tràn đầy sức khỏe, hạnh phúc, may mắn và gặt hái được nhiều thành công trong cuộc sống.
-        </p>
+              <h1 style="margin:0 0 12px; font-size:22px; line-height:1.35; color:#111827; text-align:center;">
+                Chúc mừng sinh nhật, ' . esc_html($full_name) . '! 🎂
+              </h1>
 
-        <!-- Birthday Gift Banner -->
-        <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 30px;">
-            <div style="font-size: 40px; margin-bottom: 10px;">🎁</div>
-            <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #92400e;">QUÀ TẶNG SINH NHẬT DÀNH CHO BẠN</h3>
-            <p style="margin: 0 0 15px 0; font-size: 13.5px; color: #92400e; line-height: 1.5;">
-                Để nhân đôi niềm vui trong ngày sinh nhật, Đôi Dép Adventure gửi tặng bạn mã giảm giá <strong>10%</strong> cho lần đặt tour tiếp theo của bạn và gia đình:
-            </p>
-            <div style="display: inline-block; background-color: #f59e0b; color: #ffffff; padding: 10px 20px; font-size: 18px; font-weight: 800; border-radius: 6px; letter-spacing: 1px; margin-bottom: 10px;">
-                DOIDEPBIRTHDAY
-            </div>
-            <p style="margin: 0; font-size: 11px; color: #b45309;">
-                *Áp dụng cho mọi hành trình trekking & camping khởi hành trong năm 2026.
-            </p>
-        </div>
+              <p style="margin:0 0 18px; font-size:15px; line-height:1.7; color:#4b5563; text-align:center;">
+                Hôm nay là một ngày đặc biệt! Đội ngũ <strong>Đôi Dép Adventure</strong> xin gửi tới bạn những lời chúc mừng ấm áp nhất. Chúc bạn một tuổi mới tràn đầy sức khỏe, hạnh phúc, may mắn và gặt hái được nhiều thành công trong cuộc sống.
+              </p>
 
-        <!-- CTA Button -->
-        <div style="text-align: center; margin-bottom: 30px;">
-            <a href="https://doi-dep.vercel.app/" style="display: inline-block; background-color: #059669; color: #ffffff; padding: 14px 28px; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(5,150,105,0.2);">
-                KHÁM PHÁ CÁC CUNG ĐƯỜNG
-            </a>
-        </div>
+              <!-- Birthday Gift Banner -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0; background:#fffbeb; border:1px solid #fde68a; border-radius:14px;">
+                <tr>
+                  <td style="padding:24px 20px; text-align:center;">
+                    <div style="font-size:40px; margin-bottom:10px;">🎁</div>
+                    <h3 style="margin:0 0 8px 0; font-size:16px; font-weight:700; color:#92400e;">QUÀ TẶNG SINH NHẬT DÀNH CHO BẠN</h3>
+                    <p style="margin:0 0 15px 0; font-size:13.5px; color:#92400e; line-height:1.5;">
+                      Để nhân đôi niềm vui trong ngày sinh nhật, Đôi Dép Adventure gửi tặng bạn mã giảm giá <strong>10%</strong> cho lần đặt tour tiếp theo của bạn và gia đình:
+                    </p>
+                    <div style="display:inline-block; background:#f59e0b; color:#ffffff; padding:10px 20px; font-size:18px; font-weight:800; border-radius:6px; letter-spacing:1px; margin-bottom:10px;">
+                      DOIDEPBIRTHDAY
+                    </div>
+                    <p style="margin:0; font-size:11px; color:#b45309;">
+                      *Áp dụng cho mọi hành trình trekking & camping khởi hành trong năm 2026.
+                    </p>
+                  </td>
+                </tr>
+              </table>
 
-        <p style="font-size: 14px; color: #64748b; line-height: 1.6; text-align: center; margin-bottom: 0;">
-            Cảm ơn bạn đã luôn tin tưởng và đồng hành cùng Đôi Dép Adventure trên những cung đường khám phá thiên nhiên kỳ thú!
-        </p>';
+              <!-- CTA Button -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 20px;">
+                <tr>
+                  <td style="text-align:center;">
+                    <a href="https://doi-dep.vercel.app/"
+                       style="display:inline-block; background:#15803d; color:#ffffff; text-decoration:none; font-size:15px; font-weight:700; padding:14px 24px; border-radius:999px;">
+                      Khám phá các cung đường ngay
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size:14px; color:#64748b; line-height:1.6; text-align:center; margin-bottom:0;">
+                Cảm ơn bạn đã luôn tin tưởng và đồng hành cùng Đôi Dép Adventure trên những cung đường khám phá thiên nhiên kỳ thú!
+              </p>';
         
-        $html_body = newtrip_get_email_html_wrapper('Happy Birthday!', $content_html);
+        $html_body = newtrip_get_email_html_wrapper(
+            'Chúc Mừng Sinh Nhật!',
+            $content_html,
+            'Happy Birthday!',
+            'Chúc mừng sinh nhật, ' . $full_name . '! Nhận quà tặng đặc biệt từ Đôi Dép Adventure.'
+        );
         
         $headers = [
             'Content-Type: text/html; charset=UTF-8',
