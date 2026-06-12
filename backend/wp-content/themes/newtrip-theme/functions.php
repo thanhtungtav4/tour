@@ -15,6 +15,21 @@ add_action('after_setup_theme', function () {
 require_once get_template_directory() . '/includes/helpers.php';
 require_once get_template_directory() . '/includes/rollback.php';
 
+// Tự động tạo page Check-in khi activate theme
+add_action('init', 'newtrip_create_checkin_page');
+function newtrip_create_checkin_page() {
+    $page_slug = 'checkin';
+    $page = get_page_by_path($page_slug);
+    if (!$page) {
+        wp_insert_post([
+            'post_type' => 'page',
+            'post_title' => 'Check-in',
+            'post_name' => $page_slug,
+            'post_status' => 'publish',
+        ]);
+    }
+}
+
 // CORS cho Frontend (Vercel + dev local)
 add_action('rest_api_init', function () {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
@@ -23,6 +38,7 @@ add_action('rest_api_init', function () {
             'https://doi-dep.vercel.app',
             'http://localhost:3000',
             'http://127.0.0.1:3000',
+            'https://doidepadventure.com'
         ];
         $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
         if (in_array($origin, $allowed_origins, true)) {
@@ -36,15 +52,17 @@ add_action('rest_api_init', function () {
     });
 }, 15);
 
-add_action( 'after_setup_theme', 'register_my_menu' );
-function register_my_menu() {
-  register_nav_menu( 'primary-menu', __( 'Primary Menu', 'newtrip-theme' ) );
-  register_nav_menu( 'footer-menu', __( 'Footer Menu', 'newtrip-theme' ) );
+add_action('after_setup_theme', 'register_my_menu');
+function register_my_menu()
+{
+    register_nav_menu('primary-menu', __('Primary Menu', 'newtrip-theme'));
+    register_nav_menu('footer-menu', __('Footer Menu', 'newtrip-theme'));
 }
 
 
 // 1. Đăng ký Custom Post Types (Tours, Bookings, Rental Items, Pickup Points)
-function newtrip_register_post_types() {
+function newtrip_register_post_types()
+{
     // 1.1 CPT Tour (Chuyến đi)
     register_post_type('tour', [
         'labels' => [
@@ -147,61 +165,64 @@ add_action('acf/init', function () {
         acf_add_options_page([
             'page_title' => 'Cấu hình thanh toán',
             'menu_title' => 'Thanh toán',
-            'menu_slug'  => 'newtrip-payment-settings',
+            'menu_slug' => 'newtrip-payment-settings',
             'capability' => 'manage_options',
-            'icon_url'   => 'dashicons-money-alt',
-            'redirect'   => false,
+            'icon_url' => 'dashicons-money-alt',
+            'redirect' => false,
         ]);
 
         acf_add_options_page([
             'page_title' => 'Cài đặt chung Đôi Dép',
             'menu_title' => 'Cài đặt chung',
-            'menu_slug'  => 'newtrip-general-settings',
+            'menu_slug' => 'newtrip-general-settings',
             'capability' => 'manage_options',
-            'icon_url'   => 'dashicons-admin-settings',
-            'redirect'   => false,
+            'icon_url' => 'dashicons-admin-settings',
+            'redirect' => false,
         ]);
     }
 });
 
 // Helper lấy bank info từ ACF options. Trả null nếu admin chưa cấu hình đủ.
 // KHÔNG fallback default — bank info bắt buộc admin phải set, để tránh chuyển tiền sai TK.
-function newtrip_get_bank_info() {
+function newtrip_get_bank_info()
+{
     if (!function_exists('get_field')) {
         return null;
     }
-    $bank_name    = trim((string) get_field('bank_name', 'option'));
-    $bank_bin     = trim((string) get_field('bank_bin', 'option'));
-    $account_no   = trim((string) get_field('account_no', 'option'));
+    $bank_name = trim((string) get_field('bank_name', 'option'));
+    $bank_bin = trim((string) get_field('bank_bin', 'option'));
+    $account_no = trim((string) get_field('account_no', 'option'));
     $account_name = trim((string) get_field('account_name', 'option'));
 
     if ($bank_name === '' || $bank_bin === '' || $account_no === '' || $account_name === '') {
         return null;
     }
     return [
-        'bank_name'    => $bank_name,
-        'bank_bin'     => $bank_bin,
-        'account_no'   => $account_no,
+        'bank_name' => $bank_name,
+        'bank_bin' => $bank_bin,
+        'account_no' => $account_no,
         'account_name' => $account_name,
     ];
 }
 
 // Helper format 1 tour_service post thành mảng phẳng cho REST output
-function newtrip_format_tour_service($service_post) {
+function newtrip_format_tour_service($service_post)
+{
     $sid = $service_post->ID;
     return [
-        'id'          => $service_post->post_name,
-        'post_id'     => $sid,
-        'name'        => $service_post->post_title,
+        'id' => $service_post->post_name,
+        'post_id' => $sid,
+        'name' => $service_post->post_title,
         'description' => (string) newtrip_get_field('description', $sid),
-        'price'       => floatval(newtrip_get_field('price', $sid)),
-        'unit'        => (string) newtrip_get_field('unit', $sid),
-        'icon'        => (string) newtrip_get_field('icon', $sid),
+        'price' => floatval(newtrip_get_field('price', $sid)),
+        'unit' => (string) newtrip_get_field('unit', $sid),
+        'icon' => (string) newtrip_get_field('icon', $sid),
     ];
 }
 
 // Lấy danh sách services gắn vào 1 tour. Trả mảng đã format. Nếu tour chưa khai → mảng rỗng.
-function newtrip_get_tour_services_for_post($tour_id) {
+function newtrip_get_tour_services_for_post($tour_id)
+{
     $service_ids = newtrip_get_field('services', $tour_id);
     if (empty($service_ids) || !is_array($service_ids)) {
         return [];
@@ -218,36 +239,44 @@ function newtrip_get_tour_services_for_post($tour_id) {
 }
 
 // Tra cứu 1 service theo slug (cho booking flow) — chỉ trong scope của tour
-function newtrip_find_tour_service_by_slug($tour_id, $slug) {
+function newtrip_find_tour_service_by_slug($tour_id, $slug)
+{
     foreach (newtrip_get_tour_services_for_post($tour_id) as $s) {
-        if ($s['id'] === $slug || (string)$s['post_id'] === (string)$slug) return $s;
+        if ($s['id'] === $slug || (string) $s['post_id'] === (string) $slug)
+            return $s;
     }
     return null;
 }
 
 // 2. Cấu hình tự động đồng bộ trường dữ liệu ACF sang Git dưới dạng JSON
 add_filter('acf/settings/save_json', 'newtrip_acf_json_save_point');
-function newtrip_acf_json_save_point($path) {
+function newtrip_acf_json_save_point($path)
+{
     return get_stylesheet_directory() . '/acf-json';
 }
 
 add_filter('acf/settings/load_json', 'newtrip_acf_json_load_point');
-function newtrip_acf_json_load_point($paths) {
+function newtrip_acf_json_load_point($paths)
+{
     unset($paths[0]);
     $paths[] = get_stylesheet_directory() . '/acf-json';
     return $paths;
 }
 
 // 3. Các hàm bổ trợ phân tích dữ liệu (Hỗ trợ ACF Pro)
-function newtrip_parse_newline_separated($value) {
-    if (empty($value)) return [];
-    if (is_array($value)) return $value; 
+function newtrip_parse_newline_separated($value)
+{
+    if (empty($value))
+        return [];
+    if (is_array($value))
+        return $value;
     $lines = explode("\n", str_replace("\r", "", $value));
     return array_values(array_filter(array_map('trim', $lines)));
 }
 
 // Lấy meta/field tương thích cả khi có/không có ACF
-function newtrip_get_field($key, $post_id) {
+function newtrip_get_field($key, $post_id)
+{
     if (function_exists('get_field')) {
         return get_field($key, $post_id);
     }
@@ -259,12 +288,14 @@ function newtrip_get_field($key, $post_id) {
 // 2. Featured Image (ảnh đại diện WP)
 // 3. Ảnh mặc định trong Options Page → "Cài đặt chung"
 // 4. Empty array (FE tự fallback)
-function newtrip_parse_gallery_pro($value, $post_id) {
+function newtrip_parse_gallery_pro($value, $post_id)
+{
     if (empty($value)) {
         $thumbnail_id = get_post_thumbnail_id($post_id);
         if ($thumbnail_id) {
             $url = wp_get_attachment_url($thumbnail_id);
-            if ($url) return [$url];
+            if ($url)
+                return [$url];
         }
         if (function_exists('get_field')) {
             $default = get_field('default_tour_image', 'option');
@@ -293,8 +324,10 @@ function newtrip_parse_gallery_pro($value, $post_id) {
 }
 
 // Xử lý Lịch trình ACF Pro Repeater
-function newtrip_parse_itinerary_pro($value) {
-    if (empty($value)) return [];
+function newtrip_parse_itinerary_pro($value)
+{
+    if (empty($value))
+        return [];
     $itinerary = [];
     if (is_array($value)) {
         foreach ($value as $row) {
@@ -306,7 +339,7 @@ function newtrip_parse_itinerary_pro($value) {
         }
         return $itinerary;
     }
-    
+
     // Fallback nếu cấu hình dạng Textarea cũ (Giờ|Hoạt động)
     $lines = explode("\n", str_replace("\r", "", $value));
     foreach ($lines as $line) {
@@ -323,7 +356,8 @@ function newtrip_parse_itinerary_pro($value) {
 }
 
 // Xử lý Thông số trekking ACF Pro Repeater (với fallback sang trường cũ)
-function newtrip_parse_specs_pro($value, $post_id) {
+function newtrip_parse_specs_pro($value, $post_id)
+{
     $specs = [];
     if (is_array($value) && !empty($value)) {
         foreach ($value as $row) {
@@ -335,7 +369,7 @@ function newtrip_parse_specs_pro($value, $post_id) {
         }
         return $specs;
     }
-    
+
     // Fallback sang các trường cấu hình đơn lẻ cũ
     $distance = newtrip_get_field('distance', $post_id);
     $elevation = newtrip_get_field('elevation', $post_id);
@@ -343,7 +377,7 @@ function newtrip_parse_specs_pro($value, $post_id) {
     $terrain = newtrip_get_field('terrain', $post_id);
     $age_min = newtrip_get_field('age_min', $post_id);
     $fitness = newtrip_get_field('fitness', $post_id);
-    
+
     if ($distance) {
         $specs[] = [
             'label' => 'Quãng đường',
@@ -386,12 +420,13 @@ function newtrip_parse_specs_pro($value, $post_id) {
             'icon' => 'flame'
         ];
     }
-    
+
     return $specs;
 }
 
 // Xử lý Ngày đi & Số chỗ trống từ ACF Pro Repeater
-function newtrip_parse_departure_dates_pro($value, $post_id) {
+function newtrip_parse_departure_dates_pro($value, $post_id)
+{
     $dates = [];
     if (is_array($value)) {
         foreach ($value as $row) {
@@ -407,7 +442,7 @@ function newtrip_parse_departure_dates_pro($value, $post_id) {
         }
         return $dates;
     }
-    
+
     // Fallback nếu cấu hình dạng Textarea cũ
     $dates_list = newtrip_parse_newline_separated($value);
     $available_spots = intval(newtrip_get_field('available_spots', $post_id) ?: 10);
@@ -423,8 +458,10 @@ function newtrip_parse_departure_dates_pro($value, $post_id) {
 }
 
 // Xử lý Danh sách trang bị từ ACF Pro Repeater
-function newtrip_parse_gear_list_pro($value) {
-    if (empty($value)) return [];
+function newtrip_parse_gear_list_pro($value)
+{
+    if (empty($value))
+        return [];
     $gear_list = [];
     if (is_array($value)) {
         foreach ($value as $row) {
@@ -440,24 +477,25 @@ function newtrip_parse_gear_list_pro($value) {
 }
 
 // Loại bỏ dấu tiếng Việt để tạo nội dung chuyển khoản chuẩn không dấu
-function newtrip_remove_accents($str) {
+function newtrip_remove_accents($str)
+{
     $unicode = array(
-        'a'=>'á|à|ả|ã|ạ|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ',
-        'd'=>'đ',
-        'e'=>'é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ',
-        'i'=>'í|ì|ỉ|ĩ|ị',
-        'o'=>'ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ',
-        'u'=>'ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự',
-        'y'=>'ý|ỳ|ỷ|ỹ|ỵ',
-        'A'=>'Á|À|Ả|Ã|Ạ|Ă|Ắ|Ằ|Ẳ|Ẵ|Ặ|Â|Ấ|Ầ|Ẩ|Ẫ|Ậ',
-        'D'=>'Đ',
-        'E'=>'É|È|Ẻ|Ẽ|Ẹ|Ê|Ế|Ề|Ể|Ễ|Ệ',
-        'I'=>'Í|Ì|Ỉ|Ĩ|Ị',
-        'O'=>'Ó|Ò|Ỏ|Õ|Ọ|Ô|Ố|Ồ|Ổ|Ỗ|Ộ|Ơ|Ớ|Ờ|Ở|Ỡ|Ợ',
-        'U'=>'Ú|Ù|Ủ|Ũ|Ụ|Ư|Ứ|Ừ|Ử|Ữ|Ự',
-        'Y'=>'Ý|Ỳ|Ỷ|Ỹ|Ỵ',
+        'a' => 'á|à|ả|ã|ạ|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ',
+        'd' => 'đ',
+        'e' => 'é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ',
+        'i' => 'í|ì|ỉ|ĩ|ị',
+        'o' => 'ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ',
+        'u' => 'ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự',
+        'y' => 'ý|ỳ|ỷ|ỹ|ỵ',
+        'A' => 'Á|À|Ả|Ã|Ạ|Ă|Ắ|Ằ|Ẳ|Ẵ|Ặ|Â|Ấ|Ầ|Ẩ|Ẫ|Ậ',
+        'D' => 'Đ',
+        'E' => 'É|È|Ẻ|Ẽ|Ẹ|Ê|Ế|Ề|Ể|Ễ|Ệ',
+        'I' => 'Í|Ì|Ỉ|Ĩ|Ị',
+        'O' => 'Ó|Ò|Ỏ|Õ|Ọ|Ô|Ố|Ồ|Ổ|Ỗ|Ộ|Ơ|Ớ|Ờ|Ở|Ỡ|Ợ',
+        'U' => 'Ú|Ù|Ủ|Ũ|Ụ|Ư|Ứ|Ừ|Ử|Ữ|Ự',
+        'Y' => 'Ý|Ỳ|Ỷ|Ỹ|Ỵ',
     );
-    foreach($unicode as $nonUnicode=>$uni){
+    foreach ($unicode as $nonUnicode => $uni) {
         $str = preg_replace("/($uni)/i", $nonUnicode, $str);
     }
     return $str;
@@ -478,7 +516,8 @@ add_filter('sanitize_title', function ($title, $raw_title = '', $context = 'disp
 }, 9, 3);
 
 // Tính checksum CRC-16 CCITT cho VietQR/EMVCo
-function newtrip_calculate_crc16($data) {
+function newtrip_calculate_crc16($data)
+{
     $crc = 0xFFFF;
     $polynomial = 0x1021;
     $length = strlen($data);
@@ -496,53 +535,55 @@ function newtrip_calculate_crc16($data) {
 }
 
 // Tạo chuỗi VietQR chuẩn EMVCo
-function newtrip_generate_vietqr_payload($bank_bin, $account_no, $amount, $description, $account_name = '') {
+function newtrip_generate_vietqr_payload($bank_bin, $account_no, $amount, $description, $account_name = '')
+{
     $emvco = '';
-    
+
     // Tag 00: Payload Format Indicator (01)
     $emvco .= sprintf('%02s%02d%s', '00', 2, '01');
-    
+
     // Tag 01: Point of Initiation Method (12: Dynamic QR with amount, 11: Static)
     $emvco .= sprintf('%02s%02d%s', '01', 2, '12');
-    
+
     // Tag 38: Merchant Account Information
     $sub_sub_tag00 = sprintf('%02s%02d%s', '00', strlen($bank_bin), $bank_bin);
     $sub_sub_tag01 = sprintf('%02s%02d%s', '01', strlen($account_no), $account_no);
     $sub_tag01 = sprintf('%02s%02d%s', '01', strlen($sub_sub_tag00 . $sub_sub_tag01), $sub_sub_tag00 . $sub_sub_tag01);
     $sub_tag00 = sprintf('%02s%02d%s', '00', 10, 'A000000727');
     $emvco .= sprintf('%02s%02d%s', '38', strlen($sub_tag00 . $sub_tag01), $sub_tag00 . $sub_tag01);
-    
+
     // Tag 53: Transaction Currency (704: VND)
     $emvco .= sprintf('%02s%02d%s', '53', 3, '704');
-    
+
     // Tag 54: Transaction Amount
     $emvco .= sprintf('%02s%02d%s', '54', strlen($amount), $amount);
-    
+
     // Tag 58: Country Code (VN)
     $emvco .= sprintf('%02s%02d%s', '58', 2, 'VN');
-    
+
     // Tag 59: Merchant Name (Account Name)
     $clean_account_name = newtrip_remove_accents($account_name);
     $clean_account_name = strtoupper(preg_replace('/[^A-Za-z0-9 ]/', '', $clean_account_name));
     if (!empty($clean_account_name)) {
         $emvco .= sprintf('%02s%02d%s', '59', strlen($clean_account_name), $clean_account_name);
     }
-    
+
     // Tag 62: Additional Data Template
     $clean_desc = newtrip_remove_accents($description);
     $clean_desc = strtoupper(preg_replace('/[^A-Za-z0-9 ]/', '', $clean_desc));
     $sub_tag08 = sprintf('%02s%02d%s', '08', strlen($clean_desc), $clean_desc);
     $emvco .= sprintf('%02s%02d%s', '62', strlen($sub_tag08), $sub_tag08);
-    
+
     // Tag 63: CRC16 checksum
     $emvco .= '6304';
     $crc = newtrip_calculate_crc16($emvco);
-    
+
     return $emvco . $crc;
 }
 
 // Hỗ trợ trích xuất URL ảnh an toàn từ các trường dữ liệu ảnh Yoast SEO (chuỗi hoặc mảng)
-function newtrip_get_yoast_image($image_field) {
+function newtrip_get_yoast_image($image_field)
+{
     if (empty($image_field)) {
         return '';
     }
@@ -566,7 +607,8 @@ function newtrip_get_yoast_image($image_field) {
 
 // Lấy gói Yoast SEO meta cho 1 post. Trả null nếu Yoast chưa bật.
 // Yoast expose method WPSEO_Frontend / API: `the_seo_framework` không có; dùng class `WPSEO_Meta` + getter.
-function newtrip_get_yoast_seo($post_id) {
+function newtrip_get_yoast_seo($post_id)
+{
     if (!class_exists('WPSEO_Frontend') && !function_exists('YoastSEO')) {
         return null;
     }
@@ -575,19 +617,20 @@ function newtrip_get_yoast_seo($post_id) {
     if (function_exists('YoastSEO')) {
         try {
             $meta = YoastSEO()->meta->for_post($post_id);
-            if (!$meta) return null;
+            if (!$meta)
+                return null;
             return [
-                'title'           => (string) ($meta->title ?? ''),
-                'description'     => (string) ($meta->description ?? ''),
-                'canonical'       => (string) ($meta->canonical ?? ''),
-                'og_title'        => (string) ($meta->open_graph_title ?? ''),
-                'og_description'  => (string) ($meta->open_graph_description ?? ''),
-                'og_image'        => newtrip_get_yoast_image($meta->open_graph_image ?? $meta->open_graph_images ?? ''),
-                'og_type'         => (string) ($meta->open_graph_type ?? 'article'),
-                'twitter_title'   => (string) ($meta->twitter_title ?? ''),
-                'twitter_image'   => newtrip_get_yoast_image($meta->twitter_image ?? $meta->twitter_images ?? ''),
-                'robots'          => is_array($meta->robots ?? null) ? implode(',', $meta->robots) : (string) ($meta->robots ?? 'index,follow'),
-                'schema'          => method_exists($meta, 'schema') ? $meta->schema : null,
+                'title' => (string) ($meta->title ?? ''),
+                'description' => (string) ($meta->description ?? ''),
+                'canonical' => (string) ($meta->canonical ?? ''),
+                'og_title' => (string) ($meta->open_graph_title ?? ''),
+                'og_description' => (string) ($meta->open_graph_description ?? ''),
+                'og_image' => newtrip_get_yoast_image($meta->open_graph_image ?? $meta->open_graph_images ?? ''),
+                'og_type' => (string) ($meta->open_graph_type ?? 'article'),
+                'twitter_title' => (string) ($meta->twitter_title ?? ''),
+                'twitter_image' => newtrip_get_yoast_image($meta->twitter_image ?? $meta->twitter_images ?? ''),
+                'robots' => is_array($meta->robots ?? null) ? implode(',', $meta->robots) : (string) ($meta->robots ?? 'index,follow'),
+                'schema' => method_exists($meta, 'schema') ? $meta->schema : null,
             ];
         } catch (\Throwable $e) {
             return null;
@@ -597,14 +640,15 @@ function newtrip_get_yoast_seo($post_id) {
 }
 
 // 4. Biến đổi dữ liệu Post sang định dạng JSON mà Frontend yêu cầu
-function newtrip_format_tour_list_item($post) {
+function newtrip_format_tour_list_item($post)
+{
     $post_id = $post->ID;
     $price = floatval(newtrip_get_field('price', $post_id));
     $gallery = newtrip_parse_gallery_pro(newtrip_get_field('gallery', $post_id), $post_id);
-    
+
     $departure_dates_raw = newtrip_get_field('departure_dates', $post_id);
     $departure_dates = newtrip_parse_departure_dates_pro($departure_dates_raw, $post_id);
-    
+
     // Tổng số chỗ còn lại của chuyến bay/chuyến đi tiếp theo
     $available_spots = !empty($departure_dates) ? $departure_dates[0]['available_spots'] : 0;
     $next_date = !empty($departure_dates) ? $departure_dates[0]['date'] : '';
@@ -632,7 +676,8 @@ function newtrip_format_tour_list_item($post) {
     ];
 }
 
-function newtrip_format_tour_detail($post) {
+function newtrip_format_tour_detail($post)
+{
     $list_item = newtrip_format_tour_list_item($post);
     $post_id = $post->ID;
 
@@ -830,7 +875,8 @@ add_action('rest_api_init', function () {
 // 6. Định nghĩa callbacks cho các API Endpoints
 
 // 6.1 Lấy danh sách Tour
-function newtrip_api_get_tours(WP_REST_Request $request) {
+function newtrip_api_get_tours(WP_REST_Request $request)
+{
     $search = $request->get_param('search');
     $difficulty = $request->get_param('difficulty');
     $duration = $request->get_param('duration');
@@ -838,7 +884,7 @@ function newtrip_api_get_tours(WP_REST_Request $request) {
     $price_min = $request->get_param('price_min');
     $price_max = $request->get_param('price_max');
     $sort = $request->get_param('sort');
-    
+
     $args = [
         'post_type' => 'tour',
         'posts_per_page' => -1,
@@ -895,23 +941,25 @@ function newtrip_api_get_tours(WP_REST_Request $request) {
     // Lọc theo thời lượng (duration) ở PHP
     if (!empty($duration)) {
         if ($duration === '1day') {
-            $data = array_values(array_filter($data, function($t) { return $t['duration'] === '1 ngày'; }));
+            $data = array_values(array_filter($data, function ($t) {
+                return $t['duration'] === '1 ngày'; }));
         } elseif ($duration === 'multi') {
-            $data = array_values(array_filter($data, function($t) { return $t['duration'] !== '1 ngày'; }));
+            $data = array_values(array_filter($data, function ($t) {
+                return $t['duration'] !== '1 ngày'; }));
         }
     }
 
     // Sắp xếp (sorting) ở PHP
     if ($sort === 'price-asc') {
-        usort($data, function($a, $b) {
+        usort($data, function ($a, $b) {
             return $a['price'] <=> $b['price'];
         });
     } elseif ($sort === 'price-desc') {
-        usort($data, function($a, $b) {
+        usort($data, function ($a, $b) {
             return $b['price'] <=> $a['price'];
         });
     } elseif ($sort === 'rating-desc') {
-        usort($data, function($a, $b) {
+        usort($data, function ($a, $b) {
             return $b['review_count'] <=> $a['review_count']; // Sort by popularity
         });
     }
@@ -919,10 +967,10 @@ function newtrip_api_get_tours(WP_REST_Request $request) {
     // Phân trang ở PHP (để đảm bảo chính xác sau khi lọc ở PHP)
     $page = intval($request->get_param('page') ?: 1);
     $per_page = intval($request->get_param('per_page') ?: 10);
-    
+
     $total_items = count($data);
     $total_pages = max(1, ceil($total_items / $per_page));
-    
+
     $offset = ($page - 1) * $per_page;
     $paginated_data = array_slice($data, $offset, $per_page);
 
@@ -939,9 +987,10 @@ function newtrip_api_get_tours(WP_REST_Request $request) {
 }
 
 // 6.2 Lấy chi tiết Tour
-function newtrip_api_get_tour_by_slug(WP_REST_Request $request) {
+function newtrip_api_get_tour_by_slug(WP_REST_Request $request)
+{
     $slug = sanitize_text_field($request->get_param('slug'));
-    
+
     $query = new WP_Query([
         'post_type' => 'tour',
         'name' => $slug,
@@ -963,13 +1012,14 @@ function newtrip_api_get_tour_by_slug(WP_REST_Request $request) {
 }
 
 // 6.3 Danh sách đồ thuê
-function newtrip_api_get_rental_items(WP_REST_Request $request) {
+function newtrip_api_get_rental_items(WP_REST_Request $request)
+{
     $query = new WP_Query([
         'post_type' => 'rental_item',
         'posts_per_page' => -1,
         'post_status' => 'publish',
     ]);
-    
+
     $data = [];
     if ($query->have_posts()) {
         foreach ($query->posts as $post) {
@@ -990,7 +1040,7 @@ function newtrip_api_get_rental_items(WP_REST_Request $request) {
             ];
         }
     }
-    
+
     return new WP_REST_Response([
         'success' => true,
         'data' => $data
@@ -998,13 +1048,14 @@ function newtrip_api_get_rental_items(WP_REST_Request $request) {
 }
 
 // 6.4 Danh sách điểm đón
-function newtrip_api_get_pickup_points(WP_REST_Request $request) {
+function newtrip_api_get_pickup_points(WP_REST_Request $request)
+{
     $query = new WP_Query([
         'post_type' => 'pickup_point',
         'posts_per_page' => -1,
         'post_status' => 'publish',
     ]);
-    
+
     $data = [];
     if ($query->have_posts()) {
         foreach ($query->posts as $post) {
@@ -1021,7 +1072,7 @@ function newtrip_api_get_pickup_points(WP_REST_Request $request) {
             ];
         }
     }
-    
+
     return new WP_REST_Response([
         'success' => true,
         'data' => $data
@@ -1029,18 +1080,19 @@ function newtrip_api_get_pickup_points(WP_REST_Request $request) {
 }
 
 // 6.5 Đặt tour mới (POST) và khấu trừ số chỗ trống của ngày khởi hành tương ứng trong Repeater
-function newtrip_api_create_booking(WP_REST_Request $request) {
+function newtrip_api_create_booking(WP_REST_Request $request)
+{
     $params = $request->get_json_params();
-    
+
     // Log request params
     file_put_contents(ABSPATH . 'wp-content/booking_debug.log', date('Y-m-d H:i:s') . " - CREATE BOOKING PARAMS: " . print_r($params, true) . "\n", FILE_APPEND);
-    
+
     $tour_slug = isset($params['tour_slug']) ? sanitize_text_field($params['tour_slug']) : '';
     $departure_date = isset($params['departure_date']) ? sanitize_text_field($params['departure_date']) : '';
     $participants = isset($params['participants']) ? intval($params['participants']) : 1;
     $payment_method = isset($params['payment_method']) ? sanitize_text_field($params['payment_method']) : 'transfer';
     $notes = isset($params['notes']) ? sanitize_textarea_field($params['notes']) : '';
-    
+
     $main_contact = isset($params['main_contact']) ? $params['main_contact'] : [];
     $full_name = isset($main_contact['full_name']) ? sanitize_text_field($main_contact['full_name']) : '';
     $phone = isset($main_contact['phone']) ? sanitize_text_field($main_contact['phone']) : '';
@@ -1137,8 +1189,8 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
             $services_total += $service['price'] * $participants;
             $services_data[] = [
                 'service_id' => $service['post_id'], // Save numeric Post ID
-                'name'       => $service['name'],
-                'price'      => $service['price'],
+                'name' => $service['name'],
+                'price' => $service['price'],
             ];
         }
     }
@@ -1149,8 +1201,9 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     $rental_total = 0;
     foreach ($requested_rentals as $r_id => $qty) {
         $qty = intval($qty);
-        if ($qty <= 0) continue;
-        
+        if ($qty <= 0)
+            continue;
+
         $query_args = [
             'post_type' => 'rental_item',
             'posts_per_page' => 1,
@@ -1161,16 +1214,16 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
             $query_args['name'] = sanitize_title($r_id);
         }
         $rental_query = new WP_Query($query_args);
-        
+
         if ($rental_query->have_posts()) {
             $rental_post = $rental_query->posts[0];
             $rental_item_id = $rental_post->ID;
             $r_price = floatval(newtrip_get_field('price', $rental_item_id));
             $r_name = $rental_post->post_title;
-            
+
             $subtotal = $r_price * $qty;
             $rental_total += $subtotal;
-            
+
             $rental_items_data[] = [
                 'item_id' => $rental_item_id, // Save numeric Post ID
                 'item_slug' => $rental_post->post_name,
@@ -1203,23 +1256,24 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     $passengers_acf_data = [];
     $passengers_response_data = [];
     $p_id_counter = 1000;
-    
+
     foreach ($raw_passengers as $idx => $p) {
         $p_name = isset($p['full_name']) ? sanitize_text_field($p['full_name']) : '';
-        if (empty($p_name)) continue;
-        
+        if (empty($p_name))
+            continue;
+
         $p_phone = isset($p['phone']) ? preg_replace('/[^\d+]/', '', sanitize_text_field($p['phone'])) : '';
         $p_email = isset($p['email']) ? sanitize_email($p['email']) : '';
         $p_birth = isset($p['birth_date']) ? sanitize_text_field($p['birth_date']) : (isset($p['birth_year']) ? sanitize_text_field($p['birth_year']) : '');
         $p_id_no = isset($p['id_number']) ? sanitize_text_field($p['id_number']) : '';
         $p_health = isset($p['health_status']) ? sanitize_text_field($p['health_status']) : '';
         $p_seat = isset($params['selected_seats'][$idx]) ? sanitize_text_field($params['selected_seats'][$idx]) : '';
-        
+
         $p_pickup_point_id = isset($p['pickup_point_id']) ? intval($p['pickup_point_id']) : 0;
         if (!$p_pickup_point_id) {
             $p_pickup_point_id = isset($params['pickup_point_id']) ? intval($params['pickup_point_id']) : 0;
         }
-        
+
         $pickup_name = '';
         if ($p_pickup_point_id) {
             $pickup_post = get_post($p_pickup_point_id);
@@ -1227,7 +1281,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
                 $pickup_name = $pickup_post->post_title;
             }
         }
-        
+
         $passengers_acf_data[] = [
             'full_name' => $p_name,
             'phone' => $p_phone,
@@ -1239,7 +1293,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
             'checked_in' => 0,
             'health_status' => $p_health,
         ];
-        
+
         $passengers_response_data[] = [
             'id' => $p_id_counter + $idx,
             'full_name' => $p_name,
@@ -1300,7 +1354,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
         update_post_meta($booking_id, 'total_amount', $total_amount);
         update_post_meta($booking_id, 'status', 'pending');
         update_post_meta($booking_id, 'notes', $notes);
-        
+
         $booking_pickup_point_id = isset($params['pickup_point_id']) ? intval($params['pickup_point_id']) : 0;
         update_post_meta($booking_id, 'pickup_point_id', $booking_pickup_point_id ?: null);
         update_post_meta($booking_id, 'services', $services_data);
@@ -1323,7 +1377,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
     $expires = newtrip_get_booking_update_expiration($departure_date);
     $secret_key = defined('NONCE_KEY') ? NONCE_KEY : 'newtrip_secure_salt_key_123';
     $token = hash_hmac('sha256', $booking_code . '|' . $email . '|' . $expires, $secret_key);
-    
+
     $update_url = sprintf(
         'https://doi-dep.vercel.app/booking/update?bookingId=%s&email=%s&expires=%d&token=%s',
         $booking_code,
@@ -1367,7 +1421,7 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
                 'tour_price' => $price * $participants,
                 'services_total' => $services_total,
                 'rental_total' => $rental_total,
-                'rental_items' => array_map(function($item) {
+                'rental_items' => array_map(function ($item) {
                     return [
                         'id' => $item['item_slug'],
                         'name' => $item['name'],
@@ -1391,7 +1445,8 @@ function newtrip_api_create_booking(WP_REST_Request $request) {
 }
 
 // 6.6 Tra cứu đơn hàng
-function newtrip_api_get_booking(WP_REST_Request $request) {
+function newtrip_api_get_booking(WP_REST_Request $request)
+{
     $booking_code = sanitize_text_field($request->get_param('id'));
     $email = sanitize_email($request->get_param('email'));
     $expires = intval($request->get_param('expires'));
@@ -1419,7 +1474,7 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
             ], 400);
         }
     }
-    
+
     $query = new WP_Query([
         'post_type' => 'booking',
         'meta_query' => [
@@ -1491,7 +1546,7 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'seat' => $p['seat'] ?? '',
                 'pickup_point' => $pickup_name,
                 'pickup_point_id' => $p_pickup_point_id,
-                'checked_in' => !empty($p['checked_in']) ? (bool)$p['checked_in'] : false,
+                'checked_in' => !empty($p['checked_in']) ? (bool) $p['checked_in'] : false,
                 'birth_date' => $p['birth_date'] ?? ($p['birth_year'] ?? ''),
                 'id_number' => $p['id_number'] ?? '',
                 'health_status' => $p['health_status'] ?? '',
@@ -1509,7 +1564,7 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 $p_pickup_point_id = intval($p_pickup_point);
             }
         }
-        
+
         $passengers = [
             [
                 'id' => 1000,
@@ -1517,7 +1572,7 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
                 'phone' => newtrip_get_field('phone', $b_id),
                 'email' => newtrip_get_field('email', $b_id),
                 'pickup_point_id' => $p_pickup_point_id,
-                'checked_in' => !empty(newtrip_get_field('checked_in', $b_id)) ? (bool)newtrip_get_field('checked_in', $b_id) : false,
+                'checked_in' => !empty(newtrip_get_field('checked_in', $b_id)) ? (bool) newtrip_get_field('checked_in', $b_id) : false,
                 'birth_date' => newtrip_get_field('birth_date', $b_id) ?: (newtrip_get_field('birth_year', $b_id) ?: ''),
                 'id_number' => newtrip_get_field('id_number', $b_id) ?: '',
                 'health_status' => newtrip_get_field('health_status', $b_id) ?: '',
@@ -1535,14 +1590,14 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
             $r_name = $r['name'] ?? '';
             $r_price = isset($r['price']) && $r['price'] !== '' ? floatval($r['price']) : 0;
             $qty = intval($r['qty'] ?? 0);
-            
+
             $post_obj = null;
             if (is_object($item_id_raw)) {
                 $post_obj = $item_id_raw;
             } elseif (is_numeric($item_id_raw)) {
                 $post_obj = get_post(intval($item_id_raw));
             }
-            
+
             if ($post_obj && $post_obj->post_type === 'rental_item') {
                 $r_id = $post_obj->post_name; // Lấy slug để đồng bộ FE
                 if (empty($r_name)) {
@@ -1554,9 +1609,9 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
             } else {
                 $r_id = (string) $item_id_raw;
             }
-            
+
             $subtotal = isset($r['subtotal']) && $r['subtotal'] !== '' ? floatval($r['subtotal']) : ($r_price * $qty);
-            
+
             $rental_items[] = [
                 'id' => $r_id,
                 'name' => $r_name,
@@ -1575,14 +1630,14 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
             $s_id = '';
             $s_name = $s['name'] ?? '';
             $s_price = isset($s['price']) && $s['price'] !== '' ? floatval($s['price']) : 0;
-            
+
             $post_obj = null;
             if (is_object($service_id_raw)) {
                 $post_obj = $service_id_raw;
             } elseif (is_numeric($service_id_raw)) {
                 $post_obj = get_post(intval($service_id_raw));
             }
-            
+
             if ($post_obj && $post_obj->post_type === 'tour_service') {
                 $s_id = $post_obj->post_name; // Return slug string for frontend compatibility
                 if (empty($s_name)) {
@@ -1594,7 +1649,7 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
             } else {
                 $s_id = (string) $service_id_raw;
             }
-            
+
             $services[] = [
                 'id' => $s_id,
                 'name' => $s_name,
@@ -1630,15 +1685,15 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
             );
 
             $bank_info = [
-                'bank_name'    => $bank_config['bank_name'],
-                'bank_bin'     => $bank_config['bank_bin'],
-                'account_no'   => $bank_config['account_no'],
+                'bank_name' => $bank_config['bank_name'],
+                'bank_bin' => $bank_config['bank_bin'],
+                'account_no' => $bank_config['account_no'],
                 'account_name' => $bank_config['account_name'],
-                'amount'       => $total,
-                'content'      => $booking_code,
-                'qr_payload'   => $qr_payload,
-                'qr_url'       => sprintf('https://img.vietqr.io/image/%s-%s-compact.png?amount=%d&addInfo=%s&accountName=%s', $bank_config['bank_bin'], $bank_config['account_no'], $total, urlencode($booking_code), urlencode($bank_config['account_name'])),
-                'deeplink'     => sprintf('https://link.vietqr.io/2.0/referral/vietqr?bin=%s&account=%s&amount=%d&addInfo=%s', $bank_config['bank_bin'], $bank_config['account_no'], $total, $booking_code),
+                'amount' => $total,
+                'content' => $booking_code,
+                'qr_payload' => $qr_payload,
+                'qr_url' => sprintf('https://img.vietqr.io/image/%s-%s-compact.png?amount=%d&addInfo=%s&accountName=%s', $bank_config['bank_bin'], $bank_config['account_no'], $total, urlencode($booking_code), urlencode($bank_config['account_name'])),
+                'deeplink' => sprintf('https://link.vietqr.io/2.0/referral/vietqr?bin=%s&account=%s&amount=%d&addInfo=%s', $bank_config['bank_bin'], $bank_config['account_no'], $total, $booking_code),
             ];
         }
     }
@@ -1678,7 +1733,8 @@ function newtrip_api_get_booking(WP_REST_Request $request) {
 }
 
 // 6.6a Tra cứu danh sách đơn theo email/phone
-function newtrip_api_lookup_bookings(WP_REST_Request $request) {
+function newtrip_api_lookup_bookings(WP_REST_Request $request)
+{
     $email = sanitize_email($request->get_param('email'));
     $phone = sanitize_text_field($request->get_param('phone'));
 
@@ -1698,11 +1754,11 @@ function newtrip_api_lookup_bookings(WP_REST_Request $request) {
     }
 
     $query = new WP_Query([
-        'post_type'      => 'booking',
+        'post_type' => 'booking',
         'posts_per_page' => 50,
-        'orderby'        => 'date',
-        'order'          => 'DESC',
-        'meta_query'     => $meta_query,
+        'orderby' => 'date',
+        'order' => 'DESC',
+        'meta_query' => $meta_query,
     ]);
 
     $rows = [];
@@ -1729,14 +1785,14 @@ function newtrip_api_lookup_bookings(WP_REST_Request $request) {
                 $payment_status = ($status === 'confirmed' || $status === 'completed') ? 'paid' : 'unpaid';
             }
             $rows[] = [
-                'booking_id'       => newtrip_get_field('booking_code', $b_id),
-                'tour_name'        => $tour_post ? $tour_post->post_title : '',
-                'departure_date'   => newtrip_get_field('departure_date', $b_id),
-                'status'           => $status,
+                'booking_id' => newtrip_get_field('booking_code', $b_id),
+                'tour_name' => $tour_post ? $tour_post->post_title : '',
+                'departure_date' => newtrip_get_field('departure_date', $b_id),
+                'status' => $status,
                 'passengers_count' => $passengers_count,
-                'payment_method'   => newtrip_get_field('payment_method', $b_id),
-                'total_amount'     => floatval(newtrip_get_field('total_amount', $b_id)),
-                'payment_status'   => $payment_status,
+                'payment_method' => newtrip_get_field('payment_method', $b_id),
+                'total_amount' => floatval(newtrip_get_field('total_amount', $b_id)),
+                'payment_status' => $payment_status,
             ];
         }
     }
@@ -1749,10 +1805,12 @@ function newtrip_api_lookup_bookings(WP_REST_Request $request) {
 }
 
 // 6.6b Admin cập nhật trạng thái booking (xác nhận thanh toán, hủy đơn,...)
-function newtrip_api_update_booking_status(WP_REST_Request $request) {
+function newtrip_api_update_booking_status(WP_REST_Request $request)
+{
     $booking_code = sanitize_text_field($request->get_param('id'));
     $params = $request->get_json_params();
-    if (!is_array($params)) $params = [];
+    if (!is_array($params))
+        $params = [];
 
     $allowed_status = ['pending', 'confirmed', 'cancelled', 'completed', 'no_show'];
     $allowed_payment_status = ['unpaid', 'partial', 'paid', 'refunded'];
@@ -1782,7 +1840,7 @@ function newtrip_api_update_booking_status(WP_REST_Request $request) {
     }
 
     $query = new WP_Query([
-        'post_type'  => 'booking',
+        'post_type' => 'booking',
         'meta_query' => [['key' => 'booking_code', 'value' => $booking_code, 'compare' => '=']],
         'posts_per_page' => 1,
     ]);
@@ -1809,12 +1867,12 @@ function newtrip_api_update_booking_status(WP_REST_Request $request) {
         $existing = get_post_meta($b_id, 'status_history', true);
         $history = is_array($existing) ? $existing : [];
         $history[] = [
-            'time'           => current_time('mysql'),
-            'user_id'        => get_current_user_id(),
-            'status'         => $status,
+            'time' => current_time('mysql'),
+            'user_id' => get_current_user_id(),
+            'status' => $status,
             'payment_status' => $payment_status,
-            'paid_amount'    => $paid_amount,
-            'note'           => $note,
+            'paid_amount' => $paid_amount,
+            'note' => $note,
         ];
         update_post_meta($b_id, 'status_history', $history);
     }
@@ -1822,17 +1880,18 @@ function newtrip_api_update_booking_status(WP_REST_Request $request) {
     return new WP_REST_Response([
         'success' => true,
         'data' => [
-            'booking_id'     => $booking_code,
-            'status'         => $status ?? newtrip_get_field('status', $b_id),
+            'booking_id' => $booking_code,
+            'status' => $status ?? newtrip_get_field('status', $b_id),
             'payment_status' => $payment_status ?? get_post_meta($b_id, 'payment_status', true),
-            'paid_amount'    => $paid_amount ?? floatval(get_post_meta($b_id, 'paid_amount', true)),
-            'updated_at'     => current_time('c'),
+            'paid_amount' => $paid_amount ?? floatval(get_post_meta($b_id, 'paid_amount', true)),
+            'updated_at' => current_time('c'),
         ],
     ], 200);
 }
 
 // 6.7 Lấy danh sách bài viết
-function newtrip_api_get_posts(WP_REST_Request $request) {
+function newtrip_api_get_posts(WP_REST_Request $request)
+{
     $posts = get_posts([
         'post_type' => 'post',
         'post_status' => 'publish',
@@ -1855,9 +1914,10 @@ function newtrip_api_get_posts(WP_REST_Request $request) {
 }
 
 // 6.8 Lấy chi tiết bài viết theo ID
-function newtrip_api_get_post_by_id(WP_REST_Request $request) {
+function newtrip_api_get_post_by_id(WP_REST_Request $request)
+{
     $id = intval($request->get_param('id'));
-    
+
     $post = get_post($id);
     if ($post && $post->post_type === 'post' && $post->post_status === 'publish') {
         return new WP_REST_Response([
@@ -1873,25 +1933,26 @@ function newtrip_api_get_post_by_id(WP_REST_Request $request) {
 }
 
 // 6.9 Lấy cấu hình chung website Đôi Dép
-function newtrip_api_get_general_settings(WP_REST_Request $request) {
+function newtrip_api_get_general_settings(WP_REST_Request $request)
+{
     if (!function_exists('get_field')) {
         return new WP_REST_Response([
             'success' => false,
             'error' => ['code' => 'acf_not_active', 'message' => 'ACF Pro is not active']
         ], 500);
     }
-    
+
     $settings = [
         'default_tour_image' => get_field('default_tour_image', 'option') ?: '/images/default-tour.jpg',
-        'hotline'            => get_field('hotline', 'option') ?: '096 180 43 59',
-        'zalo_link'          => get_field('zalo_link', 'option') ?: 'https://zalo.me/0961804359',
-        'contact_email'      => get_field('contact_email', 'option') ?: 'doidepadventure@gmail.com',
-        'company_address'    => get_field('company_address', 'option') ?: 'TP. Hồ Chí Minh',
-        'facebook_link'      => get_field('facebook_link', 'option') ?: '',
-        'instagram_link'     => get_field('instagram_link', 'option') ?: '',
-        'payment'            => newtrip_get_bank_info(),
+        'hotline' => get_field('hotline', 'option') ?: '096 180 43 59',
+        'zalo_link' => get_field('zalo_link', 'option') ?: 'https://zalo.me/0961804359',
+        'contact_email' => get_field('contact_email', 'option') ?: 'doidepadventure@gmail.com',
+        'company_address' => get_field('company_address', 'option') ?: 'TP. Hồ Chí Minh',
+        'facebook_link' => get_field('facebook_link', 'option') ?: '',
+        'instagram_link' => get_field('instagram_link', 'option') ?: '',
+        'payment' => newtrip_get_bank_info(),
     ];
-    
+
     return new WP_REST_Response([
         'success' => true,
         'data' => $settings
@@ -1899,12 +1960,13 @@ function newtrip_api_get_general_settings(WP_REST_Request $request) {
 }
 
 // Định dạng bài viết từ WordPress
-function newtrip_format_wp_post($post) {
+function newtrip_format_wp_post($post)
+{
     $post_id = $post->ID;
-    
+
     $categories = get_the_category($post_id);
     $category_name = !empty($categories) ? $categories[0]->name : 'Kinh nghiệm';
-    
+
     $tags = get_the_tags($post_id);
     $tag_names = [];
     if (is_array($tags)) {
@@ -1947,11 +2009,11 @@ function newtrip_format_wp_post($post) {
     }
 
     $colors = [
-        'from-emerald-500 to-emerald-600', 
-        'from-blue-500 to-blue-600', 
-        'from-red-500 to-red-600', 
-        'from-amber-500 to-amber-600', 
-        'from-violet-500 to-violet-600', 
+        'from-emerald-500 to-emerald-600',
+        'from-blue-500 to-blue-600',
+        'from-red-500 to-red-600',
+        'from-amber-500 to-amber-600',
+        'from-violet-500 to-violet-600',
         'from-teal-500 to-teal-600'
     ];
     $color = $colors[$post_id % count($colors)];
@@ -1976,7 +2038,8 @@ function newtrip_format_wp_post($post) {
 }
 
 // Danh sách bài viết mẫu chất lượng cao làm fallback
-function newtrip_get_mock_posts() {
+function newtrip_get_mock_posts()
+{
     return [
         [
             'id' => 1,
@@ -2250,7 +2313,8 @@ function newtrip_get_mock_posts() {
 
 // 7. Cấu hình các cột hiển thị trong danh sách Đơn đặt tour (WP Admin)
 add_filter('manage_booking_posts_columns', 'newtrip_set_booking_columns');
-function newtrip_set_booking_columns($columns) {
+function newtrip_set_booking_columns($columns)
+{
     $new_columns = [];
     $new_columns['cb'] = $columns['cb']; // checkbox
     $new_columns['booking_code'] = 'Mã đặt tour';
@@ -2266,13 +2330,14 @@ function newtrip_set_booking_columns($columns) {
 }
 
 add_action('manage_booking_posts_custom_column', 'newtrip_booking_custom_column_content', 10, 2);
-function newtrip_booking_custom_column_content($column, $post_id) {
+function newtrip_booking_custom_column_content($column, $post_id)
+{
     switch ($column) {
         case 'booking_code':
             $code = get_post_meta($post_id, 'booking_code', true);
             echo '<strong>' . esc_html($code ? $code : 'NTR-XXXXXX') . '</strong>';
             break;
-            
+
         case 'tour':
             $tour_id = get_post_meta($post_id, 'tour_id', true);
             if ($tour_id) {
@@ -2281,7 +2346,7 @@ function newtrip_booking_custom_column_content($column, $post_id) {
                 echo '<span class="description">—</span>';
             }
             break;
-            
+
         case 'departure_date':
             $date = get_post_meta($post_id, 'departure_date', true);
             if ($date) {
@@ -2290,12 +2355,12 @@ function newtrip_booking_custom_column_content($column, $post_id) {
                 echo '<span class="description">—</span>';
             }
             break;
-            
+
         case 'participants':
             $slots = get_post_meta($post_id, 'participants', true);
             echo esc_html($slots ? $slots . ' người' : '1 người');
             break;
-            
+
         case 'total_amount':
             $total = get_post_meta($post_id, 'total_amount', true);
             if ($total) {
@@ -2304,24 +2369,24 @@ function newtrip_booking_custom_column_content($column, $post_id) {
                 echo '0đ';
             }
             break;
-            
+
         case 'status':
             $status = get_post_meta($post_id, 'status', true) ?: 'pending';
             $labels = [
-                'pending'   => '<span class="badge" style="background:#ffb900;color:#fff;padding:3px 8px;border-radius:4px;font-weight:600;font-size:11px;">Chờ xác nhận</span>',
+                'pending' => '<span class="badge" style="background:#ffb900;color:#fff;padding:3px 8px;border-radius:4px;font-weight:600;font-size:11px;">Chờ xác nhận</span>',
                 'confirmed' => '<span class="badge" style="background:#16a249;color:#fff;padding:3px 8px;border-radius:4px;font-weight:600;font-size:11px;">Đã xác nhận</span>',
                 'cancelled' => '<span class="badge" style="background:#d9381e;color:#fff;padding:3px 8px;border-radius:4px;font-weight:600;font-size:11px;">Đã hủy</span>',
                 'completed' => '<span class="badge" style="background:#0068ff;color:#fff;padding:3px 8px;border-radius:4px;font-weight:600;font-size:11px;">Đã hoàn thành</span>'
             ];
             echo isset($labels[$status]) ? $labels[$status] : esc_html($status);
             break;
-            
+
         case 'payment_status':
             $pay_status = get_post_meta($post_id, 'payment_status', true) ?: 'unpaid';
             $labels = [
-                'unpaid'   => '<span class="badge" style="border:1px solid #d9381e;color:#d9381e;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Chưa trả</span>',
-                'partial'  => '<span class="badge" style="border:1px solid #ffb900;color:#ffb900;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Trả một phần</span>',
-                'paid'     => '<span class="badge" style="border:1px solid #16a249;color:#16a249;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Đã thanh toán</span>',
+                'unpaid' => '<span class="badge" style="border:1px solid #d9381e;color:#d9381e;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Chưa trả</span>',
+                'partial' => '<span class="badge" style="border:1px solid #ffb900;color:#ffb900;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Trả một phần</span>',
+                'paid' => '<span class="badge" style="border:1px solid #16a249;color:#16a249;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Đã thanh toán</span>',
                 'refunded' => '<span class="badge" style="border:1px solid #727272;color:#727272;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Đã hoàn tiền</span>'
             ];
             echo isset($labels[$pay_status]) ? $labels[$pay_status] : esc_html($pay_status);
@@ -2331,7 +2396,8 @@ function newtrip_booking_custom_column_content($column, $post_id) {
 
 // Cho phép sắp xếp theo các cột
 add_filter('manage_edit-booking_sortable_columns', 'newtrip_booking_sortable_columns');
-function newtrip_booking_sortable_columns($columns) {
+function newtrip_booking_sortable_columns($columns)
+{
     $columns['departure_date'] = 'departure_date';
     $columns['total_amount'] = 'total_amount';
     $columns['status'] = 'status';
@@ -2340,33 +2406,34 @@ function newtrip_booking_sortable_columns($columns) {
 
 // Tự động tính toán lại chi phí khi quản trị viên lưu/cập nhật đơn đặt tour ở Admin Dashboard
 add_action('acf/save_post', 'newtrip_calculate_booking_totals_on_save', 20);
-function newtrip_calculate_booking_totals_on_save($post_id) {
+function newtrip_calculate_booking_totals_on_save($post_id)
+{
     if (get_post_type($post_id) !== 'booking') {
         return;
     }
-    
+
     // Tạm dừng hook để tránh lặp vô hạn khi gọi update_field
     remove_action('acf/save_post', 'newtrip_calculate_booking_totals_on_save', 20);
-    
+
     $tour_id = newtrip_get_field('tour_id', $post_id);
     if (!$tour_id) {
         add_action('acf/save_post', 'newtrip_calculate_booking_totals_on_save', 20);
         return;
     }
-    
+
     if (is_object($tour_id)) {
         $tour_id = $tour_id->ID;
     } elseif (is_array($tour_id)) {
         $tour_id = $tour_id['ID'] ?? 0;
     }
     $tour_id = intval($tour_id);
-    
+
     $tour_price = floatval(newtrip_get_field('price', $tour_id));
     $participants = intval(newtrip_get_field('participants', $post_id));
     if ($participants <= 0) {
         $participants = 1;
     }
-    
+
     // 1. Tính toán lại Dịch vụ
     $services_raw = newtrip_get_field('services', $post_id);
     $services_data = [];
@@ -2380,12 +2447,12 @@ function newtrip_calculate_booking_totals_on_save($post_id) {
             } elseif (is_array($service_id)) {
                 $service_id = $service_id['ID'] ?? 0;
             }
-            
+
             $resolved_id = 0;
             if (is_numeric($service_id) && intval($service_id) > 0) {
                 $resolved_id = intval($service_id);
             } else {
-                $service_slug = (string)$service_id;
+                $service_slug = (string) $service_id;
                 if (!empty($service_slug)) {
                     $query = new WP_Query([
                         'post_type' => 'tour_service',
@@ -2397,19 +2464,20 @@ function newtrip_calculate_booking_totals_on_save($post_id) {
                     $resolved_id = !empty($query->posts) ? $query->posts[0] : 0;
                 }
             }
-            
-            if ($resolved_id <= 0) continue;
-            
+
+            if ($resolved_id <= 0)
+                continue;
+
             $s_price = isset($s['price']) && $s['price'] !== '' ? floatval($s['price']) : 0;
             if ($s_price <= 0 && $resolved_id > 0) {
                 $s_price = floatval(newtrip_get_field('price', $resolved_id));
             }
-            
+
             $s_name = $s['name'] ?? '';
             if (empty($s_name) && $resolved_id > 0) {
                 $s_name = get_the_title($resolved_id);
             }
-            
+
             $services_total += $s_price * $participants;
             $services_data[] = [
                 'service_id' => $resolved_id,
@@ -2419,7 +2487,7 @@ function newtrip_calculate_booking_totals_on_save($post_id) {
         }
         update_field('field_booking_services', $services_data, $post_id);
     }
-    
+
     // 2. Tính toán lại Đồ thuê
     $rental_items_raw = newtrip_get_field('rental_items', $post_id);
     $rental_items_data = [];
@@ -2433,12 +2501,12 @@ function newtrip_calculate_booking_totals_on_save($post_id) {
             } elseif (is_array($item_id)) {
                 $item_id = $item_id['ID'] ?? 0;
             }
-            
+
             $resolved_id = 0;
             if (is_numeric($item_id) && intval($item_id) > 0) {
                 $resolved_id = intval($item_id);
             } else {
-                $item_slug = (string)$item_id;
+                $item_slug = (string) $item_id;
                 if (!empty($item_slug)) {
                     $query = new WP_Query([
                         'post_type' => 'rental_item',
@@ -2450,25 +2518,27 @@ function newtrip_calculate_booking_totals_on_save($post_id) {
                     $resolved_id = !empty($query->posts) ? $query->posts[0] : 0;
                 }
             }
-            
-            if ($resolved_id <= 0) continue;
-            
+
+            if ($resolved_id <= 0)
+                continue;
+
             $r_price = isset($r['price']) && $r['price'] !== '' ? floatval($r['price']) : 0;
             if ($r_price <= 0 && $resolved_id > 0) {
                 $r_price = floatval(newtrip_get_field('price', $resolved_id));
             }
-            
+
             $r_name = $r['name'] ?? '';
             if (empty($r_name) && $resolved_id > 0) {
                 $r_name = get_the_title($resolved_id);
             }
-            
+
             $qty = intval($r['qty'] ?? 1);
-            if ($qty <= 0) $qty = 1;
-            
+            if ($qty <= 0)
+                $qty = 1;
+
             $subtotal = $r_price * $qty;
             $rental_total += $subtotal;
-            
+
             $rental_items_data[] = [
                 'item_id' => $resolved_id,
                 'name' => $r_name,
@@ -2479,7 +2549,7 @@ function newtrip_calculate_booking_totals_on_save($post_id) {
         }
         update_field('field_booking_rental_items', $rental_items_data, $post_id);
     }
-    
+
     // 3. Tính lại Tổng tiền thanh toán
     $total_amount = ($tour_price * $participants) + $services_total + $rental_total;
     update_field('field_booking_total_amount', $total_amount, $post_id);
@@ -2506,34 +2576,35 @@ function newtrip_calculate_booking_totals_on_save($post_id) {
 
     // Tự động đồng bộ thông tin khách hàng sang bảng Khách hàng (customer) cho mục đích remarketing
     newtrip_sync_booking_to_customer($post_id);
-    
+
     // Rollback customer stats khi booking bi huy hoac refund
     if ($status === 'cancelled' || $status === 'refunded') {
         newtrip_rollback_customer_for_booking($post_id);
     }
-    
+
     // Đăng ký lại hook sau khi hoàn tất cập nhật
     add_action('acf/save_post', 'newtrip_calculate_booking_totals_on_save', 20);
 }
 
 // 6.10 Lấy nội dung trang tĩnh theo slug (cho trang chính sách)
-function newtrip_api_get_page_by_slug(WP_REST_Request $request) {
+function newtrip_api_get_page_by_slug(WP_REST_Request $request)
+{
     $slug = sanitize_text_field($request->get_param('slug'));
-    
+
     $query = new WP_Query([
         'post_type' => 'page',
         'name' => $slug,
         'posts_per_page' => 1,
         'post_status' => 'publish',
     ]);
-    
+
     if (!$query->have_posts()) {
         return new WP_REST_Response([
             'success' => false,
             'error' => ['code' => 'page_not_found', 'message' => 'Không tìm thấy trang yêu cầu']
         ], 404);
     }
-    
+
     $post = $query->posts[0];
     $data = [
         'id' => $post->ID,
@@ -2542,7 +2613,7 @@ function newtrip_api_get_page_by_slug(WP_REST_Request $request) {
         'content' => apply_filters('the_content', $post->post_content),
         'seo' => newtrip_get_yoast_seo($post->ID),
     ];
-    
+
     return new WP_REST_Response([
         'success' => true,
         'data' => $data
@@ -2550,7 +2621,8 @@ function newtrip_api_get_page_by_slug(WP_REST_Request $request) {
 }
 
 // 6.11 Tải tệp lên công cộng bảo mật
-function newtrip_api_upload_file(WP_REST_Request $request) {
+function newtrip_api_upload_file(WP_REST_Request $request)
+{
     $files = $request->get_file_params();
     if (empty($files) || !isset($files['file'])) {
         return new WP_REST_Response([
@@ -2591,11 +2663,11 @@ function newtrip_api_upload_file(WP_REST_Request $request) {
 
     if ($movefile && !isset($movefile['error'])) {
         $attachment = array(
-            'guid'           => $movefile['url'],
+            'guid' => $movefile['url'],
             'post_mime_type' => $movefile['type'],
-            'post_title'     => preg_replace('/\.[^.]+$/', '', basename($file['name'])),
-            'post_content'   => '',
-            'post_status'    => 'inherit'
+            'post_title' => preg_replace('/\.[^.]+$/', '', basename($file['name'])),
+            'post_content' => '',
+            'post_status' => 'inherit'
         );
 
         $attach_id = wp_insert_attachment($attachment, $movefile['file']);
@@ -2618,10 +2690,12 @@ function newtrip_api_upload_file(WP_REST_Request $request) {
 }
 
 // 6.12 Cập nhật thông tin hành khách du lịch
-function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
+function newtrip_api_update_booking_passengers(WP_REST_Request $request)
+{
     $booking_code = sanitize_text_field($request->get_param('id'));
     $params = $request->get_json_params();
-    if (!is_array($params)) $params = [];
+    if (!is_array($params))
+        $params = [];
 
     $email = sanitize_email($params['email'] ?? '');
     $passengers = $params['passengers'] ?? [];
@@ -2657,7 +2731,7 @@ function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
     }
 
     $query = new WP_Query([
-        'post_type'  => 'booking',
+        'post_type' => 'booking',
         'meta_query' => [
             'relation' => 'AND',
             ['key' => 'booking_code', 'value' => $booking_code, 'compare' => '='],
@@ -2678,7 +2752,8 @@ function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
     $passengers_data = [];
     foreach ($passengers as $idx => $p) {
         $p_name = sanitize_text_field($p['full_name'] ?? '');
-        if (empty($p_name)) continue;
+        if (empty($p_name))
+            continue;
 
         $p_phone = preg_replace('/[^\d+]/', '', sanitize_text_field($p['phone'] ?? ''));
         $p_email = sanitize_email($p['email'] ?? '');
@@ -2725,45 +2800,48 @@ function newtrip_api_update_booking_passengers(WP_REST_Request $request) {
 }
 
 // 6.13 Helper lấy thời gian hết hạn của liên kết cập nhật (00:00:00 của ngày khởi hành)
-function newtrip_get_booking_update_expiration($departure_date_str) {
+function newtrip_get_booking_update_expiration($departure_date_str)
+{
     $dep_time = strtotime($departure_date_str . ' 00:00:00');
     if (!$dep_time) {
         return time() + 7 * 24 * 3600;
     }
-    
+
     // Nếu ngày khởi hành quá gần (dưới 12 tiếng) hoặc trong quá khứ, 
     // cho phép sửa ít nhất 2 tiếng kể từ thời điểm đặt để xử lý last-minute booking
     if ($dep_time - time() < 12 * 3600) {
         return time() + 2 * 3600;
     }
-    
+
     return $dep_time;
 }
 
 // 6.14 Helper xác thực token bảo mật và thời gian hết hạn
-function newtrip_verify_booking_token($booking_code, $email, $expires, $token) {
+function newtrip_verify_booking_token($booking_code, $email, $expires, $token)
+{
     if (empty($token) || empty($expires)) {
         return false;
     }
-    
+
     // Kiểm tra hết hạn trước chuyến đi
     if (time() > $expires) {
         return 'expired';
     }
-    
+
     // Xác thực chữ ký cryptographic hmac
     $secret_key = defined('NONCE_KEY') ? NONCE_KEY : 'newtrip_secure_salt_key_123';
     $expected_token = hash_hmac('sha256', $booking_code . '|' . $email . '|' . $expires, $secret_key);
-    
+
     if (!hash_equals($expected_token, $token)) {
         return false;
     }
-    
+
     return true;
 }
 
 // 6.15 Lấy danh sách menu (primary & footer) cho Frontend
-function newtrip_api_get_menus(WP_REST_Request $request) {
+function newtrip_api_get_menus(WP_REST_Request $request)
+{
     $primary = newtrip_get_menu_items_by_location('primary-menu');
     $footer = newtrip_get_menu_items_by_location('footer-menu');
 
@@ -2798,37 +2876,38 @@ function newtrip_api_get_menus(WP_REST_Request $request) {
 }
 
 // Helper lấy menu items theo location
-function newtrip_get_menu_items_by_location($location) {
+function newtrip_get_menu_items_by_location($location)
+{
     $locations = get_nav_menu_locations();
     if (!isset($locations[$location])) {
         return [];
     }
-    
+
     $menu = wp_get_nav_menu_object($locations[$location]);
     if (!$menu) {
         return [];
     }
-    
+
     $menu_items = wp_get_nav_menu_items($menu->term_id);
     if (!$menu_items) {
         return [];
     }
-    
+
     $items = [];
     foreach ($menu_items as $item) {
         $url = $item->url;
         $site_url = get_site_url();
-        
+
         // Trích xuất path tương đối cho liên kết trong cùng hệ thống
         $parsed_url = parse_url($url);
         $path = $parsed_url['path'] ?? '/';
         $query = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
         $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
         $relative_url = $path . $query . $fragment;
-        
+
         $host = $parsed_url['host'] ?? '';
         $backend_host = parse_url($site_url, PHP_URL_HOST);
-        
+
         if (!empty($host) && $host !== $backend_host && !str_contains($host, 'vercel.app') && !str_contains($host, 'localhost') && !str_contains($host, 'newtrip.com.vn')) {
             $final_url = $url;
         } else {
@@ -2843,17 +2922,18 @@ function newtrip_get_menu_items_by_location($location) {
             'order' => $item->menu_order,
         ];
     }
-    
+
     // Sắp xếp theo thứ tự menu_order
-    usort($items, function($a, $b) {
+    usort($items, function ($a, $b) {
         return $a['order'] - $b['order'];
     });
-    
+
     return $items;
 }
 
 // 6.16 Lấy dữ liệu tĩnh của Trang chủ cho Frontend
-function newtrip_api_get_homepage_data(WP_REST_Request $request) {
+function newtrip_api_get_homepage_data(WP_REST_Request $request)
+{
     // Tìm trang chủ tĩnh
     $homepage_id = null;
     $front_page_id = get_option('page_on_front');
@@ -2935,7 +3015,8 @@ function newtrip_api_get_homepage_data(WP_REST_Request $request) {
 }
 
 // 6.17 Lấy dữ liệu tĩnh của Trang Giới thiệu (About)
-function newtrip_api_get_about_data(WP_REST_Request $request) {
+function newtrip_api_get_about_data(WP_REST_Request $request)
+{
     $about_id = null;
     $about_page = get_page_by_path('gioi-thieu');
     if ($about_page) {
@@ -3037,7 +3118,8 @@ function newtrip_api_get_about_data(WP_REST_Request $request) {
 }
 
 // 6.18 Lấy dữ liệu tĩnh của Trang Liên hệ (Contact)
-function newtrip_api_get_contact_data(WP_REST_Request $request) {
+function newtrip_api_get_contact_data(WP_REST_Request $request)
+{
     $contact_id = null;
     $contact_page = get_page_by_path('lien-he');
     if ($contact_page) {
@@ -3071,7 +3153,7 @@ function newtrip_api_get_contact_data(WP_REST_Request $request) {
 }
 
 // 7. Đồng bộ điều kiện hiển thị của nhóm ACF About & Contact động dựa trên Slug
-add_filter('acf/load_field_group', function($group) {
+add_filter('acf/load_field_group', function ($group) {
     if ($group['key'] === 'group_about_page') {
         $page = get_page_by_path('gioi-thieu');
         if ($page) {
@@ -3104,16 +3186,17 @@ add_filter('acf/load_field_group', function($group) {
 });
 
 // Callback API lấy danh sách thành viên check-in
-function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
+function newtrip_api_get_checkin_passengers(WP_REST_Request $request)
+{
     $tour_id = intval($request->get_param('tour_id'));
     $departure_date = sanitize_text_field((string) $request->get_param('departure_date'));
-    
+
     $args = [
         'post_type' => 'booking',
         'post_status' => 'any',
         'posts_per_page' => 500,
     ];
-    
+
     // Loại bỏ các booking đã huỷ / chờ duyệt khỏi danh sách check-in
     $excluded_statuses = ['cancelled', 'pending', 'refunded'];
     $args['meta_query'] = [
@@ -3123,7 +3206,7 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
             'compare' => 'NOT IN'
         ]
     ];
-    
+
     if ($tour_id > 0) {
         $args['meta_query'][] = [
             'key' => 'tour_id',
@@ -3131,7 +3214,7 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
             'compare' => '='
         ];
     }
-    
+
     if ($departure_date !== '') {
         $args['meta_query'][] = [
             'key' => 'departure_date',
@@ -3139,16 +3222,16 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
             'compare' => '='
         ];
     }
-    
+
     $query = new WP_Query($args);
     $results = [];
     $departures = [];
-    
+
     if ($query->have_posts()) {
         foreach ($query->posts as $post) {
             $b_id = $post->ID;
             $booking_code = get_post_meta($b_id, 'booking_code', true) ?: '';
-            
+
             $t_id_raw = newtrip_get_field('tour_id', $b_id);
             $t_id = 0;
             if (is_object($t_id_raw)) {
@@ -3161,15 +3244,15 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
             if (empty($t_id)) {
                 $t_id = intval(get_post_meta($b_id, 'tour_id', true));
             }
-            
+
             $tour_post = get_post($t_id);
             $tour_name = $tour_post ? $tour_post->post_title : 'Chuyến đi';
-            
+
             $departure_date = newtrip_get_field('departure_date', $b_id) ?: '';
             if (!empty($departure_date)) {
                 $departures[$departure_date] = true;
             }
-            
+
             $passengers = newtrip_get_field('passengers', $b_id);
             if (is_array($passengers)) {
                 foreach ($passengers as $idx => $p) {
@@ -3190,7 +3273,7 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
                             $pickup_name = $pickup_post->post_title;
                         }
                     }
-                    
+
                     $results[] = [
                         'id' => $b_id . '_' . $idx,
                         'booking_id' => $b_id,
@@ -3212,10 +3295,10 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
             }
         }
     }
-    
+
     $departure_dates = array_keys($departures);
     sort($departure_dates);
-    
+
     return new WP_REST_Response([
         'success' => true,
         'data' => $results,
@@ -3226,22 +3309,24 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request) {
 }
 
 // Callback API toggle check-in
-function newtrip_api_toggle_checkin(WP_REST_Request $request) {
+function newtrip_api_toggle_checkin(WP_REST_Request $request)
+{
     $params = $request->get_json_params();
-    if (!is_array($params)) $params = [];
-    
+    if (!is_array($params))
+        $params = [];
+
     $booking_id = intval($params['booking_id'] ?? 0);
     $passenger_index = isset($params['passenger_index']) ? intval($params['passenger_index']) : -1;
     $type = sanitize_text_field($params['type'] ?? '');
     $value = !empty($params['value']) ? 1 : 0;
-    
+
     if (!$booking_id || $passenger_index < 0 || !in_array($type, ['boarding', 'gathering'])) {
         return new WP_REST_Response([
             'success' => false,
             'error' => ['code' => 'invalid_params', 'message' => 'Tham số không hợp lệ']
         ], 400);
     }
-    
+
     $passengers = newtrip_get_field('passengers', $booking_id);
     if (!is_array($passengers) || !isset($passengers[$passenger_index])) {
         return new WP_REST_Response([
@@ -3249,18 +3334,18 @@ function newtrip_api_toggle_checkin(WP_REST_Request $request) {
             'error' => ['code' => 'passenger_not_found', 'message' => 'Không tìm thấy hành khách tương ứng']
         ], 404);
     }
-    
+
     if ($type === 'boarding') {
         $passengers[$passenger_index]['checked_in'] = $value;
     } else {
         $passengers[$passenger_index]['checked_in_gathering'] = $value;
     }
-    
+
     $updated = update_field('field_booking_passengers', $passengers, $booking_id);
     if (!$updated) {
         $updated = update_field('passengers', $passengers, $booking_id);
     }
-    
+
     return new WP_REST_Response([
         'success' => true,
         'message' => 'Cập nhật trạng thái check-in thành công',
@@ -3274,23 +3359,24 @@ function newtrip_api_toggle_checkin(WP_REST_Request $request) {
 }
 
 // Tự động đồng bộ khách hàng và hành khách sang CPT customer để quản lý dữ liệu và remarketing
-function newtrip_sync_booking_to_customer($booking_id) {
+function newtrip_sync_booking_to_customer($booking_id)
+{
     // Chỉ đồng bộ khi đơn đặt tour Đã xác nhận/Đã thanh toán (confirmed) hoặc Đã hoàn thành (completed) hoặc trạng thái thanh toán là paid
     $booking_status = newtrip_get_field('status', $booking_id) ?: 'pending';
     $payment_status = get_post_meta($booking_id, 'payment_status', true) ?: 'unpaid';
-    
+
     if ($booking_status !== 'confirmed' && $booking_status !== 'completed' && $payment_status !== 'paid') {
         return; // Chưa đủ điều kiện đồng bộ
     }
-    
+
     $people = [];
-    
+
     // 1. Trích xuất thông tin người đại diện (người đặt tour)
     $rep_name = newtrip_get_field('full_name', $booking_id) ?: '';
     $rep_phone = newtrip_get_field('phone', $booking_id) ?: '';
     $rep_email = newtrip_get_field('email', $booking_id) ?: '';
     $rep_birth_date = newtrip_get_field('birth_date', $booking_id) ?: (newtrip_get_field('birth_year', $booking_id) ?: '');
-    
+
     if (!empty($rep_phone) && !empty($rep_name)) {
         $people[] = [
             'full_name' => $rep_name,
@@ -3300,7 +3386,7 @@ function newtrip_sync_booking_to_customer($booking_id) {
             'is_representative' => true
         ];
     }
-    
+
     // 2. Trích xuất thông tin hành khách đi cùng
     $passengers = newtrip_get_field('passengers', $booking_id);
     if (is_array($passengers)) {
@@ -3309,7 +3395,7 @@ function newtrip_sync_booking_to_customer($booking_id) {
             $p_phone = $p['phone'] ?? '';
             $p_email = $p['email'] ?? '';
             $p_birth_date = $p['birth_date'] ?? ($p['birth_year'] ?? '');
-            
+
             if (!empty($p_phone) && !empty($p_name)) {
                 $people[] = [
                     'full_name' => $p_name,
@@ -3321,11 +3407,11 @@ function newtrip_sync_booking_to_customer($booking_id) {
             }
         }
     }
-    
+
     if (empty($people)) {
         return;
     }
-    
+
     // Thu thập thông tin tour của Booking
     $booking_code = get_post_meta($booking_id, 'booking_code', true) ?: '';
     $tour_id_raw = newtrip_get_field('tour_id', $booking_id);
@@ -3340,17 +3426,17 @@ function newtrip_sync_booking_to_customer($booking_id) {
     if (empty($tour_id)) {
         $tour_id = intval(get_post_meta($booking_id, 'tour_id', true));
     }
-    
+
     $tour_post = get_post($tour_id);
     $tour_name = $tour_post ? $tour_post->post_title : 'Chuyến đi';
     $departure_date = newtrip_get_field('departure_date', $booking_id) ?: '';
-    
+
     foreach ($people as $person) {
         $phone = newtrip_normalize_phone(sanitize_text_field($person['phone']));
         $full_name = sanitize_text_field($person['full_name']);
         $email = sanitize_email($person['email']);
         $birth_date = sanitize_text_field($person['birth_date']);
-        
+
         // Truy vấn xem số điện thoại này đã tồn tại trong danh sách Khách hàng chưa
         $customer_query = new WP_Query([
             'post_type' => 'customer',
@@ -3364,7 +3450,7 @@ function newtrip_sync_booking_to_customer($booking_id) {
             'posts_per_page' => 1,
             'post_status' => 'any'
         ]);
-        
+
         $customer_id = 0;
         if ($customer_query->have_posts()) {
             $customer_id = $customer_query->posts[0]->ID;
@@ -3375,13 +3461,14 @@ function newtrip_sync_booking_to_customer($booking_id) {
                 'post_title' => sprintf('%s - %s', $full_name, $phone),
                 'post_status' => 'publish'
             ]);
-            
+
             update_post_meta($customer_id, 'phone', $phone);
             update_post_meta($customer_id, 'full_name', $full_name);
         }
-        
-        if (!$customer_id) continue;
-        
+
+        if (!$customer_id)
+            continue;
+
         // Cập nhật thông tin profile nếu trống hoặc có cập nhật mới
         if (!empty($email)) {
             update_post_meta($customer_id, 'email', $email);
@@ -3389,15 +3476,16 @@ function newtrip_sync_booking_to_customer($booking_id) {
         if (!empty($birth_date)) {
             update_post_meta($customer_id, 'birth_date', $birth_date);
         }
-        
+
         // Xử lý Lịch sử mua hàng (bookings_history)
         $history_raw = get_post_meta($customer_id, 'bookings_history', true);
         $history = [];
         if (!empty($history_raw)) {
             $history = is_array($history_raw) ? $history_raw : json_decode($history_raw, true);
         }
-        if (!is_array($history)) $history = [];
-        
+        if (!is_array($history))
+            $history = [];
+
         // Kiểm tra xem đơn hàng này đã được đồng bộ trong lịch sử của họ chưa
         $exists_in_history = false;
         foreach ($history as $h) {
@@ -3406,7 +3494,7 @@ function newtrip_sync_booking_to_customer($booking_id) {
                 break;
             }
         }
-        
+
         if (!$exists_in_history) {
             // Thêm booking này vào lịch sử
             $history[] = [
@@ -3420,14 +3508,14 @@ function newtrip_sync_booking_to_customer($booking_id) {
                 'payment_status' => $payment_status,
                 'is_representative' => $person['is_representative']
             ];
-            
+
             // Tính toán lại Tổng chi tiêu
             $total_spent = floatval(get_post_meta($customer_id, 'total_spent', true) ?: 0);
             if ($person['is_representative']) {
                 // Nếu là người đặt tour thì cộng toàn bộ tiền đơn hàng vào chi tiêu
                 $total_spent += floatval(newtrip_get_field('total_amount', $booking_id));
             }
-            
+
             update_post_meta($customer_id, 'total_spent', $total_spent);
             update_post_meta($customer_id, 'bookings_history', $history);
             update_post_meta($customer_id, 'total_bookings', count($history));
@@ -3438,7 +3526,8 @@ function newtrip_sync_booking_to_customer($booking_id) {
 
 // Đăng ký các cột hiển thị trong Admin Table cho Customer CPT
 add_filter('manage_customer_posts_columns', 'newtrip_customer_table_columns');
-function newtrip_customer_table_columns($columns) {
+function newtrip_customer_table_columns($columns)
+{
     return [
         'cb' => $columns['cb'],
         'title' => __('Họ tên', 'newtrip-theme'),
@@ -3452,7 +3541,8 @@ function newtrip_customer_table_columns($columns) {
 }
 
 add_action('manage_customer_posts_custom_column', 'newtrip_customer_table_column_content', 10, 2);
-function newtrip_customer_table_column_content($column, $post_id) {
+function newtrip_customer_table_column_content($column, $post_id)
+{
     switch ($column) {
         case 'phone':
             echo esc_html(get_post_meta($post_id, 'phone', true) ?: '—');
