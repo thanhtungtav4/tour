@@ -9,7 +9,6 @@ import {
   getBooking,
   updateBookingPassengers,
   getPickupPoints,
-  uploadFile,
   BookingDetail,
   PickupPoint,
 } from "@/lib/api";

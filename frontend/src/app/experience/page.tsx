@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ArrowRightIcon } from "@/components/icons";
@@ -102,9 +103,10 @@ export default function ExperiencePage() {
               /* Posts Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {posts.map((post) => (
-                  <article
+                  <Link
                     key={post.id}
-                    className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group"
+                    href={`/experience/${post.id}`}
+                    className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all h-full"
                   >
                     <div className="relative h-52 overflow-hidden">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -143,15 +145,12 @@ export default function ExperiencePage() {
                       <p className="text-sm text-[#6b7280] mb-4 line-clamp-2">
                         {post.excerpt}
                       </p>
-                      <a
-                        href={`/experience/${post.id}`}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-[#16a249] hover:gap-3 transition-all"
-                      >
+                      <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#16a249] group-hover:gap-3 transition-all">
                         Đọc tiếp
                         <ArrowRightIcon className="w-4 h-4" />
-                      </a>
+                      </div>
                     </div>
-                  </article>
+                  </Link>
                 ))}
               </div>
             )}

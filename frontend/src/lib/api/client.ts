@@ -242,23 +242,6 @@ export async function getPageBySlug(slug: string): Promise<ApiPage> {
   return json.data;
 }
 
-export async function uploadFile(file: File): Promise<{ id: number; url: string }> {
-  const url = `${API_BASE_URL}/upload`;
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const res = await fetch(url, {
-    method: "POST",
-    body: formData,
-  });
-
-  const json = await res.json();
-  if (!res.ok || !json.success) {
-    throw new Error(json.error?.message || "Lỗi tải ảnh lên");
-  }
-  return json.data;
-}
-
 export async function updateBookingPassengers(
   bookingId: string,
   email: string,

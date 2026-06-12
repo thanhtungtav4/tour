@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { getTourBySlug, getRentalItems, createBooking, uploadFile, TourDetail, RentalItem } from "@/lib/api";
+import { getTourBySlug, getRentalItems, createBooking, TourDetail, RentalItem } from "@/lib/api";
 import { getTourImage } from "@/lib/utils";
 import {
   CalendarIcon,
