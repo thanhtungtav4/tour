@@ -176,7 +176,7 @@ function BookingUpdateContent() {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
-        <main className="flex-grow flex items-center justify-center py-20">
+        <main className="flex-grow flex items-center justify-center py-20 pt-[81px]">
           <div className="flex flex-col items-center gap-3">
             <div className="relative w-12 h-12">
               <div className="absolute inset-0 rounded-full border-4 border-emerald-100 animate-pulse"></div>
@@ -194,7 +194,7 @@ function BookingUpdateContent() {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
-        <main className="flex-grow flex items-center justify-center py-16 px-4">
+        <main className="flex-grow flex items-center justify-center py-16 px-4 pt-[81px]">
           <div className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-sm text-center border border-gray-150">
             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-5 border border-rose-100">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -227,7 +227,7 @@ function BookingUpdateContent() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="flex-grow py-12 px-4 lg:py-16">
+      <main className="flex-grow pt-[129px] pb-12 px-4 lg:pt-[145px] lg:pb-16">
         <div className="max-w-4xl mx-auto">
           {/* Success Screen */}
           <AnimatePresence mode="wait">

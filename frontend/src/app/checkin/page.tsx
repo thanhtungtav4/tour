@@ -180,7 +180,7 @@ export default function CheckinPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
         <Header />
-        <main className="flex-grow flex items-center justify-center px-4 py-12">
+        <main className="flex-grow flex items-center justify-center px-4 py-12 pt-[81px]">
           <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 border border-slate-100 transition-all hover:shadow-2xl">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
@@ -239,7 +239,7 @@ export default function CheckinPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
       <Header />
-      <main className="flex-grow py-8 px-4 sm:px-6 lg:px-8">
+      <main className="flex-grow pt-[113px] pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header section */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
