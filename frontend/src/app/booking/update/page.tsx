@@ -102,6 +102,7 @@ function BookingUpdateContent() {
           phone: p.phone || "",
           email: p.email || "",
           birth_date: p.birth_date || "",
+          id_number: p.id_number || "",
           pickup_point_id: p.pickup_point_id || 0,
           health_status: p.health_status || "",
           seat: p.seat || "",
@@ -145,11 +146,11 @@ function BookingUpdateContent() {
 
     // Basic Validation
     const invalidPassenger = passengers.find(
-      (p) => !p.full_name || !p.phone || !p.birth_date || !p.health_status
+      (p) => !p.full_name || !p.phone || !p.birth_date || !p.id_number || !p.health_status
     );
 
     if (invalidPassenger) {
-      alert("Vui lòng nhập đầy đủ thông tin bắt buộc (Họ tên, SĐT, Ngày sinh, Sức khỏe) cho tất cả thành viên.");
+      alert("Vui lòng nhập đầy đủ thông tin bắt buộc (Họ tên, SĐT, Ngày sinh, Số CMND/CCCD, Sức khỏe) cho tất cả thành viên.");
       return;
     }
 
@@ -362,6 +363,21 @@ function BookingUpdateContent() {
                             max={maxDate}
                             value={passenger.birth_date}
                             onChange={(e) => handlePassengerChange(index, "birth_date", e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm bg-white"
+                          />
+                        </div>
+
+                        {/* CMND/CCCD */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Số CMND/CCCD <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={passenger.id_number || ""}
+                            onChange={(e) => handlePassengerChange(index, "id_number", e.target.value)}
+                            placeholder="Nhập số CMND/CCCD"
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm bg-white"
                           />
                         </div>

@@ -878,6 +878,20 @@ add_action('rest_api_init', function () {
         'callback' => 'newtrip_api_toggle_checkin',
         'permission_callback' => 'newtrip_checkin_permission_check',
     ]);
+
+    // 5.17 POST /wp-json/newtrip/v1/checkin/remind - Gửi email nhắc nhở tập trung cho khách (yêu cầu token)
+    register_rest_route('newtrip/v1', '/checkin/remind', [
+        'methods' => 'POST',
+        'callback' => 'newtrip_api_checkin_remind',
+        'permission_callback' => 'newtrip_checkin_permission_check',
+    ]);
+
+    // 5.18 POST /wp-json/newtrip/v1/admin/trigger-birthday-wishes - Kích hoạt gửi mail chúc mừng sinh nhật thủ công (yêu cầu token)
+    register_rest_route('newtrip/v1', '/admin/trigger-birthday-wishes', [
+        'methods' => 'POST',
+        'callback' => 'newtrip_api_admin_trigger_birthday_wishes',
+        'permission_callback' => 'newtrip_checkin_permission_check',
+    ]);
 });
 
 // 6. Định nghĩa callbacks cho các API Endpoints
@@ -1272,7 +1286,7 @@ function newtrip_api_create_booking(WP_REST_Request $request)
 
         $p_phone = isset($p['phone']) ? preg_replace('/[^\d+]/', '', sanitize_text_field($p['phone'])) : '';
         $p_email = isset($p['email']) ? sanitize_email($p['email']) : '';
-        $p_birth = isset($p['birth_date']) ? sanitize_text_field($p['birth_date']) : (isset($p['birth_year']) ? sanitize_text_field($p['birth_year']) : '');
+        $p_birth = isset($p['birth_date']) ? newtrip_normalize_date(sanitize_text_field($p['birth_date'])) : (isset($p['birth_year']) ? newtrip_normalize_date(sanitize_text_field($p['birth_year'])) : '');
         $p_id_no = isset($p['id_number']) ? sanitize_text_field($p['id_number']) : '';
         $p_health = isset($p['health_status']) ? sanitize_text_field($p['health_status']) : '';
         $p_seat = isset($params['selected_seats'][$idx]) ? sanitize_text_field($params['selected_seats'][$idx]) : '';
@@ -1394,28 +1408,72 @@ function newtrip_api_create_booking(WP_REST_Request $request)
         $token
     );
     $subject = sprintf('Xác nhận đặt tour %s [%s]', $tour_post->post_title, $booking_code);
-    $body = sprintf(
-        "Chào %s,\n\nCảm ơn bạn đã đặt tour tại Đôi Dép Adventure!\n\nChi tiết đơn đặt tour:\n" .
-        "- Mã đặt tour: %s\n" .
-        "- Tour: %s\n" .
-        "- Ngày khởi hành: %s\n" .
-        "- Số người: %d\n" .
-        "- Tổng thanh toán: %s đ\n" .
-        "- Phương thức: %s\n\n" .
-        "Để bổ sung, cập nhật thông tin của các thành viên tham gia chuyến đi (như Ngày sinh, SĐT, Bệnh lý...), quý khách vui lòng truy cập liên kết sau:\n" .
-        "%s\n\n" .
-        "Chúng tôi sẽ liên hệ lại qua số điện thoại %s để xác nhận thông tin sớm nhất.\n\nTrân trọng,\nĐôi Dép Adventure.",
-        $full_name,
-        $booking_code,
-        $tour_post->post_title,
-        $departure_date,
-        $participants,
-        number_format($total_amount, 0, ',', '.'),
-        $payment_method === 'transfer' ? 'Chuyển khoản ngân hàng' : 'Tiền mặt',
-        $update_url,
-        $phone
-    );
-    wp_mail($email, $subject, $body);
+    
+    $payment_method_label = $payment_method === 'transfer' ? 'Chuyển khoản ngân hàng' : 'Tiền mặt';
+    
+    $content_html = '
+    <p style="margin-top: 0; font-size: 16px; color: #334155; line-height: 1.6;">
+        Chào <strong>' . esc_html($full_name) . '</strong>,
+    </p>
+    <p style="font-size: 15px; color: #334155; line-height: 1.6; margin-bottom: 25px;">
+        Cảm ơn bạn đã đặt tour tại Đôi Dép Adventure! Yêu cầu đặt chỗ của bạn đã được ghi nhận. Dưới đây là thông tin chi tiết về đơn đặt tour của bạn:
+    </p>
+
+    <!-- Details Card -->
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 14px; line-height: 1.5; color: #334155;">
+            <tr>
+                <td style="padding: 6px 0; font-weight: 600; color: #64748b; width: 35%;">Mã đặt tour:</td>
+                <td style="padding: 6px 0; font-weight: 700; color: #0f172a;">' . esc_html($booking_code) . '</td>
+            </tr>
+            <tr>
+                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Hành trình:</td>
+                <td style="padding: 6px 0; font-weight: 700; color: #059669;">' . esc_html($tour_post->post_title) . '</td>
+            </tr>
+            <tr>
+                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Khởi hành:</td>
+                <td style="padding: 6px 0; color: #0f172a;">' . esc_html($departure_date) . '</td>
+            </tr>
+            <tr>
+                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Số lượng khách:</td>
+                <td style="padding: 6px 0; color: #0f172a;">' . intval($participants) . ' người</td>
+            </tr>
+            <tr>
+                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Tổng chi phí:</td>
+                <td style="padding: 6px 0; font-weight: 700; color: #0f172a; font-size: 16px;">' . number_format($total_amount, 0, ',', '.') . ' đ</td>
+            </tr>
+            <tr>
+                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Thanh toán:</td>
+                <td style="padding: 6px 0; color: #0f172a;">' . esc_html($payment_method_label) . '</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Important Notice -->
+    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px 20px; margin-bottom: 30px;">
+        <h3 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 700; color: #166534;">⚠️ YÊU CẦU CẬP NHẬT THÔNG TIN THÀNH VIÊN</h3>
+        <p style="margin: 0; font-size: 13px; color: #166534; line-height: 1.5;">
+            Để chuẩn bị tốt nhất cho chuyến đi (bố trí phương tiện, điểm đón và chuẩn bị bảo hiểm du lịch), quý khách vui lòng cập nhật đầy đủ Họ tên, Số điện thoại, <strong>Ngày sinh</strong> và thông tin bệnh lý của tất cả thành viên trong đoàn bằng cách bấm nút dưới đây:
+        </p>
+    </div>
+
+    <!-- CTA Button -->
+    <div style="text-align: center; margin-bottom: 30px;">
+        <a href="' . esc_url($update_url) . '" style="display: inline-block; background-color: #059669; color: #ffffff; padding: 14px 28px; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(5,150,105,0.2); transition: background-color 0.2s;">
+            CẬP NHẬT THÔNG TIN HÀNH KHÁCH
+        </a>
+    </div>
+
+    <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 0;">
+        Đội ngũ của chúng tôi sẽ chủ động liên hệ với bạn qua số điện thoại <strong>' . esc_html($phone) . '</strong> để hỗ trợ các bước tiếp theo. Hẹn gặp lại bạn trong chuyến hành trình sắp tới!
+    </p>';
+
+    $html_body = newtrip_get_email_html_wrapper('Đặt Tour Thành Công!', $content_html);
+    $headers = [
+        'Content-Type: text/html; charset=UTF-8',
+        'From: Đôi Dép Adventure <doidepadventure@gmail.com>'
+    ];
+    wp_mail($email, $subject, $html_body, $headers);
 
     return new WP_REST_Response([
         'success' => true,
@@ -2761,7 +2819,7 @@ function newtrip_api_update_booking_passengers(WP_REST_Request $request)
 
         $p_phone = preg_replace('/[^\d+]/', '', sanitize_text_field($p['phone'] ?? ''));
         $p_email = sanitize_email($p['email'] ?? '');
-        $p_birth = sanitize_text_field($p['birth_date'] ?? '');
+        $p_birth = newtrip_normalize_date(sanitize_text_field($p['birth_date'] ?? ''));
         $p_id_num = sanitize_text_field($p['id_number'] ?? '');
         $p_health = sanitize_text_field($p['health_status'] ?? '');
         $p_seat = sanitize_text_field($p['seat'] ?? '');
@@ -3189,6 +3247,106 @@ add_filter('acf/load_field_group', function ($group) {
     return $group;
 });
 
+// Khung xương (Wrapper) HTML Email cao cấp cho hệ thống Đôi Dép Adventure
+function newtrip_get_email_html_wrapper($title, $content_html)
+{
+    $logo_url = 'https://doi-dep.vercel.app/images/logo.png';
+    return '
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>' . esc_html($title) . '</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f6f9fc; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f6f9fc; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <!-- Wrapper -->
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #eef2f6;">
+                    
+                    <!-- Header Banner -->
+                    <tr>
+                        <td align="center" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 40px 30px; text-align: center;">
+                            <img src="' . esc_url($logo_url) . '" alt="Đôi Dép Adventure" style="width: 72px; height: 72px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.15); margin-bottom: 15px; object-fit: cover;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">' . esc_html($title) . '</h1>
+                            <p style="color: #d1fae5; margin: 5px 0 0 0; font-size: 14px; font-weight: 500;">Đôi Dép Adventure • Trekking & Camping</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Body Content -->
+                    <tr>
+                        <td style="padding: 40px 30px; background-color: #ffffff;">
+                            ' . $content_html . '
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center;">
+                            <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: #1e293b;">ĐÔI DÉP ADVENTURE</p>
+                            <p style="margin: 0 0 15px 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+                                Đơn vị tổ chức các chuyến đi trải nghiệm, trekking, cắm trại dã ngoại kết hợp kỹ năng sinh tồn thực tế.
+                            </p>
+                            <div style="margin-bottom: 20px;">
+                                <a href="tel:0961804359" style="display: inline-block; margin: 0 10px; font-size: 13px; font-weight: 600; color: #059669; text-decoration: none;">Hotline: 096 180 43 59</a>
+                                <span style="color: #cbd5e1;">|</span>
+                                <a href="mailto:doidepadventure@gmail.com" style="display: inline-block; margin: 0 10px; font-size: 13px; font-weight: 600; color: #059669; text-decoration: none;">Email: doidepadventure@gmail.com</a>
+                            </div>
+                            <p style="margin: 0; font-size: 11px; color: #94a3b8;">
+                                © 2026 Đôi Dép Adventure. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>';
+}
+
+// Hàm chuẩn hóa ngày sinh của khách về dạng YYYY-MM-DD
+function newtrip_normalize_date($date_str)
+{
+    $date_str = trim((string)$date_str);
+    if (empty($date_str)) {
+        return '';
+    }
+
+    // 1. Dạng YYYY-MM-DD
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_str)) {
+        return $date_str;
+    }
+
+    // 2. Dạng YYYYMMDD (8 chữ số liên tiếp)
+    if (preg_match('/^\d{8}$/', $date_str)) {
+        return substr($date_str, 0, 4) . '-' . substr($date_str, 4, 2) . '-' . substr($date_str, 6, 2);
+    }
+
+    // 3. Dạng D/M/YYYY hoặc DD/MM/YYYY hoặc D-M-YYYY hoặc DD-MM-YYYY
+    if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $date_str, $matches)) {
+        $day = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+        $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
+        $year = $matches[3];
+        return $year . '-' . $month . '-' . $day;
+    }
+
+    // 4. Dạng chỉ chứa năm sinh YYYY (4 chữ số)
+    if (preg_match('/^\d{4}$/', $date_str)) {
+        return $date_str . '-01-01';
+    }
+
+    // 5. Thử qua strtotime
+    $time = strtotime($date_str);
+    if ($time) {
+        return date('Y-m-d', $time);
+    }
+
+    return $date_str;
+}
+
 // API đăng nhập bằng mã PIN nhân viên check-in
 function newtrip_api_checkin_auth(WP_REST_Request $request)
 {
@@ -3352,6 +3510,260 @@ function newtrip_api_get_checkin_passengers(WP_REST_Request $request)
     ], 200);
 }
 
+// API gửi email nhắc nhở tập trung cho khách hàng tự động
+function newtrip_api_checkin_remind(WP_REST_Request $request)
+{
+    $params = $request->get_json_params();
+    if (!is_array($params)) {
+        $params = [];
+    }
+
+    $booking_id = intval($params['booking_id'] ?? 0);
+    $passenger_index = isset($params['passenger_index']) ? intval($params['passenger_index']) : -1;
+
+    if (!$booking_id || $passenger_index < 0) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'invalid_params', 'message' => 'Tham số không hợp lệ']
+        ], 400);
+    }
+
+    $passengers = newtrip_get_field('passengers', $booking_id);
+    if (!is_array($passengers) || !isset($passengers[$passenger_index])) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'passenger_not_found', 'message' => 'Không tìm thấy hành khách tương ứng']
+        ], 404);
+    }
+
+    $p = $passengers[$passenger_index];
+    $passenger_name = $p['full_name'] ?? '';
+    $booking_email = get_post_meta($booking_id, 'email', true) ?: '';
+    $recipient = !empty($p['email']) ? $p['email'] : $booking_email;
+
+    if (empty($recipient)) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'no_email', 'message' => 'Hành khách và người đại diện không có địa chỉ email']
+        ], 400);
+    }
+
+    // Lấy thông tin tour
+    $t_id_raw = newtrip_get_field('tour_id', $booking_id);
+    $t_id = 0;
+    if (is_object($t_id_raw)) {
+        $t_id = $t_id_raw->ID;
+    } elseif (is_array($t_id_raw)) {
+        $t_id = $t_id_raw['ID'] ?? 0;
+    } else {
+        $t_id = intval($t_id_raw);
+    }
+    if (empty($t_id)) {
+        $t_id = intval(get_post_meta($booking_id, 'tour_id', true));
+    }
+    $tour_post = get_post($t_id);
+    $tour_name = $tour_post ? $tour_post->post_title : 'Chuyến đi';
+
+    $departure_date = newtrip_get_field('departure_date', $booking_id) ?: '';
+
+    // Lấy điểm tập trung/đón
+    $p_pickup_point_id = 0;
+    if (isset($p['pickup_point_id'])) {
+        if (is_object($p['pickup_point_id'])) {
+            $p_pickup_point_id = $p['pickup_point_id']->ID;
+        } elseif (is_array($p['pickup_point_id']) && isset($p['pickup_point_id']['ID'])) {
+            $p_pickup_point_id = $p['pickup_point_id']['ID'];
+        } else {
+            $p_pickup_point_id = intval($p['pickup_point_id']);
+        }
+    }
+    $pickup_name = 'Điểm tập trung theo lịch trình';
+    if ($p_pickup_point_id) {
+        $pickup_post = get_post($p_pickup_point_id);
+        if ($pickup_post) {
+            $pickup_name = $pickup_post->post_title;
+        }
+    }
+
+    // Tiêu đề email
+    $subject = '[Đôi Dép Adventure] Nhắc nhở tập trung - Tour ' . $tour_name;
+
+    // Nội dung HTML email
+    $content_html = '
+    <p style="margin-top: 0; font-size: 16px; color: #334155; line-height: 1.6;">
+        Xin chào <strong>' . esc_html($passenger_name) . '</strong>,
+    </p>
+    <p style="font-size: 15px; color: #334155; line-height: 1.6; margin-bottom: 25px;">
+        Đây là thông báo nhắc nhở chuẩn bị tập trung xuất phát cho hành trình tour sắp tới của bạn cùng đoàn <strong>Đôi Dép Adventure</strong>. Dưới đây là thông tin chi tiết:
+    </p>
+
+    <!-- Gathering Card -->
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 14px; line-height: 1.6; color: #334155;">
+            <tr>
+                <td style="padding: 6px 0; font-weight: 600; color: #64748b; width: 35%;">Hành trình:</td>
+                <td style="padding: 6px 0; font-weight: 700; color: #0f172a;">' . esc_html($tour_name) . '</td>
+            </tr>
+            <tr>
+                <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Khởi hành:</td>
+                <td style="padding: 6px 0; color: #0f172a; font-weight: 600;">' . esc_html($departure_date) . '</td>
+            </tr>
+            <tr>
+                <td style="padding: 6px 0; font-weight: 600; color: #4f46e5; font-size: 15px;">Điểm tập trung:</td>
+                <td style="padding: 6px 0; font-weight: 700; color: #4f46e5; font-size: 15px;">' . esc_html($pickup_name) . '</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Callout Alert -->
+    <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px 20px; margin-bottom: 25px;">
+        <p style="margin: 0; font-size: 13.5px; color: #1e3a8a; line-height: 1.5;">
+            📌 <strong>Lưu ý:</strong> Vui lòng sắp xếp thời gian có mặt tại điểm đón đúng giờ quy định để đảm bảo hành trình của đoàn được xuất phát đúng lịch trình.
+        </p>
+    </div>
+
+    <p style="font-size: 14px; color: #334155; line-height: 1.6; margin-bottom: 0;">
+        Nếu gặp bất kỳ khó khăn nào khi di chuyển đến điểm đón hoặc cần liên hệ khẩn cấp, vui lòng liên hệ ngay với <strong>Hướng dẫn viên</strong> của đoàn hoặc gọi hotline hỗ trợ nhanh: <strong>096 180 43 59</strong>.
+    </p>';
+
+    $html_body = newtrip_get_email_html_wrapper('Nhắc Nhở Tập Trung', $content_html);
+
+    $headers = [
+        'Content-Type: text/html; charset=UTF-8',
+        'From: Đôi Dép Adventure <doidepadventure@gmail.com>'
+    ];
+
+    $sent = wp_mail($recipient, $subject, $html_body, $headers);
+
+    if ($sent) {
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => 'Email nhắc nhở tập trung đã được gửi tự động thành công tới ' . $recipient
+        ], 200);
+    } else {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'send_failed', 'message' => 'Không thể gửi email nhắc nhở. Vui lòng kiểm tra lại cấu hình mail trên máy chủ.']
+        ], 500);
+    }
+}
+
+// Tự động lên lịch Cron Job gửi mail chúc mừng sinh nhật
+if (!wp_next_scheduled('newtrip_daily_birthday_wishes')) {
+    wp_schedule_event(time(), 'daily', 'newtrip_daily_birthday_wishes');
+}
+add_action('newtrip_daily_birthday_wishes', 'newtrip_send_birthday_wishes');
+
+// Hàm thực thi tìm kiếm và gửi mail chúc mừng sinh nhật cho khách
+function newtrip_send_birthday_wishes()
+{
+    global $wpdb;
+    $month = date('m');
+    $day = date('d');
+    
+    // Tìm các customer có post_status = 'publish' và meta birth_date chứa '-MM-DD'
+    $query = "
+        SELECT pm.post_id 
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+        WHERE p.post_type = 'customer' 
+          AND p.post_status = 'publish'
+          AND pm.meta_key = 'birth_date' 
+          AND pm.meta_value LIKE %s
+    ";
+    
+    $like_pattern = '%-' . $month . '-' . $day;
+    $customer_ids = $wpdb->get_col($wpdb->prepare($query, $like_pattern));
+    
+    if (empty($customer_ids)) {
+        return [];
+    }
+    
+    $sent_list = [];
+    
+    foreach ($customer_ids as $customer_id) {
+        $customer_name = get_post_field('post_title', $customer_id);
+        // post_title dạng "Họ tên - SĐT", cần tách lấy Họ tên hoặc lấy từ post meta full_name
+        $full_name = get_post_meta($customer_id, 'full_name', true) ?: '';
+        if (empty($full_name)) {
+            $parts = explode(' - ', $customer_name);
+            $full_name = $parts[0];
+        }
+        
+        $email = get_post_meta($customer_id, 'email', true) ?: '';
+        
+        if (empty($email)) {
+            continue;
+        }
+        
+        $subject = '[Đôi Dép Adventure] Chúc mừng sinh nhật, ' . $full_name . '! 🎂';
+        
+        $content_html = '
+        <p style="margin-top: 0; font-size: 16px; color: #334155; line-height: 1.6; text-align: center;">
+            Chúc mừng sinh nhật, <strong>' . esc_html($full_name) . '</strong>! 🎉
+        </p>
+        <p style="font-size: 15px; color: #334155; line-height: 1.6; text-align: center; margin-bottom: 25px;">
+            Hôm nay là một ngày đặc biệt! Đội ngũ <strong>Đôi Dép Adventure</strong> xin gửi tới bạn những lời chúc mừng ấm áp nhất. Chúc bạn một tuổi mới tràn đầy sức khỏe, hạnh phúc, may mắn và gặt hái được nhiều thành công trong cuộc sống.
+        </p>
+
+        <!-- Birthday Gift Banner -->
+        <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 30px;">
+            <div style="font-size: 40px; margin-bottom: 10px;">🎁</div>
+            <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #92400e;">QUÀ TẶNG SINH NHẬT DÀNH CHO BẠN</h3>
+            <p style="margin: 0 0 15px 0; font-size: 13.5px; color: #92400e; line-height: 1.5;">
+                Để nhân đôi niềm vui trong ngày sinh nhật, Đôi Dép Adventure gửi tặng bạn mã giảm giá <strong>10%</strong> cho lần đặt tour tiếp theo của bạn và gia đình:
+            </p>
+            <div style="display: inline-block; background-color: #f59e0b; color: #ffffff; padding: 10px 20px; font-size: 18px; font-weight: 800; border-radius: 6px; letter-spacing: 1px; margin-bottom: 10px;">
+                DOIDEPBIRTHDAY
+            </div>
+            <p style="margin: 0; font-size: 11px; color: #b45309;">
+                *Áp dụng cho mọi hành trình trekking & camping khởi hành trong năm 2026.
+            </p>
+        </div>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <a href="https://doi-dep.vercel.app/" style="display: inline-block; background-color: #059669; color: #ffffff; padding: 14px 28px; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(5,150,105,0.2);">
+                KHÁM PHÁ CÁC CUNG ĐƯỜNG
+            </a>
+        </div>
+
+        <p style="font-size: 14px; color: #64748b; line-height: 1.6; text-align: center; margin-bottom: 0;">
+            Cảm ơn bạn đã luôn tin tưởng và đồng hành cùng Đôi Dép Adventure trên những cung đường khám phá thiên nhiên kỳ thú!
+        </p>';
+        
+        $html_body = newtrip_get_email_html_wrapper('Happy Birthday!', $content_html);
+        
+        $headers = [
+            'Content-Type: text/html; charset=UTF-8',
+            'From: Đôi Dép Adventure <doidepadventure@gmail.com>'
+        ];
+        
+        $sent = wp_mail($email, $subject, $html_body, $headers);
+        if ($sent) {
+            $sent_list[] = [
+                'id' => $customer_id,
+                'name' => $full_name,
+                'email' => $email
+            ];
+        }
+    }
+    
+    return $sent_list;
+}
+
+// Callback API để chạy test/gửi thủ công thư chúc mừng sinh nhật
+function newtrip_api_admin_trigger_birthday_wishes(WP_REST_Request $request)
+{
+    $sent_list = newtrip_send_birthday_wishes();
+    return new WP_REST_Response([
+        'success' => true,
+        'message' => 'Đã thực thi kiểm tra và gửi thư chúc mừng sinh nhật.',
+        'sent_count' => count($sent_list),
+        'sent_details' => $sent_list
+    ], 200);
+}
+
 // Callback API toggle check-in
 function newtrip_api_toggle_checkin(WP_REST_Request $request)
 {
@@ -3424,6 +3836,7 @@ function newtrip_sync_booking_to_customer($booking_id)
     $rep_phone = newtrip_get_field('phone', $booking_id) ?: '';
     $rep_email = newtrip_get_field('email', $booking_id) ?: '';
     $rep_birth_date = newtrip_get_field('birth_date', $booking_id) ?: (newtrip_get_field('birth_year', $booking_id) ?: '');
+    $rep_id_number = newtrip_get_field('id_number', $booking_id) ?: '';
 
     if (!empty($rep_phone) && !empty($rep_name)) {
         $people[] = [
@@ -3431,6 +3844,7 @@ function newtrip_sync_booking_to_customer($booking_id)
             'phone' => $rep_phone,
             'email' => $rep_email,
             'birth_date' => $rep_birth_date,
+            'id_number' => $rep_id_number,
             'is_representative' => true
         ];
     }
@@ -3443,6 +3857,7 @@ function newtrip_sync_booking_to_customer($booking_id)
             $p_phone = $p['phone'] ?? '';
             $p_email = $p['email'] ?? '';
             $p_birth_date = $p['birth_date'] ?? ($p['birth_year'] ?? '');
+            $p_id_number = $p['id_number'] ?? '';
 
             if (!empty($p_phone) && !empty($p_name)) {
                 $people[] = [
@@ -3450,6 +3865,7 @@ function newtrip_sync_booking_to_customer($booking_id)
                     'phone' => $p_phone,
                     'email' => $p_email,
                     'birth_date' => $p_birth_date,
+                    'id_number' => $p_id_number,
                     'is_representative' => false
                 ];
             }
@@ -3484,6 +3900,7 @@ function newtrip_sync_booking_to_customer($booking_id)
         $full_name = sanitize_text_field($person['full_name']);
         $email = sanitize_email($person['email']);
         $birth_date = sanitize_text_field($person['birth_date']);
+        $id_number = sanitize_text_field($person['id_number'] ?? '');
 
         // Truy vấn xem số điện thoại này đã tồn tại trong danh sách Khách hàng chưa
         $customer_query = new WP_Query([
@@ -3530,19 +3947,16 @@ function newtrip_sync_booking_to_customer($booking_id)
             }
         }
         if (!empty($birth_date)) {
-            $formatted_birth_date = $birth_date;
-            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date)) {
-                $formatted_birth_date = date('Ymd', strtotime($birth_date));
-            } elseif (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $birth_date)) {
-                $parts = explode('/', $birth_date);
-                $formatted_birth_date = $parts[2] . $parts[1] . $parts[0];
-            }
+            $birth_date = newtrip_normalize_date($birth_date);
+            $formatted_birth_date = date('Ymd', strtotime($birth_date));
             
             if (function_exists('update_field')) {
                 update_field('field_customer_birth_date', $formatted_birth_date, $customer_id);
-            } else {
-                update_post_meta($customer_id, 'birth_date', $birth_date);
             }
+            update_post_meta($customer_id, 'birth_date', $birth_date);
+        }
+        if (!empty($id_number)) {
+            update_post_meta($customer_id, 'id_number', $id_number);
         }
 
         // Xử lý Lịch sử mua hàng (bookings_history)
@@ -3622,6 +4036,7 @@ function newtrip_customer_table_columns($columns)
         'phone' => __('Số điện thoại', 'newtrip-theme'),
         'email' => __('Email', 'newtrip-theme'),
         'birth_date' => __('Ngày sinh', 'newtrip-theme'),
+        'id_number' => __('Số CCCD', 'newtrip-theme'),
         'total_bookings' => __('Số chuyến đi', 'newtrip-theme'),
         'total_spent' => __('Tổng chi tiêu', 'newtrip-theme'),
         'last_booking_date' => __('Ngày đặt gần nhất', 'newtrip-theme'),
@@ -3639,7 +4054,16 @@ function newtrip_customer_table_column_content($column, $post_id)
             echo esc_html(get_post_meta($post_id, 'email', true) ?: '—');
             break;
         case 'birth_date':
-            echo esc_html(get_post_meta($post_id, 'birth_date', true) ?: '—');
+            $meta_date = get_post_meta($post_id, 'birth_date', true);
+            if (!empty($meta_date)) {
+                $time = strtotime($meta_date);
+                echo esc_html($time ? date('d/m/Y', $time) : $meta_date);
+            } else {
+                echo '—';
+            }
+            break;
+        case 'id_number':
+            echo esc_html(get_post_meta($post_id, 'id_number', true) ?: '—');
             break;
         case 'total_bookings':
             echo esc_html(get_post_meta($post_id, 'total_bookings', true) ?: '0');

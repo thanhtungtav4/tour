@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { getCheckinPassengers, toggleCheckin, getTours, checkinAuthenticate } from "@/lib/api/client";
+import { getCheckinPassengers, toggleCheckin, getTours, checkinAuthenticate, remindGatherPassenger } from "@/lib/api/client";
 import { CheckinPassenger, TourListItem } from "@/lib/api/types";
 import { SearchIcon, CloseIcon } from "@/components/icons";
 
@@ -27,6 +27,7 @@ export default function CheckinPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updatingIds, setUpdatingIds] = useState<Record<string, boolean>>({});
+  const [sendingRemindIds, setSendingRemindIds] = useState<Record<string, boolean>>({});
 
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -148,6 +149,27 @@ export default function CheckinPage() {
       alert(err.message || "Cập nhật check-in thất bại");
     } finally {
       setUpdatingIds((prev) => {
+        const next = { ...prev };
+        delete next[uniqueId];
+        return next;
+      });
+    }
+  };
+
+  // Handle manual gathering email reminder
+  const handleRemindGather = async (passenger: CheckinPassenger) => {
+    if (!passenger.email) {
+      alert("Hành khách này không có email. Hệ thống sẽ tự động gửi tới email của người đại diện nếu có.");
+    }
+    const uniqueId = `${passenger.booking_id}_${passenger.passenger_index}`;
+    setSendingRemindIds((prev) => ({ ...prev, [uniqueId]: true }));
+    try {
+      const res = await remindGatherPassenger(authToken, passenger.booking_id, passenger.passenger_index);
+      alert(res.message || "Đã gửi email nhắc nhở tập trung thành công!");
+    } catch (err: any) {
+      alert(err.message || "Gửi email nhắc nhở thất bại");
+    } finally {
+      setSendingRemindIds((prev) => {
         const next = { ...prev };
         delete next[uniqueId];
         return next;
@@ -466,15 +488,28 @@ export default function CheckinPage() {
                             Gọi điện
                           </a>
                         )}
-                        <a
-                          href={getGatherEmailLink(p)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-semibold transition-colors"
+                        <button
+                          onClick={() => handleRemindGather(p)}
+                          disabled={sendingRemindIds[`${p.booking_id}_${p.passenger_index}`]}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 rounded-lg text-xs font-semibold transition-all active:scale-[0.98]"
                         >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                          Nhắc tập trung
-                        </a>
+                          {sendingRemindIds[`${p.booking_id}_${p.passenger_index}`] ? (
+                            <>
+                              <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                              </svg>
+                              Đang gửi...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                              Nhắc tập trung
+                            </>
+                          )}
+                        </button>
                       </div>
 
                       {p.health_status && (
@@ -600,15 +635,28 @@ export default function CheckinPage() {
                               ) : (
                                 <span className="text-slate-400 text-xs">Không có SĐT</span>
                               )}
-                              <a
-                                href={getGatherEmailLink(p)}
-                                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors w-fit"
+                              <button
+                                onClick={() => handleRemindGather(p)}
+                                disabled={sendingRemindIds[`${p.booking_id}_${p.passenger_index}`]}
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-50 transition-colors w-fit"
                               >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                                Nhắc tập trung
-                              </a>
+                                {sendingRemindIds[`${p.booking_id}_${p.passenger_index}`] ? (
+                                  <>
+                                    <svg className="animate-spin h-3 w-3 text-current" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Đang gửi...
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                    Nhắc tập trung
+                                  </>
+                                )}
+                              </button>
                             </div>
                             <div className="text-xs text-slate-400 mt-1.5 truncate max-w-[180px]" title={p.pickup_point}>
                               Đón: {p.pickup_point || "Tự túc"}

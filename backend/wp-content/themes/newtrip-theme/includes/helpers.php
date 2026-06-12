@@ -299,7 +299,13 @@ function newtrip_api_get_customers(WP_REST_Request $request) {
             $customer_id = $post->ID;
             $phone = get_post_meta($customer_id, 'phone', true) ?: '';
             $email = get_post_meta($customer_id, 'email', true) ?: '';
-            $birth_date = get_post_meta($customer_id, 'birth_date', true) ?: '';
+            $birth_date_raw = get_post_meta($customer_id, 'birth_date', true) ?: '';
+            $birth_date = '';
+            if (!empty($birth_date_raw)) {
+                $time = strtotime($birth_date_raw);
+                $birth_date = $time ? date('d/m/Y', $time) : $birth_date_raw;
+            }
+            $id_number = get_post_meta($customer_id, 'id_number', true) ?: '';
             $total_bookings = intval(get_post_meta($customer_id, 'total_bookings', true) ?: 0);
             $total_spent = floatval(get_post_meta($customer_id, 'total_spent', true) ?: 0);
             $last_booking = get_post_meta($customer_id, 'last_booking_date', true) ?: '';
@@ -312,6 +318,7 @@ function newtrip_api_get_customers(WP_REST_Request $request) {
                 'phone' => $phone,
                 'email' => $email,
                 'birth_date' => $birth_date,
+                'id_number' => $id_number,
                 'total_bookings' => $total_bookings,
                 'total_spent' => $total_spent,
                 'last_booking_date' => $last_booking,
@@ -341,7 +348,7 @@ function newtrip_api_export_customers(WP_REST_Request $request) {
     
     $query = new WP_Query($args);
     $csv_rows = [];
-    $csv_rows[] = ['ID', 'Họ tên', 'SĐT', 'Email', 'Ngày sinh', 'Số chuyến', 'Tổng chi tiêu', 'Ngày đặt gần nhất'];
+    $csv_rows[] = ['ID', 'Họ tên', 'SĐT', 'Email', 'Ngày sinh', 'Số CMND/CCCD', 'Số chuyến', 'Tổng chi tiêu', 'Ngày đặt gần nhất'];
     
     if ($query->have_posts()) {
         foreach ($query->posts as $post) {
@@ -351,7 +358,15 @@ function newtrip_api_export_customers(WP_REST_Request $request) {
                 $post->post_title,
                 get_post_meta($customer_id, 'phone', true) ?: '',
                 get_post_meta($customer_id, 'email', true) ?: '',
-                get_post_meta($customer_id, 'birth_date', true) ?: '',
+                (function() use ($customer_id) {
+                    $birth_date_raw = get_post_meta($customer_id, 'birth_date', true) ?: '';
+                    if (!empty($birth_date_raw)) {
+                        $time = strtotime($birth_date_raw);
+                        return $time ? date('d/m/Y', $time) : $birth_date_raw;
+                    }
+                    return '';
+                })(),
+                get_post_meta($customer_id, 'id_number', true) ?: '',
                 get_post_meta($customer_id, 'total_bookings', true) ?: '0',
                 get_post_meta($customer_id, 'total_spent', true) ?: '0',
                 get_post_meta($customer_id, 'last_booking_date', true) ?: '',

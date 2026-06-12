@@ -422,3 +422,30 @@ export async function toggleCheckin(
   return json.data;
 }
 
+export async function remindGatherPassenger(
+  token: string,
+  bookingId: number,
+  passengerIndex: number
+): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE_URL}/checkin/remind`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Staff-Token": token,
+    },
+    body: JSON.stringify({
+      booking_id: bookingId,
+      passenger_index: passengerIndex,
+    }),
+  });
+
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    const err = new Error(json.error?.message || "Gửi email nhắc nhở thất bại") as Error & { status?: number };
+    err.status = res.status;
+    throw err;
+  }
+  return json;
+}
+
+
