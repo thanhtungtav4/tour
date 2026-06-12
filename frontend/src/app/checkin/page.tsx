@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { getCheckinPassengers, toggleCheckin, getTours, CheckinPassenger, TourListItem } from "@/lib/api/client";
+import { getCheckinPassengers, toggleCheckin, getTours, checkinAuthenticate } from "@/lib/api/client";
+import { CheckinPassenger, TourListItem } from "@/lib/api/types";
 import { SearchIcon, CloseIcon } from "@/components/icons";
 
 export default function CheckinPage() {
