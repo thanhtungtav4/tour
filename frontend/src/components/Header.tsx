@@ -229,9 +229,11 @@ export function Header() {
                     <span className="text-sm">{settings?.contact_email || "doidepadventure@gmail.com"}</span>
                   </a>
                   <a href={settings?.zalo_link || "https://zalo.me/0961804359"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-700 hover:text-emerald-600">
-                    <svg className="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="12" r="10"/>
-                    </svg>
+                    <img
+                      src="/images/zalo.svg"
+                      alt="Zalo"
+                      className="w-5 h-5 object-contain flex-shrink-0"
+                    />
                     <span>Zalo: {settings?.hotline || "096 180 43 59"}</span>
                   </a>
                 </div>
@@ -241,14 +243,44 @@ export function Header() {
               <div className="mt-6 px-4">
                 <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Theo dõi</h4>
                 <div className="flex gap-3">
-                  <a href="#" className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors">
-                    <span className="text-sm font-bold">f</span>
+                  <a
+                    href={settings?.facebook_link || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 block hover:scale-110 transition-transform"
+                    aria-label="Facebook"
+                  >
+                    <img
+                      src="/images/facebook.svg"
+                      alt="Facebook"
+                      className="w-full h-full object-contain"
+                    />
                   </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors">
-                    <span className="text-sm font-bold">▶</span>
+                  <a
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 block hover:scale-110 transition-transform"
+                    aria-label="YouTube"
+                  >
+                    <img
+                      src="/images/youtube.svg"
+                      alt="YouTube"
+                      className="w-full h-full object-contain"
+                    />
                   </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 text-white flex items-center justify-center hover:opacity-90 transition-opacity">
-                    <span className="text-sm font-bold">📷</span>
+                  <a
+                    href={settings?.instagram_link || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 block hover:scale-110 transition-transform"
+                    aria-label="Instagram"
+                  >
+                    <img
+                      src="/images/instagram.svg"
+                      alt="Instagram"
+                      className="w-full h-full object-contain"
+                    />
                   </a>
                 </div>
               </div>
