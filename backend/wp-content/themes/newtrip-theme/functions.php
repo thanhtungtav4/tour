@@ -1293,7 +1293,7 @@ function newtrip_api_create_booking(WP_REST_Request $request)
     }
 
     $total_amount = ($price * $participants) + $services_total + $rental_total;
-    $booking_code = 'NTR-' . strtoupper(wp_generate_password(6, false));
+    $booking_code = 'NTR-' . strtoupper(wp_generate_password(6, false)) . '-DT';
 
     // 3. Khởi tạo Danh sách thành viên đặt chỗ (Passengers)
     $raw_passengers = isset($params['passengers']) && is_array($params['passengers']) ? $params['passengers'] : [];
@@ -2816,7 +2816,7 @@ function newtrip_booking_custom_column_content($column, $post_id)
     switch ($column) {
         case 'booking_code':
             $code = get_post_meta($post_id, 'booking_code', true);
-            echo '<strong>' . esc_html($code ? $code : 'NTR-XXXXXX') . '</strong>';
+            echo '<strong>' . esc_html($code ? $code : 'NTR-XXXXXX-DT') . '</strong>';
             break;
 
         case 'tour':
