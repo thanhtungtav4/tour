@@ -50,7 +50,7 @@ export function HeroSection({ data }: HeroSectionProps) {
             </span>
           </div>
           <h1 className="sr-only">Đôi Dép Adventure - Khám phá thiên nhiên Việt Nam</h1>
-          <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight max-w-4xl">
+          <h2 className="text-3xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight max-w-4xl">
             {titleParts[0]}
             {titleParts[1] && (
               <span className="block text-emerald-400">{titleParts[1]}</span>

@@ -121,18 +121,18 @@ export function FeaturedTours() {
         </div>
 
         {/* Stats Block */}
-        <div className="flex justify-center gap-12 mb-12 text-center">
+        <div className="flex justify-center gap-4 sm:gap-12 mb-12 text-center">
           <div className="flex flex-col items-center">
-            <span className="text-[48px] font-extrabold text-[#16a249] leading-none">
+            <span className="text-[40px] sm:text-[48px] font-extrabold text-[#16a249] leading-none">
               {filteredTours.length}
             </span>
-            <span className="text-sm text-gray-500 mt-1 font-semibold uppercase tracking-wider">
+            <span className="text-xs sm:text-sm text-gray-500 mt-1 font-semibold uppercase tracking-wider">
               chuyến
             </span>
           </div>
           <div className="w-[1px] bg-gray-200 self-stretch my-2" />
           <div className="flex flex-col items-center justify-center">
-            <span className="text-2xl font-extrabold text-[#16a249] uppercase tracking-wide">
+            <span className="text-lg sm:text-2xl font-extrabold text-[#16a249] uppercase tracking-wide whitespace-nowrap">
               Sắp khởi hành
             </span>
           </div>

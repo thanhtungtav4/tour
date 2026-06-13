@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={`${beVietnamPro.variable} h-full antialiased`}>
-      <body className={`${beVietnamPro.className} min-h-full flex flex-col`}>
+      <body className={`${beVietnamPro.className} min-h-full flex flex-col overflow-x-hidden`}>
         {children}
       </body>
     </html>

@@ -408,18 +408,18 @@ export default function BookingPage() {
 
         {/* Stats Section */}
         <section className="py-8 px-4 bg-gray-50 border-t border-gray-100">
-          <div className="container mx-auto flex justify-center gap-12 text-center">
+          <div className="container mx-auto flex justify-center gap-4 sm:gap-12 text-center">
             <div>
-              <p className="text-3xl font-bold text-emerald-600">12+</p>
-              <p className="text-sm text-gray-500">Tuyến đường</p>
+              <p className="text-2xl sm:text-3xl font-bold text-emerald-600">12+</p>
+              <p className="text-xs sm:text-sm text-gray-500">Tuyến đường</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-emerald-600">3000+</p>
-              <p className="text-sm text-gray-500">Khách hàng</p>
+              <p className="text-2xl sm:text-3xl font-bold text-emerald-600">3000+</p>
+              <p className="text-xs sm:text-sm text-gray-500">Khách hàng</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-emerald-600">4.9</p>
-              <p className="text-sm text-gray-500">Đánh giá</p>
+              <p className="text-2xl sm:text-3xl font-bold text-emerald-600">4.9</p>
+              <p className="text-xs sm:text-sm text-gray-500">Đánh giá</p>
             </div>
           </div>
         </section>
