@@ -111,11 +111,11 @@ export function FeaturedTours() {
     <section className="py-16 md:py-24 bg-gradient-to-b from-white to-[#f5f7fa] overflow-hidden">
       <div className="container mx-auto px-4 md:px-8 max-w-7xl">
         {/* Title Block */}
-        <div className="text-center mb-10">
-          <h2 className="text-4xl md:text-5xl lg:text-[56px] font-extrabold text-[#0e1425] tracking-tight mb-4">
+        <div className="text-center mb-6 sm:mb-10">
+          <h2 className="text-3xl md:text-5xl lg:text-[56px] font-extrabold text-[#0e1425] tracking-tight mb-4">
             Lịch trình sắp tới
           </h2>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-lg text-gray-500 max-w-2xl mx-auto">
             Những trải nghiệm tuyệt vời đang chờ đón bạn trong thời gian tới
           </p>
         </div>
@@ -139,9 +139,9 @@ export function FeaturedTours() {
         </div>
 
         {/* Filter Pills Container */}
-        <div className="flex flex-col gap-4 items-center mb-12 bg-white p-6 rounded-2xl shadow-sm border border-gray-100/80 max-w-4xl mx-auto">
+        <div className="flex flex-col gap-4 items-center mb-8 sm:mb-12 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100/80 max-w-4xl mx-auto">
           {/* Time & Price Filters row */}
-          <div className="flex flex-wrap gap-6 justify-center w-full">
+          <div className="flex flex-wrap gap-3 sm:gap-6 justify-center w-full">
             {/* Time Filter Group */}
             <div className="flex gap-2 items-center">
               {timeFilters.map(item => {
@@ -187,7 +187,7 @@ export function FeaturedTours() {
           </div>
 
           {/* Duration & Difficulty Filters row */}
-          <div className="flex flex-wrap gap-6 justify-center w-full">
+          <div className="flex flex-wrap gap-3 sm:gap-6 justify-center w-full">
             {/* Duration Filter Group */}
             <div className="flex gap-2 items-center">
               {durationFilters.map(label => {

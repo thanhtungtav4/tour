@@ -50,13 +50,13 @@ export function HeroSection({ data }: HeroSectionProps) {
             </span>
           </div>
           <h1 className="sr-only">Đôi Dép Adventure - Khám phá thiên nhiên Việt Nam</h1>
-          <h2 className="text-3xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight max-w-4xl">
+          <h2 className="text-3xl sm:text-5xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight max-w-4xl">
             {titleParts[0]}
             {titleParts[1] && (
               <span className="block text-emerald-400">{titleParts[1]}</span>
             )}
           </h2>
-          <p className="text-lg sm:text-xl text-white/80 max-w-2xl mb-8 leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-white/80 max-w-2xl mb-6 sm:mb-8 leading-relaxed">
             {subtitle}
           </p>
 
@@ -79,7 +79,7 @@ export function HeroSection({ data }: HeroSectionProps) {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce hidden sm:block">
           <div className="w-8 h-12 rounded-full border-2 border-white/30 flex items-start justify-center p-2">
             <div className="w-1.5 h-3 bg-white/60 rounded-full animate-pulse" />
           </div>
