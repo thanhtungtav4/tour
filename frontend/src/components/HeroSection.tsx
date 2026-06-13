@@ -19,7 +19,7 @@ export function HeroSection({ data }: HeroSectionProps) {
   const subtitle = data?.subtitle || "Trải nghiệm những chuyến đi trekking, camping tuyệt vời nhất cùng đội ngũ hướng dẫn viên chuyên nghiệp";
   
   const rawTitle = data?.title || "Khám phá|thiên nhiên Việt Nam";
-  const titleParts = rawTitle.split("|");
+  const titleParts = rawTitle.split("|").map(t => t.trim());
 
   return (
     <section className="relative">

@@ -58,7 +58,7 @@ export function AboutSection({ data }: AboutSectionProps) {
   const badge = data?.badge || "Tại sao chọn Đôi Dép Adventure";
   
   const rawTitle = data?.title || "Đối tác tin cậy cho| hành trình đáng nhớ";
-  const titleParts = rawTitle.split("|");
+  const titleParts = rawTitle.split("|").map(t => t.trim());
 
   const resolvedFeatures = (data?.features && data.features.length > 0)
     ? data.features.map((f) => ({
@@ -110,7 +110,10 @@ export function AboutSection({ data }: AboutSectionProps) {
             <h2 className="text-3xl lg:text-4xl font-extrabold text-[#0e1425] mb-8 leading-tight">
               {titleParts[0]}
               {titleParts[1] && (
-                <span className="text-[#16a249]">{titleParts[1]}</span>
+                <>
+                  {" "}
+                  <span className="text-[#16a249]">{titleParts[1]}</span>
+                </>
               )}
             </h2>
 

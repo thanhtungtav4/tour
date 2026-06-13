@@ -90,7 +90,7 @@ export function PartnersSection({ data }: PartnersSectionProps) {
   const subtitle = data?.subtitle || "Kết nối đa dạng dịch vụ để mang đến trải nghiệm trekking trọn vẹn nhất";
   
   const rawTitle = data?.title || "Hệ sinh thái |Đôi Dép Adventure";
-  const titleParts = rawTitle.split("|");
+  const titleParts = rawTitle.split("|").map(t => t.trim());
 
   const resolvedEcosystem = (data?.items && data.items.length > 0)
     ? data.items.map((item) => ({
@@ -114,7 +114,10 @@ export function PartnersSection({ data }: PartnersSectionProps) {
           <h2 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-4">
             {titleParts[0]}
             {titleParts[1] && (
-              <span className="text-emerald-600">{titleParts[1]}</span>
+              <>
+                {" "}
+                <span className="text-emerald-600">{titleParts[1]}</span>
+              </>
             )}
           </h2>
           <p className="text-gray-500 max-w-2xl mx-auto text-lg">
