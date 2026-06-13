@@ -142,7 +142,16 @@ export async function getBooking(
 export async function reportPayment(
   bookingId: string,
   email: string
-): Promise<{ success: boolean; data?: { reported?: boolean; already_paid?: boolean; message?: string } }> {
+): Promise<{
+  success: boolean;
+  data?: {
+    reported?: boolean;
+    already_paid?: boolean;
+    reconciled?: boolean;
+    reconciled_info?: any;
+    message?: string;
+  };
+}> {
   const url = `${API_BASE_URL}/booking/${bookingId}/report-payment`;
   const res = await fetch(url, {
     method: "POST",

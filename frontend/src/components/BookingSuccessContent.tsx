@@ -72,6 +72,8 @@ export function BookingSuccessContent({
 
   const [isReporting, setIsReporting] = useState(false);
   const [reportError, setReportError] = useState("");
+  const [reconciled, setReconciled] = useState(false);
+  const [reconciledInfo, setReconciledInfo] = useState<any>(null);
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -116,14 +118,22 @@ export function BookingSuccessContent({
     setIsReporting(true);
     setReportError("");
     try {
-      await reportPayment(bookingId, userEmail);
-      setBooking(prev => prev ? {
-        ...prev,
-        payment: {
-          ...prev.payment,
-          reported: true
+      const response = await reportPayment(bookingId, userEmail);
+      if (response.success && response.data) {
+        const isReconciled = response.data.reconciled || false;
+        if (isReconciled) {
+          setReconciled(true);
+          setReconciledInfo(response.data.reconciled_info);
         }
-      } : null);
+        setBooking(prev => prev ? {
+          ...prev,
+          payment: {
+            ...prev.payment,
+            reported: true,
+            status: isReconciled ? "paid" : prev.payment.status
+          }
+        } : null);
+      }
     } catch (err: any) {
       console.error("Error reporting payment:", err);
       setReportError(err.message || "Không thể báo cáo thanh toán. Vui lòng thử lại sau.");
@@ -301,11 +311,41 @@ export function BookingSuccessContent({
         >
           {booking.payment.status === "paid" ? (
             <div className="text-center py-6">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
                 <CheckIcon className="w-8 h-8 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Thanh toán hoàn tất!</h3>
-              <p className="text-gray-600">Hệ thống đã xác nhận thanh toán tự động cho đơn hàng này.</p>
+              <h3 className="text-xl font-bold text-emerald-700 mb-2">Thanh toán hoàn tất!</h3>
+              <p className="text-gray-600 mb-4">Hệ thống đã xác nhận thanh toán tự động cho đơn hàng này.</p>
+              
+              {(reconciled || booking.payment.reported) && (
+                <div className="mt-4 max-w-md mx-auto p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-left">
+                  <p className="text-xs font-bold text-emerald-800 mb-2 uppercase tracking-wider">Thông tin giao dịch:</p>
+                  <div className="space-y-1 text-xs text-emerald-700">
+                    <div className="flex justify-between">
+                      <span>Mã đơn hàng:</span>
+                      <span className="font-semibold">{booking.booking_id}</span>
+                    </div>
+                    {reconciledInfo?.transaction_id && (
+                      <div className="flex justify-between">
+                        <span>Mã giao dịch:</span>
+                        <span className="font-mono font-semibold">{reconciledInfo.transaction_id}</span>
+                      </div>
+                    )}
+                    {reconciledInfo?.transaction_time && (
+                      <div className="flex justify-between">
+                        <span>Thời gian nhận:</span>
+                        <span>{reconciledInfo.transaction_time}</span>
+                      </div>
+                    )}
+                    {reconciledInfo?.content && (
+                      <div className="flex justify-between flex-col sm:flex-row gap-0.5 sm:gap-2">
+                        <span>Nội dung:</span>
+                        <span className="font-mono break-all sm:text-right">{reconciledInfo.content}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           ) : !booking.payment.bank_info ? (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">

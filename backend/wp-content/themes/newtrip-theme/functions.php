@@ -2120,6 +2120,68 @@ function newtrip_api_report_payment(WP_REST_Request $request)
         ], 200);
     }
 
+    // Try to auto-reconcile with Bank Gateway if configured
+    $gateway_url = get_option('newtrip_bank_gateway_lookup_url', '');
+    $gateway_token = get_option('newtrip_bank_gateway_token', '');
+    $reconciled = false;
+    $reconciled_info = null;
+    $total = floatval(newtrip_get_field('total_amount', $b_id));
+
+    if (!empty($gateway_url)) {
+        $lookup_url = add_query_arg([
+            'booking_id' => $booking_code,
+            'amount'     => $total
+        ], $gateway_url);
+
+        $headers = [
+            'Accept' => 'application/json',
+        ];
+        if (!empty($gateway_token)) {
+            $headers['Authorization'] = 'Bearer ' . $gateway_token;
+        }
+
+        $lookup_response = wp_remote_get($lookup_url, [
+            'headers' => $headers,
+            'timeout' => 15,
+        ]);
+
+        if (!is_wp_error($lookup_response)) {
+            $status_code = wp_remote_retrieve_response_code($lookup_response);
+            $body = wp_remote_retrieve_body($lookup_response);
+            $data = json_decode($body, true);
+
+            if ($status_code === 200 && is_array($data) && isset($data['found']) && $data['found'] === true) {
+                // Instantly mark as paid and confirmed
+                update_field('field_booking_status', 'confirmed', $b_id);
+                update_post_meta($b_id, 'payment_status', 'paid');
+                update_post_meta($b_id, 'paid_amount', $total);
+
+                // Save transaction details if available
+                if (isset($data['transaction']) && is_array($data['transaction'])) {
+                    update_post_meta($b_id, 'bank_transaction_id', $data['transaction']['transaction_id'] ?? '');
+                    update_post_meta($b_id, 'bank_transaction_time', $data['transaction']['transaction_time'] ?? '');
+                    update_post_meta($b_id, 'bank_transaction_content', $data['transaction']['content'] ?? '');
+                    $reconciled_info = $data['transaction'];
+                }
+
+                // Add to history
+                $existing = get_post_meta($b_id, 'status_history', true);
+                $history = is_array($existing) ? $existing : [];
+                $history[] = [
+                    'time' => current_time('mysql'),
+                    'user_id' => 0, // System
+                    'status' => 'confirmed',
+                    'payment_status' => 'paid',
+                    'paid_amount' => $total,
+                    'note' => 'Hệ thống tự động tra soát và xác nhận thanh toán qua Bank Gateway.',
+                ];
+                update_post_meta($b_id, 'status_history', $history);
+
+                $reconciled = true;
+            }
+        }
+    }
+
     // Update payment reported meta
     update_post_meta($b_id, 'payment_reported', '1');
     update_post_meta($b_id, 'payment_reported_time', current_time('mysql'));
@@ -2141,7 +2203,6 @@ function newtrip_api_report_payment(WP_REST_Request $request)
             $tour_id = intval($tour_id_raw);
         }
         $tour_post = get_post($tour_id);
-        $total = floatval(newtrip_get_field('total_amount', $b_id));
 
         $payload = [
             'event' => 'payment.reported',
@@ -2153,6 +2214,8 @@ function newtrip_api_report_payment(WP_REST_Request $request)
             'customer_phone' => newtrip_get_field('phone', $b_id),
             'customer_email' => $email,
             'reported_at' => current_time('c'),
+            'reconciled' => $reconciled,
+            'reconciled_info' => $reconciled_info,
         ];
 
         $response = wp_remote_post($webhook_url, [
@@ -2181,6 +2244,8 @@ function newtrip_api_report_payment(WP_REST_Request $request)
         'data' => [
             'booking_id' => $booking_code,
             'reported' => true,
+            'reconciled' => $reconciled,
+            'reconciled_info' => $reconciled_info,
             'webhook_triggered' => $webhook_triggered,
             'webhook_error' => $webhook_error,
             'reported_at' => current_time('c'),
