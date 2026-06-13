@@ -2275,13 +2275,31 @@ function newtrip_api_payment_webhook(WP_REST_Request $request)
         $params = [];
     }
 
-    $booking_code = isset($params['booking_id']) ? sanitize_text_field($params['booking_id']) : '';
-    $amount = isset($params['amount']) ? floatval($params['amount']) : 0;
+    // Support both root level and nested 'data' block payloads
+    $data_block = isset($params['data']) && is_array($params['data']) ? $params['data'] : $params;
+
+    $booking_code = '';
+    if (isset($data_block['booking_id'])) {
+        $booking_code = sanitize_text_field($data_block['booking_id']);
+    } elseif (isset($data_block['order_code'])) {
+        $booking_code = sanitize_text_field($data_block['order_code']);
+    } elseif (isset($params['booking_id'])) {
+        $booking_code = sanitize_text_field($params['booking_id']);
+    } elseif (isset($params['order_code'])) {
+        $booking_code = sanitize_text_field($params['order_code']);
+    }
+
+    $amount = 0;
+    if (isset($data_block['amount'])) {
+        $amount = floatval($data_block['amount']);
+    } elseif (isset($params['amount'])) {
+        $amount = floatval($params['amount']);
+    }
 
     if (empty($booking_code)) {
         return new WP_REST_Response([
             'success' => false,
-            'error' => ['code' => 'missing_booking_id', 'message' => 'Cần cung cấp mã đặt tour (booking_id)']
+            'error' => ['code' => 'missing_booking_id', 'message' => 'Cần cung cấp mã đặt tour (booking_id hoặc order_code)']
         ], 400);
     }
 
