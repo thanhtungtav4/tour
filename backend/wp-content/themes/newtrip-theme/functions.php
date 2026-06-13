@@ -817,6 +817,13 @@ add_action('rest_api_init', function () {
         'permission_callback' => '__return_true',
     ]);
 
+    // 5.6b-3 POST /wp-json/newtrip/v1/payment/webhook - Hệ thống báo có thanh toán tự động
+    register_rest_route('newtrip/v1', '/payment/webhook', [
+        'methods' => 'POST',
+        'callback' => 'newtrip_api_payment_webhook',
+        'permission_callback' => '__return_true',
+    ]);
+
     register_rest_route('newtrip/v1', '/booking/(?P<id>[a-zA-Z0-9-]+)/update-passengers', [
         'methods' => 'POST',
         'callback' => 'newtrip_api_update_booking_passengers',
@@ -2177,6 +2184,123 @@ function newtrip_api_report_payment(WP_REST_Request $request)
             'webhook_triggered' => $webhook_triggered,
             'webhook_error' => $webhook_error,
             'reported_at' => current_time('c'),
+        ]
+    ], 200);
+}
+
+// 5.6b-3 Incoming Webhook - Hệ thống báo có thanh toán tự động từ ngân hàng
+function newtrip_api_payment_webhook(WP_REST_Request $request)
+{
+    $configured_token = get_option('newtrip_payment_webhook_token', '');
+    if (!empty($configured_token)) {
+        $request_token = $request->get_header('X-Webhook-Token');
+        if (empty($request_token)) {
+            $request_token = $request->get_param('token');
+        }
+        if ($request_token !== $configured_token) {
+            return new WP_REST_Response([
+                'success' => false,
+                'error' => ['code' => 'unauthorized', 'message' => 'Token bảo mật không chính xác hoặc không được cung cấp.']
+            ], 401);
+        }
+    }
+
+    $params = $request->get_json_params();
+    if (!is_array($params)) {
+        $params = [];
+    }
+
+    $booking_code = isset($params['booking_id']) ? sanitize_text_field($params['booking_id']) : '';
+    $amount = isset($params['amount']) ? floatval($params['amount']) : 0;
+
+    if (empty($booking_code)) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'missing_booking_id', 'message' => 'Cần cung cấp mã đặt tour (booking_id)']
+        ], 400);
+    }
+
+    if ($amount <= 0) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'invalid_amount', 'message' => 'Số tiền báo có phải lớn hơn 0']
+        ], 400);
+    }
+
+    // Query booking by code
+    $query = new WP_Query([
+        'post_type' => 'booking',
+        'meta_query' => [
+            [
+                'key' => 'booking_code',
+                'value' => $booking_code,
+                'compare' => '=',
+            ]
+        ],
+        'posts_per_page' => 1,
+    ]);
+
+    if (!$query->have_posts()) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'booking_not_found', 'message' => 'Không tìm thấy đơn đặt tour với mã đã cung cấp']
+        ], 404);
+    }
+
+    $post = $query->posts[0];
+    $b_id = $post->ID;
+
+    // Get current payment info
+    $total_amount = floatval(newtrip_get_field('total_amount', $b_id));
+    $current_paid = floatval(get_post_meta($b_id, 'paid_amount', true));
+    
+    // Calculate new paid amount
+    $new_paid = $current_paid + $amount;
+    
+    // Determine new payment status
+    if ($new_paid >= $total_amount) {
+        $payment_status = 'paid';
+    } else {
+        $payment_status = 'partial';
+    }
+
+    // Update fields
+    update_post_meta($b_id, 'payment_status', $payment_status);
+    update_post_meta($b_id, 'paid_amount', $new_paid);
+    
+    // Add payment log/history
+    $existing = get_post_meta($b_id, 'status_history', true);
+    $history = is_array($existing) ? $existing : [];
+    $history[] = [
+        'time' => current_time('mysql'),
+        'user_id' => 0, // System/Webhook
+        'status' => null,
+        'payment_status' => $payment_status,
+        'paid_amount' => $new_paid,
+        'note' => sprintf('Hệ thống tự động báo có +%sđ qua Webhook.', number_format($amount, 0, ',', '.')),
+    ];
+    update_post_meta($b_id, 'status_history', $history);
+
+    // If fully paid, auto confirm booking if it is pending
+    $current_status = get_post_meta($b_id, 'status', true) ?: 'pending';
+    $status_updated = false;
+    if ($payment_status === 'paid' && $current_status === 'pending') {
+        update_post_meta($b_id, 'status', 'confirmed');
+        if (function_exists('update_field')) {
+            update_field('field_booking_status', 'confirmed', $b_id);
+        }
+        $status_updated = true;
+    }
+
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => [
+            'booking_id' => $booking_code,
+            'amount_received' => $amount,
+            'total_paid' => $new_paid,
+            'payment_status' => $payment_status,
+            'booking_status_updated' => $status_updated,
+            'processed_at' => current_time('c'),
         ]
     ], 200);
 }

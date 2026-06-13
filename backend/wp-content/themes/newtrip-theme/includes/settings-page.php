@@ -25,12 +25,22 @@ add_action('admin_init', function () {
         'sanitize_callback' => 'esc_url_raw',
         'default' => '',
     ]);
+    register_setting('newtrip_checkin_settings', 'newtrip_payment_webhook_token', [
+        'type' => 'string',
+        'sanitize_callback' => 'sanitize_text_field',
+        'default' => '',
+    ]);
 });
 
 function newtrip_checkin_settings_page() {
     if (!current_user_can('manage_options')) return;
     $current_pin = get_option('newtrip_checkin_pin', '');
     $webhook_url = get_option('newtrip_payment_webhook_url', '');
+    $webhook_token = get_option('newtrip_payment_webhook_token', '');
+    if (empty($webhook_token)) {
+        $webhook_token = wp_generate_password(24, false);
+        update_option('newtrip_payment_webhook_token', $webhook_token);
+    }
     ?>
     <div class="wrap">
         <h1>Cấu hình hệ thống NewTrip</h1>
@@ -46,11 +56,20 @@ function newtrip_checkin_settings_page() {
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="newtrip_payment_webhook_url">Webhook báo có</label></th>
+                    <th scope="row"><label for="newtrip_payment_webhook_url">Webhook báo có (Outgoing)</label></th>
                     <td>
                         <input name="newtrip_payment_webhook_url" id="newtrip_payment_webhook_url" type="url"
                                value="<?php echo esc_url($webhook_url); ?>" class="large-text" placeholder="https://example.com/webhook" style="width: 25em;" />
                         <p class="description">URL Webhook của bạn để hệ thống nhận thông tin khi khách nhấn nút "Báo đã thanh toán".</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="newtrip_payment_webhook_token">Token bảo mật Webhook (Incoming)</label></th>
+                    <td>
+                        <input name="newtrip_payment_webhook_token" id="newtrip_payment_webhook_token" type="text"
+                               value="<?php echo esc_attr($webhook_token); ?>" class="regular-text" style="width: 25em;" />
+                        <p class="description">Token để xác thực các yêu cầu báo có từ hệ thống bên ngoài gửi tới NewTrip. Hãy đính kèm dưới dạng header <code>X-Webhook-Token</code> hoặc tham số <code>?token=...</code> trong URL gọi API.</p>
+                        <p class="description">Đường dẫn nhận báo có: <code><?php echo esc_url(home_url('/wp-json/newtrip/v1/payment/webhook')); ?></code></p>
                     </td>
                 </tr>
             </table>
