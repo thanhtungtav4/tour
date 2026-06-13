@@ -213,6 +213,7 @@ export interface BookingDetail {
     paid: number;
     remaining: number;
     status: "unpaid" | "partial" | "paid" | "refunded";
+    reported?: boolean;
     bank_info: {
       bank_name: string;
       bank_bin: string;

@@ -810,6 +810,13 @@ add_action('rest_api_init', function () {
     ]);
 
     // 5.6c POST /wp-json/newtrip/v1/booking/<id>/update-passengers - Cập nhật thông tin hành khách
+        // 5.6b-2 POST /wp-json/newtrip/v1/booking/<id>/report-payment - Khách hàng báo đã thanh toán
+    register_rest_route('newtrip/v1', '/booking/(?P<id>[a-zA-Z0-9-]+)/report-payment', [
+        'methods' => 'POST',
+        'callback' => 'newtrip_api_report_payment',
+        'permission_callback' => '__return_true',
+    ]);
+
     register_rest_route('newtrip/v1', '/booking/(?P<id>[a-zA-Z0-9-]+)/update-passengers', [
         'methods' => 'POST',
         'callback' => 'newtrip_api_update_booking_passengers',
@@ -1880,6 +1887,7 @@ function newtrip_api_get_booking(WP_REST_Request $request)
                 'paid' => $paid_amount,
                 'remaining' => $remaining_amount,
                 'status' => $payment_status,
+                'reported' => get_post_meta($b_id, 'payment_reported', true) === '1',
                 'bank_info' => $bank_info
             ]
         ]
@@ -2041,6 +2049,135 @@ function newtrip_api_update_booking_status(WP_REST_Request $request)
             'paid_amount' => $paid_amount ?? floatval(get_post_meta($b_id, 'paid_amount', true)),
             'updated_at' => current_time('c'),
         ],
+    ], 200);
+}
+
+// 5.6b-2 Khách hàng báo đã thanh toán & kích hoạt Webhook
+function newtrip_api_report_payment(WP_REST_Request $request)
+{
+    $booking_code = sanitize_text_field($request->get_param('id'));
+    $params = $request->get_json_params();
+    if (!is_array($params)) {
+        $params = [];
+    }
+
+    $email = isset($params['email']) ? sanitize_email($params['email']) : '';
+
+    if (empty($email)) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'missing_email', 'message' => 'Cần cung cấp email liên hệ để xác thực']
+        ], 400);
+    }
+
+    // Verify booking matches email
+    $query = new WP_Query([
+        'post_type' => 'booking',
+        'meta_query' => [
+            'relation' => 'AND',
+            [
+                'key' => 'booking_code',
+                'value' => $booking_code,
+                'compare' => '=',
+            ],
+            [
+                'key' => 'email',
+                'value' => $email,
+                'compare' => '=',
+            ]
+        ],
+        'posts_per_page' => 1,
+    ]);
+
+    if (!$query->have_posts()) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => ['code' => 'booking_not_found', 'message' => 'Không tìm thấy đơn đặt tour hoặc email không khớp']
+        ], 404);
+    }
+
+    $post = $query->posts[0];
+    $b_id = $post->ID;
+
+    // Check if already paid
+    $payment_status = get_post_meta($b_id, 'payment_status', true);
+    if ($payment_status === 'paid') {
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => [
+                'booking_id' => $booking_code,
+                'reported' => true,
+                'already_paid' => true,
+                'message' => 'Đơn hàng này đã được xác nhận thanh toán hoàn tất trước đó.'
+            ]
+        ], 200);
+    }
+
+    // Update payment reported meta
+    update_post_meta($b_id, 'payment_reported', '1');
+    update_post_meta($b_id, 'payment_reported_time', current_time('mysql'));
+
+    // Try to trigger webhook
+    $webhook_url = get_option('newtrip_payment_webhook_url', '');
+    $webhook_triggered = false;
+    $webhook_error = '';
+
+    if (!empty($webhook_url)) {
+        // Fetch booking info for payload
+        $tour_id_raw = newtrip_get_field('tour_id', $b_id);
+        $tour_id = 0;
+        if (is_object($tour_id_raw)) {
+            $tour_id = $tour_id_raw->ID;
+        } elseif (is_array($tour_id_raw)) {
+            $tour_id = $tour_id_raw['ID'] ?? 0;
+        } else {
+            $tour_id = intval($tour_id_raw);
+        }
+        $tour_post = get_post($tour_id);
+        $total = floatval(newtrip_get_field('total_amount', $b_id));
+
+        $payload = [
+            'event' => 'payment.reported',
+            'booking_id' => $booking_code,
+            'tour_name' => $tour_post ? $tour_post->post_title : 'Tour',
+            'departure_date' => newtrip_get_field('departure_date', $b_id),
+            'total_amount' => $total,
+            'customer_name' => newtrip_get_field('full_name', $b_id),
+            'customer_phone' => newtrip_get_field('phone', $b_id),
+            'customer_email' => $email,
+            'reported_at' => current_time('c'),
+        ];
+
+        $response = wp_remote_post($webhook_url, [
+            'method'    => 'POST',
+            'headers'   => [
+                'Content-Type' => 'application/json',
+            ],
+            'body'      => json_encode($payload),
+            'timeout'   => 15,
+        ]);
+
+        if (is_wp_error($response)) {
+            $webhook_error = $response->get_error_message();
+        } else {
+            $status_code = wp_remote_retrieve_response_code($response);
+            if ($status_code >= 200 && $status_code < 300) {
+                $webhook_triggered = true;
+            } else {
+                $webhook_error = 'HTTP Status ' . $status_code;
+            }
+        }
+    }
+
+    return new WP_REST_Response([
+        'success' => true,
+        'data' => [
+            'booking_id' => $booking_code,
+            'reported' => true,
+            'webhook_triggered' => $webhook_triggered,
+            'webhook_error' => $webhook_error,
+            'reported_at' => current_time('c'),
+        ]
     ], 200);
 }
 
@@ -2538,13 +2675,18 @@ function newtrip_booking_custom_column_content($column, $post_id)
 
         case 'payment_status':
             $pay_status = get_post_meta($post_id, 'payment_status', true) ?: 'unpaid';
+            $reported = get_post_meta($post_id, 'payment_reported', true);
             $labels = [
                 'unpaid' => '<span class="badge" style="border:1px solid #d9381e;color:#d9381e;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Chưa trả</span>',
                 'partial' => '<span class="badge" style="border:1px solid #ffb900;color:#ffb900;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Trả một phần</span>',
                 'paid' => '<span class="badge" style="border:1px solid #16a249;color:#16a249;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Đã thanh toán</span>',
                 'refunded' => '<span class="badge" style="border:1px solid #727272;color:#727272;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;">Đã hoàn tiền</span>'
             ];
-            echo isset($labels[$pay_status]) ? $labels[$pay_status] : esc_html($pay_status);
+            $label = isset($labels[$pay_status]) ? $labels[$pay_status] : esc_html($pay_status);
+            if ($reported && $pay_status !== 'paid') {
+                $label .= '<br><span class="badge-reported" style="background:#0284c7;color:#fff;padding:1px 4px;border-radius:3px;font-size:9px;font-weight:600;display:inline-block;margin-top:4px;">Khách báo đã CK</span>';
+            }
+            echo $label;
             break;
     }
 }

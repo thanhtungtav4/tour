@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CheckIcon, CalendarIcon, UsersIcon, PhoneIcon, ArrowRightIcon } from "@/components/icons";
-import { getBooking, BookingDetail } from "@/lib/api";
+import { getBooking, BookingDetail, reportPayment } from "@/lib/api";
 import { useSettings } from "@/hooks/useSettings";
 
 interface BookingSuccessContentProps {
@@ -70,6 +70,9 @@ export function BookingSuccessContent({
   const [emailInput, setEmailInput] = useState("");
   const [verificationError, setVerificationError] = useState("");
 
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportError, setReportError] = useState("");
+
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
@@ -106,6 +109,27 @@ export function BookingSuccessContent({
       return;
     }
     setUserEmail(emailInput.trim());
+  };
+
+  const handleReportPayment = async () => {
+    if (!booking) return;
+    setIsReporting(true);
+    setReportError("");
+    try {
+      await reportPayment(bookingId, userEmail);
+      setBooking(prev => prev ? {
+        ...prev,
+        payment: {
+          ...prev.payment,
+          reported: true
+        }
+      } : null);
+    } catch (err: any) {
+      console.error("Error reporting payment:", err);
+      setReportError(err.message || "Không thể báo cáo thanh toán. Vui lòng thử lại sau.");
+    } finally {
+      setIsReporting(false);
+    }
   };
 
   const displayTourName = (booking && booking.tour.name) ? booking.tour.name : decodeURIComponent(tourName || "Tour");
@@ -439,6 +463,38 @@ export function BookingSuccessContent({
                   <strong>Lưu ý cực kỳ quan trọng:</strong> Vui lòng quét mã QR hoặc chuyển khoản thủ công bằng cách nhập <strong>chính xác số tiền</strong> và <strong>nội dung chuyển khoản</strong> ở trên để hệ thống tự động xác nhận báo có. Bất kỳ sự sai lệch nào sẽ dẫn đến chậm trễ hoặc cần đối soát thủ công.
                 </p>
               </div>
+
+              {booking.payment.reported ? (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex gap-3 items-start">
+                  <CheckCircleMiniIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-blue-900">Đã báo cáo chuyển khoản thành công</p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      Hệ thống đã ghi nhận thông báo chuyển khoản của bạn. Quản trị viên đang đối soát giao dịch và sẽ cập nhật sớm nhất!
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-6 pt-6 border-t border-gray-100 flex flex-col items-center">
+                  <p className="text-xs text-gray-500 mb-3 text-center">
+                    Nếu bạn đã thực hiện chuyển khoản thành công, hãy bấm nút dưới đây để thông báo cho admin kiểm tra thủ công nhanh hơn.
+                  </p>
+                  <button
+                    onClick={handleReportPayment}
+                    disabled={isReporting}
+                    className={`w-full py-3 text-center font-bold rounded-xl transition-all duration-300 shadow-md ${
+                      isReporting
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg cursor-pointer"
+                    }`}
+                  >
+                    {isReporting ? "Đang xử lý..." : "Báo đã thanh toán (Xác nhận chuyển khoản)"}
+                  </button>
+                  {reportError && (
+                    <p className="text-xs text-rose-600 font-medium mt-2">{reportError}</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </motion.div>

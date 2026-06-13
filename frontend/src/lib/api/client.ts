@@ -139,6 +139,24 @@ export async function getBooking(
   return json.data;
 }
 
+export async function reportPayment(
+  bookingId: string,
+  email: string
+): Promise<{ success: boolean; data?: { reported?: boolean; already_paid?: boolean; message?: string } }> {
+  const url = `${API_BASE_URL}/booking/${bookingId}/report-payment`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error?.message || "report_payment_failed");
+  }
+  return json;
+}
 
 export async function lookupBooking(params: { email?: string; phone?: string }): Promise<BookingLookupRow[]> {
   const query = new URLSearchParams();
